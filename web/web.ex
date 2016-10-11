@@ -52,6 +52,7 @@ defmodule Mafia.Web do
       import Mafia.Router.Helpers
       import Mafia.ErrorHelpers
       import Mafia.Gettext
+      import Mafia.Coherence.ViewHelpers
     end
   end
 

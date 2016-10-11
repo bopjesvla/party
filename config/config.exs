@@ -31,7 +31,7 @@ config :coherence,
   user_schema: Mafia.User,
   repo: Mafia.Repo,
   module: Mafia,
-  logged_out_url: "/",
+  logged_out_url: "/app",
   email_from: {"Your Name", "yourname@example.com"},
   opts: [:authenticatable, :recoverable, :lockable, :trackable, :unlockable_with_token, :registerable]
 

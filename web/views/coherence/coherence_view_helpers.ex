@@ -8,13 +8,13 @@ defmodule Mafia.Coherence.ViewHelpers do
   @seperator {:safe, "&nbsp; | &nbsp;"}
   @helpers Module.concat(Application.get_env(:coherence, :module), Router.Helpers)
 
-  @recover_link  "Forgot your password?"
+  @recover_link  "I forgot my password"
   @unlock_link   "Send an unlock email"
-  @register_link "Need An Account?"
+  @register_link "I'm new here"
   @invite_link   "Invite Someone"
   @confirm_link  "Resend confirmation email"
-  @signin_link   "Sign In"
-  @signout_link  "Sign Out"
+  @signin_link   "Sign in"
+  @signout_link  "Sign out"
 
   @doc """
   Create coherence template links.
@@ -45,9 +45,9 @@ defmodule Mafia.Coherence.ViewHelpers do
 
     user_schema = Coherence.Config.user_schema
     [
+      register_link(conn, user_schema, register_link),
       recover_link(conn, user_schema, recover_link),
       unlock_link(conn, user_schema, unlock_link),
-      register_link(conn, user_schema, register_link),
       confirmation_link(conn, user_schema, confirm_link)
     ]
     |> List.flatten
@@ -69,13 +69,17 @@ defmodule Mafia.Coherence.ViewHelpers do
           link(signout, to: coherence_path(@helpers, :session_path, conn, :delete), method: :delete, class: signout_class))
       ]
     else
-      signin_link = content_tag(list_tag, link(signin, to: coherence_path(@helpers, :session_path, conn, :new)))
+      signin_link = content_tag(list_tag, signin_link(conn, signin))
       if Config.has_option(:registerable) && register do
         [content_tag(list_tag, link(register, to: coherence_path(@helpers, :registration_path, conn, :new))), signin_link]
       else
         signin_link
       end
     end
+  end
+
+  def signin_link(conn, label) do
+    link(label, to: coherence_path(@helpers, :session_path, conn, :new))   
   end
 
   @doc """
@@ -127,10 +131,7 @@ defmodule Mafia.Coherence.ViewHelpers do
 
   def required_label(f, name, opts \\ []) do
     label f, name, opts do
-      [
-        "#{humanize(name)}\n",
-        content_tag(:abbr, "*", class: "required", title: "required")
-      ]
+      "#{humanize(name)}\n"
     end
   end
 

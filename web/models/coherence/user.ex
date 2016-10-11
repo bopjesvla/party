@@ -15,6 +15,8 @@ defmodule Mafia.User do
     |> cast(params, [:name, :email] ++ coherence_fields)
     |> validate_required([:name, :email])
     |> unique_constraint(:email)
+    |> unique_constraint(:name)
     |> validate_coherence(params)
+    |> validate_format(:email, ~r/.@./)
   end
 end
