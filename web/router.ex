@@ -47,8 +47,8 @@ defmodule Mafia.Router do
     pipe_through :protected
     pipe_through :default_layout
 
-    get "/app", PageController, :index
-    get "/app/*path", PageController, :index
+    get "/home", HomeController, :index
+    get "/home/*path", HomeController, :index
     # add protected resources below
     #resources "/privates", Mafia.PrivateController
   end

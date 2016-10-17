@@ -13,7 +13,7 @@ config :logger, level: :warn
 config :mafia, Mafia.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
-  password: "postgres",
+  password: "12zxcv",
   database: "mafia_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox

@@ -57,12 +57,16 @@ exports.config = {
     },
     stylus: {
       plugins: ['axis']
+    },
+    vue: {
+      postcss: 'precss cssnext rucksack-css postcss-color-palette'.split(' ').map(require).map(x => x()),
+      autoprefixer: false
     }
   },
 
   modules: {
     autoRequire: {
-      "js/app.js": ["web/static/js/app"]
+      "js/app.js": ["web/static/app"]
     }
   },
 

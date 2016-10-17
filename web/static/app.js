@@ -13,6 +13,43 @@
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
 
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import Home from './Home.vue'
+import Lobby from './Lobby.vue'
+import LobbySidebar from './LobbySidebar.vue'
+
+import 'vueify/lib/insert-css'
+
+Vue.use(VueRouter)
+
+let router = new VueRouter({
+  routes: [{
+    path: '/',
+    component: Home,
+    children: [
+      {
+        path: '/',
+        name: 'lobby',
+        components: {
+          main: 'lobby',
+          sidebar: LobbySidebar,
+          default: Lobby
+        }
+      }
+    ]
+  }],
+  mode: 'history',
+  base: '/home'
+})
+
+let app = new Vue({
+  router,
+  el: '#view',
+  render: h => h('router-view'),
+  components: {Home},
+})
+
 // Import local files
 //
 // Local files can be imported directly using relative

@@ -1,4 +1,4 @@
-defmodule Mafia.PageController do
+defmodule Mafia.HomeController do
   use Mafia.Web, :controller
 
   def index(conn, _params) do
