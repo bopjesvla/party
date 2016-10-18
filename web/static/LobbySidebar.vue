@@ -1,25 +1,25 @@
 <template>
 	<div class="lobby-sidebar">
 		<div class="vertical-tabs">
-			<tab group="sidebar-tabs" label="Games" :active="true">
+			<collapse group="sidebar-tabs" label="Join a Game" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
-			</tab>
-			<tab group="sidebar-tabs" label="Setups">
+			</collapse>
+			<collapse group="sidebar-tabs" label="Create a Setup">
 				woop
-			</tab>
-			<tab group="sidebar-tabs" label="Find">
+			</collapse>
+			<collapse group="sidebar-tabs" label="Find">
 				woop
-			</tab>
+			</collapse>
 		</div>
 	</div>
 </template>
 
 <script type="text/javascript" charset="utf-8">
-	import Tab from './components/Tab'
+	import Collapse from './components/Collapse'
 	import GameList from './components/GameList'
 
 	export default {
-		components: {Tab, GameList},
+		components: {Collapse, GameList},
 		data() {
 			return {
 				gamesInSignups: [{s: 'Vengeful', p: 7, t: 9}]
@@ -30,7 +30,7 @@
 
 <style type="text/css" media="screen">
 	$icon-width: 70px;
-	$bg: color(red shade(40%));
+	$bg: color(blue shade(80%));
 	$active-color: black;
 
 	.lobby-sidebar {
@@ -42,25 +42,13 @@
 			left: 0;
 			right: 0;
 			label {
-				display: block;
-				width: 70px;
-				height: 70px;
 				padding: 5px;
-				font-style: italic;
+				display: block;
+				letter-spacing: 2px;
 			}
 			.content {
-				top: 0;
 				padding: 5px;
-				background: $active-color;
 				height: 100%;
-				left: 71px;
-				right: 0;
-			}
-			.hidden-tab-input:checked + label {
-				width: 71px;
-				z-index: 5;
-				position: relative;
-				background-color: $active-color;
 			}
 		}
 	}

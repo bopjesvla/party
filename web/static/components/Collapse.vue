@@ -1,6 +1,6 @@
 <template>
 	<section class="tab">
-		<input ref="input" class="hidden-tab-input" type="checkbox" :value="label" :id="id" :checked="!collapsed">
+		<input ref="input" class="hidden-tab-input" type="checkbox" :value="label" :id="id" :checked="collapsed">
 		<label :for="id">{{label}}</label>
 		<div class="content">
 			<slot></slot>
@@ -21,17 +21,6 @@
 					required: true
 				},
 				collapsed: Boolean
-		},
-		computed: {
-			activeTab: {
-				get() {
-					return this.$refs.input.value
-				},
-				set(name) {
-					this.$refs.input.value = name
-				},
-				cache: false
-			}
 		}
 	}
 </script>
@@ -42,16 +31,13 @@
 			display: none;
 			&:checked + label {
 				+ .content {
-					display: block;
+					display: none;
 				}
 			}
 		}
 		label {
 			cursor: pointer;
-		}
-		.content {
-			display: none;
-			position: absolute
+			user-select: none;
 		}
 	}
 </style>
