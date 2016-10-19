@@ -6,12 +6,12 @@ defmodule Mafia.Repo.Migrations.CreateRoom do
       add :type, :text
       add :name, :text
       add :archived, :boolean, default: false, null: false
-      add :user_id, references(:users, on_delete: :nothing)
+      add :creator_id, references(:users, on_delete: :nothing)
 
       timestamps()
     end
     create unique_index(:rooms, [:name])
-    create index(:rooms, [:user_id])
+    create index(:rooms, [:creator_id])
 
   end
 end

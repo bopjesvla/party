@@ -5,7 +5,7 @@ defmodule Mafia.Room do
     field :type, :string
     field :name, :string
     field :archived, :boolean, default: false
-    belongs_to :user, Mafia.User
+    belongs_to :creator, Mafia.User
 
     timestamps()
   end
