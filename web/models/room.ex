@@ -6,6 +6,7 @@ defmodule Mafia.Room do
     field :name, :string
     field :archived, :boolean, default: false
     belongs_to :creator, Mafia.User
+    has_many :channels, Mafia.Channel
 
     timestamps()
   end

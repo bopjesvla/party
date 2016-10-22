@@ -12,13 +12,14 @@
 // If you no longer want to use a dependency, remember
 // to also remove its path from "config.paths.watched".
 import "phoenix_html"
-import socket from "./js/socket"
+import socket from "./socket"
 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from './Home.vue'
 import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
+import Room from './Room.vue'
 
 import 'vueify/lib/insert-css'
 
@@ -39,6 +40,9 @@ let router = new VueRouter({
         }
       }
     ]
+  }, {
+    path: '/room/:name',
+    component: Room
   }],
   mode: 'history',
   base: '/home'
