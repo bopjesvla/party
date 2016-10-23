@@ -1,5 +1,5 @@
 <template>
-	<form class="chatInput" action="">
+	<form class="chatInput" @submit.prevent="send">
 		<div class="username">{{username}}</div>
 		<input class="chat" type="text" v-model="msg">
 		<div class="channels" v-if="channels && channels.length > 1">
@@ -15,6 +15,14 @@
 			return {
 				channels: [],
 				msg: ""
+			}
+		},
+		props: {
+			to: String
+		},
+		methods: {
+			send() {
+				channel.push
 			}
 		}
 	}
