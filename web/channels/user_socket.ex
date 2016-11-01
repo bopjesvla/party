@@ -31,7 +31,7 @@ defmodule Mafia.UserSocket do
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
   #
-  def id(socket), do: "user:#{socket.assigns[:user_id]}"
+  def id(socket), do: "user:#{socket.assigns.user}"
   #
   # Would allow you to broadcast a "disconnect" event and terminate
   # all active sockets and channels for a given user:

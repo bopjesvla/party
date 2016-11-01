@@ -6,12 +6,8 @@
     "watch": "brunch watch --stdin"
   },
   "dependencies": {
-    "cssnext": "^1.8.4",
     "phoenix": "file:deps/phoenix",
     "phoenix_html": "file:deps/phoenix_html",
-    "postcss-color-palette": "0.0.3",
-    "precss": "^1.4.0",
-    "rucksack-css": "^0.8.6",
     "vue": "^2.0.1",
     "vue-router": "^2.0.0"
   },
@@ -22,9 +18,13 @@
     "brunch": "2.7.4",
     "clean-css-brunch": "~2.0.0",
     "css-brunch": "~2.0.0",
+    "cssnext": "^1.8.4",
     "javascript-brunch": "~2.0.0",
+    "postcss-color-palette": "0.0.3",
+    "precss": "^1.4.0",
     "pug": "^2.0.0-beta6",
-    "stylus-brunch": "^2.7.2",
+    "rucksack-css": "^0.8.6",
+    "stylus-brunch": "^2.8.0",
     "uglify-js-brunch": "~2.0.1",
     "vue-brunch": "^1.2.1"
   }

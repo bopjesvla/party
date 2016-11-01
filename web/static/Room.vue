@@ -1,27 +1,85 @@
 <template>
 	<div class="room">
 		<room-header :name=$route.params.name></room-header>
-		<room-messages :messages=messages></room-messages>
-		<chat-input :channel=channel></chat-input>
+		<div class="room-inner">
+			<chat-messages :messages=messages></chat-messages>
+		</div>
+		<form @submit.prevent="send">
+			<input type="text" v-model="input"/>
+		</form>
+		<!--<chat-input :channel={[$route.params.name]:topic}></chat-input>-->
 	</div>
 </template>
 <script>
 	import socket from './socket'
+	import RoomHeader from './components/RoomHeader'
+	import ChatMessages from './components/ChatMessages'
+	import ChatInput from './components/ChatInput'
 
 	export default {
 		data() {
 			return {
 				messages: null,
-				channel: socket.channel(`room:${this.$route.params.name}`)
+				input: ""
 			}
 		},
 		created() {
+			this.channel = socket.channel(this.topic)
 			this.channel.join()
-				.receive("ok", ({chans, msgs}) => {
+				.receive("ok", (msgs) => {
+					console.log(msgs)
 					this.messages = msgs
-					this.channels = chan
 				})
 				.receive("error", e => console.log(e))
+
+			this.channel.on("new_msg", msg => {
+				this.messages.push(msg)
+			})
+		},
+			methods: {
+				send() {
+					this.channel.push("new_msg", {type: 'm', msg: this.input})
+					this.input = ''
+				}
+			},
+		components: {RoomHeader, ChatMessages, ChatInput},
+		computed: {
+			topic() {
+				return `room:${this.$route.params.name}`
+			},
+			channels() {
+				return [{
+				    [this.$route.params.name]: this.topic
+				}]
+			}
 		}
 	}
 </script>
+<style>
+	.room {
+		> .room-inner {
+			overflow: auto;
+			position: absolute;
+			width: 100%;
+			top: 50px;
+			bottom: 2em;
+			margin-bottom: 10px;
+		}
+		> form {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			display: flex;
+			background-color: silver;
+			height: 2em;
+			> input {
+				border: 1px solid grey;
+				background-color: #fff;
+				margin: 5px;
+				padding: 5px;
+				width: 100%;
+			}
+		}
+	}
+</style>

@@ -31,18 +31,22 @@ let router = new VueRouter({
     component: Home,
     children: [
       {
-        path: '/',
+        path: '',
         name: 'lobby',
         components: {
           main: 'lobby',
           sidebar: LobbySidebar,
           default: Lobby
         }
+      },
+      {
+        path: 'room/:name',
+        components: {
+          default: Room,
+          sidebar: LobbySidebar
+        }
       }
     ]
-  }, {
-    path: '/room/:name',
-    component: Room
   }],
   mode: 'history',
   base: '/home'
