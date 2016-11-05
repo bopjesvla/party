@@ -38,7 +38,10 @@ defmodule Mafia.Mixfile do
      {:phoenix_live_reload, "~> 1.0", only: :dev},
      {:gettext, "~> 0.11"},
      {:coherence, "~> 0.3"},
-     {:cowboy, "~> 1.0"}]
+     {:cowboy, "~> 1.0"},
+     {:gproc, "~> 0.6.1"},
+     {:exactor, "~> 2.2.2"}
+   ]
   end
 
   # Aliases are shortcuts or tasks specific to the current project.

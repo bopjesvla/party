@@ -3,8 +3,8 @@
 		<aside ref="sidebar" v-show="sidebarVisible">
 			<router-view name="sidebar"></router-view>
 		</aside>
-		<button :class="sidebarVisible ? 'icon-close' : 'icon-menu'" @click="sidebarVisible = !sidebarVisible"></button>
 		<main :class="{push: sidebarVisible}">
+			<a class="arrow" :class="sidebarVisible ? 'icon-close' : 'icon-menu'" @click="sidebarVisible = !sidebarVisible"></a>
 			<!--<h1>party party party party party party party party</h1>-->
 			<router-view></router-view>
 		</main>
@@ -30,10 +30,10 @@
 
 <style type="text/css" media="screen">
 	h1 {
-		font-family: 'Comic Sans', 'Comic Sans MS', 'Chalkboard', 'ChalkboardSE-Regular', 'Marker Felt', 'Purisa', 'URW Chancery L', cursive;
+		text-align: center;
 	}
 	#home {
-		&, & input {
+		&, & input.inline {
 			font-size: responsive 14px 16px;
 		}
 		height: 100%;
@@ -41,22 +41,49 @@
 			min-width: 320px;
 			width: 15%;
 			color: white;
-			background: black;
 			position: absolute;
 			top: 0;
 			left: 0;
 			height: 100%;
+			z-index: 2;
+			input {
+				width: 110px;
+			}
+			input, button {
+				color: white
+			}
+			button {
+				background-color: transparent;
+				padding: 0;
+			}
 		}
 		> main {
 			position: relative;
+			background-color: #fff;
 			height: 100%;
 			min-height: 100%;
+			.arrow {
+				position: absolute;
+				top: 10px;
+				z-index: 3;
+				&:before {
+					position: absolute;
+					top: -15px;
+					left: -15px;
+					right: -15px;
+					bottom: -15px;
+					content: '';
+				}
+			}
 			&.push {
 				margin-left: 320px;
+				.arrow {
+					position: absolute;
+					left: -1em;
+					border-color: white;
+					transform: rotate(-135deg);
+				}
 			}
-		}
-		> button {
-			position: absolute;
 		}
 	}
 </style>

@@ -1,6 +1,6 @@
 <template>
-	<header>
-		<h3 :name=name></h3>
+	<header class="room-header">
+		<h3>{{name}}</h3>
 	</header>
 </template>
 <script>
@@ -10,3 +10,11 @@
 		}
 	}
 </script>
+<style>
+	.room-header {
+		position: absolute;
+		top: 0;
+		left: 0;
+		padding-left: 20px;
+	}
+</style>

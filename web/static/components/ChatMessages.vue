@@ -42,6 +42,7 @@
 			.message-user {
 				padding-right: 5px;
 				border-right: 1px silver solid;
+				color: brown;
 			}
 		}
 	}

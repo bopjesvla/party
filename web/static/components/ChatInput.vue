@@ -1,5 +1,5 @@
 <template>
-	<form class="chatInput" @submit.prevent="send">
+	<form class="chat-input" @submit.prevent="send">
 		<div class="username">{{username}}</div>
 		<input class="chat" type="text" v-model="msg">
 		<div class="channels" v-if="channels && channels.length > 1">
@@ -27,3 +27,8 @@
 		}
 	}
 </script>
+<style>
+	.chat-input {
+		font-size: 1.3rem;
+	}
+</style>

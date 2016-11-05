@@ -24,24 +24,30 @@
 			}
 		},
 		created() {
-			this.channel = socket.channel(this.topic)
-			this.channel.join()
-				.receive("ok", (msgs) => {
-					console.log(msgs)
-					this.messages = msgs
-				})
-				.receive("error", e => console.log(e))
-
-			this.channel.on("new_msg", msg => {
-				this.messages.push(msg)
-			})
+			this.load()
 		},
-			methods: {
-				send() {
-					this.channel.push("new_msg", {type: 'm', msg: this.input})
-					this.input = ''
-				}
+		methods: {
+			load() {
+				this.channel = socket.channel(this.topic)
+				this.channel.join()
+					.receive("ok", (d) => {
+						console.log(d.msgs)
+						this.messages = d.msgs
+					})
+					.receive("error", e => console.log(e))
+
+				this.channel.on("new_msg", msg => {
+					this.messages.push(msg)
+				})
 			},
+			send() {
+				this.channel.push("new_msg", {type: 'm', msg: this.input})
+				this.input = ''
+			}
+		},
+		watch: {
+			$route: 'load'
+		},
 		components: {RoomHeader, ChatMessages, ChatInput},
 		computed: {
 			topic() {
@@ -61,7 +67,8 @@
 			overflow: auto;
 			position: absolute;
 			width: 100%;
-			top: 50px;
+			top: 3.8em;
+			border-top: 1px solid silver;
 			bottom: 2em;
 			margin-bottom: 10px;
 		}
@@ -72,12 +79,13 @@
 			right: 0;
 			display: flex;
 			background-color: silver;
-			height: 2em;
+			height: 2.4em;
 			> input {
 				border: 1px solid grey;
 				background-color: #fff;
-				margin: 5px;
-				padding: 5px;
+				margin: .4em;
+				height: 1.6em;
+				padding-left: 5px;
 				width: 100%;
 			}
 		}

@@ -1,7 +1,7 @@
 <template>
-	<section class="tab">
+	<section class="collapse">
 		<input ref="input" class="hidden-tab-input" type="checkbox" :value="label" :id="id" :checked="collapsed">
-		<label :for="id">{{label}}</label>
+		<label :for="id" class="arrow-before">{{label}}</label>
 		<div class="content">
 			<slot></slot>
 		</div>
@@ -26,18 +26,31 @@
 </script>
 
 <style>
-	.tab {
+	.collapse {
 		.hidden-tab-input {
 			display: none;
 			&:checked + label {
+				&:before {
+					transform: rotate(135deg);
+				}
 				+ .content {
 					display: none;
 				}
 			}
 		}
-		label {
+		> label {
+			display: block;
 			cursor: pointer;
 			user-select: none;
+			padding: 5px;
+			letter-spacing: 2px;
+			&:before {
+				position: relative;
+				top: -3px;
+				margin-right: 5px;
+				transform: rotate(-45deg);
+				font-size: .3em;
+			}
 		}
 	}
 </style>

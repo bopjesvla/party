@@ -1,8 +1,20 @@
 <template>
 	<div class="lobby-sidebar">
-		<div class="vertical-tabs">
+		<header>
+			<h1>
+				rty.party
+			</h1>
+		</header>
+		<div class="sidebar-actions">
 			<collapse group="sidebar-tabs" label="Join a Game" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
+			</collapse>
+			<collapse group="sidebar-tabs" label="Rooms" :active="true">
+				<router-link class="room" :to="{name: 'room', params: {name: room.name}}" v-for="room in joinedRooms">{{room.name}}</router-link>
+				<form @submit.prevent="$router.push({name: 'room', params: {name: roomInput}}), roomInput = ''">
+					<input type="search" v-model=roomInput>
+					<button type="submit" class="arrow-before"></button>
+				</form>
 			</collapse>
 			<collapse group="sidebar-tabs" label="Create a Setup">
 				woop
@@ -22,7 +34,9 @@
 		components: {Collapse, GameList},
 		data() {
 			return {
-				gamesInSignups: [{s: 'Vengeful', p: 7, t: 9}]
+				gamesInSignups: [{s: 'Vengeful', p: 7, t: 9}],
+				joinedRooms: [{name: 'lobby'}, {name: 'test'}],
+				roomInput: ''
 			}
 		}
 	}
@@ -30,25 +44,30 @@
 
 <style type="text/css" media="screen">
 	$icon-width: 70px;
-	$bg: color(blue shade(80%));
+	$bg: brown;
 	$active-color: black;
 
 	.lobby-sidebar {
-		.vertical-tabs {
+		.sidebar-actions {
 			position: absolute;
-			background-color: $bg;
-			top: 0;
+			top: 60px;
 			bottom: 0;
 			left: 0;
 			right: 0;
-			label {
-				padding: 5px;
-				display: block;
-				letter-spacing: 2px;
-			}
 			.content {
 				padding: 5px;
 				height: 100%;
+			}
+			a.room {
+				display: block;
+				padding: 2px;
+				&.router-link-active {
+					font-weight: bold;
+				}
+			}
+			button {
+				font-size: .75em;
+				vertical-align: bottom;
 			}
 		}
 	}

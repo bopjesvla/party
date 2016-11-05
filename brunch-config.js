@@ -56,10 +56,10 @@ exports.config = {
       ignore: [/web\/static\/vendor/]
     },
     stylus: {
-      //plugins: ['axis']
+      plugins: ['axis']
     },
     vue: {
-      postcss: 'precss cssnext rucksack-css postcss-color-palette'.split(' ').map(require).map(x => x()),
+      postcss: 'precss postcss-cssnext rucksack-css postcss-color-palette'.split(' ').map(require).map(x => x()),
       babel: {
         presets: ['es2015']
       },

@@ -1,12 +1,8 @@
-defmodule Mafia.RoomChannel do
+defmodule Mafia.GameChannel do
   use Phoenix.Channel
 
-  alias Mafia.{Repo, Channel, Subchannel, Message, User}
+  alias Mafia.{Repo, Channel, Subchannel, Message, User, GameServer, Game}
   import Ecto.Query, only: [from: 2]
-
-  def join("rooms", prams, socket) do
-    {:ok, socket}
-  end
 
   #def handle_in("room_info", %{name: name}, socket) do
     #case Repo.get_by(Room, name: name) do
@@ -14,7 +10,13 @@ defmodule Mafia.RoomChannel do
     #end
   #end
 
-  def join("room:" <> name, params, socket) do
+  def join("game:" <> game, opts = %{setup: setup}, socket) do
+    channel = %Channel{user_id: socket.assigns.user, type: "g"}
+    game = Repo.insert! %Game{name: game, user_id: socket.assigns.user, seed: 5, setup: setup}
+    GameServer.start_link(game, socket.assigns.user, channel, opts)
+  end
+
+  def join("game:" <> name, params, socket) do
     case Repo.get_by(Channel, name: name, type: "r") do
       nil ->
         Repo.transaction(fn ->
@@ -28,7 +30,7 @@ defmodule Mafia.RoomChannel do
           #Repo.insert! %Channel{room_id: room_id}
           #Repo.insert! %Subchannel
         end)
-        {:ok, %{msgs: []}, socket}
+        {:ok, [], socket}
       %{type: "r", id: id} ->
         messages = Repo.all from m in Message,
         join: sc in assoc(m, :subchannel),
@@ -37,7 +39,7 @@ defmodule Mafia.RoomChannel do
         select: %{msg: m.msg, u: u.name, ts: m.inserted_at}
 
         #channels = Repo.get_by(Channel, room_id: id)
-        {:ok, %{msgs: messages}, socket}
+        {:ok, messages, socket}
     end
   end
 

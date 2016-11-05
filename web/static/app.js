@@ -41,6 +41,7 @@ let router = new VueRouter({
       },
       {
         path: 'room/:name',
+        name: 'room',
         components: {
           default: Room,
           sidebar: LobbySidebar
