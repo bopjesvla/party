@@ -66,6 +66,7 @@
 				position: absolute;
 				top: 10px;
 				z-index: 3;
+				color: #000;
 				&:before {
 					position: absolute;
 					top: -15px;
@@ -78,6 +79,7 @@
 			&.push {
 				margin-left: 320px;
 				.arrow {
+					color: #fff;
 					position: absolute;
 					left: -1em;
 					border-color: white;

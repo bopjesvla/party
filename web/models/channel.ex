@@ -5,8 +5,7 @@ defmodule Mafia.Channel do
     field :name, :string
     field :type, :string
     belongs_to :user, Mafia.User
-    has_many :subchannels, Mafia.Subchannel
-    belongs_to :active_subchannel, Mafia.Subchannel
+    has_many :messages, Mafia.Message
 
     timestamps()
   end
@@ -19,5 +18,6 @@ defmodule Mafia.Channel do
     |> cast(params, [:name, :type])
     |> validate_required([:name, :type])
     |> unique_constraint(:name)
+    |> foreign_key_constraint(:user)
   end
 end

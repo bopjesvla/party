@@ -3,7 +3,7 @@ defmodule Mafia.GameTest do
 
   alias Mafia.Game
 
-  @valid_attrs %{name: "some content", seed: 42}
+  @valid_attrs %{seed: 42}
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do

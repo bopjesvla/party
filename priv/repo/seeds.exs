@@ -9,3 +9,7 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+alias Mafia.{Repo,User}
+
+Repo.insert!(%User{id: 0, name: "bob", email: "a@b.nl", password: "dsgtfdshb"})

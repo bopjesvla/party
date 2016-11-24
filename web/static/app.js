@@ -19,6 +19,7 @@ import VueRouter from 'vue-router'
 import Home from './Home.vue'
 import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
+import GameSidebar from './GameSidebar.vue'
 import Room from './Room.vue'
 
 import 'vueify/lib/insert-css'
@@ -45,6 +46,14 @@ let router = new VueRouter({
         components: {
           default: Room,
           sidebar: LobbySidebar
+        }
+      },
+      {
+        path: 'game/:name',
+        name: 'game',
+        components: {
+          default: Room,
+          sidebar: GameSidebar
         }
       }
     ]

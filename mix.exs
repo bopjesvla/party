@@ -19,7 +19,7 @@ defmodule Mafia.Mixfile do
   def application do
     [mod: {Mafia, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :coherence]]
+                    :phoenix_ecto, :postgrex, :coherence, :gproc]]
   end
 
   # Specifies which paths to compile per environment.
@@ -53,6 +53,9 @@ defmodule Mafia.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.create --quiet", "ecto.migrate", "test"]]
+     "test": ["ecto.reset", "test"],
+     "plt": "cmd swipl -f mafia.pl -g run_tests -t halt",
+     "install": ["cmd swipl -f install.pl -g install -t halt"],
+     "prolog": "cmd swipl mafia.pl"]
   end
 end

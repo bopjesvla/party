@@ -10,6 +10,6 @@ defmodule Mafia.RegistrationControllerTest do
 
   test "unique name", %{conn: conn} do
     conn = post conn, "/registrations", @user_data
-    assert html_response(conn, 200)
+    assert html_response(conn, 302)
   end
 end

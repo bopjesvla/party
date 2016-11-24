@@ -16,8 +16,8 @@
 					<button type="submit" class="arrow-before"></button>
 				</form>
 			</collapse>
-			<collapse group="sidebar-tabs" label="Create a Game">
-				<create-game></create-game>
+			<collapse group="sidebar-tabs" label="Create a Setup">
+				woop
 			</collapse>
 			<collapse group="sidebar-tabs" label="Find">
 				woop
@@ -29,10 +29,9 @@
 <script type="text/javascript" charset="utf-8">
 	import Collapse from './components/Collapse'
 	import GameList from './components/GameList'
-	import CreateGame from './components/CreateGame'
 
 	export default {
-		components: {Collapse, GameList, CreateGame},
+		components: {Collapse, GameList},
 		data() {
 			return {
 				gamesInSignups: [{s: 'Vengeful', p: 7, t: 9}],

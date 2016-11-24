@@ -36,12 +36,12 @@
 					})
 					.receive("error", e => console.log(e))
 
-				this.channel.on("new_msg", msg => {
+				this.channel.on("new:msg", msg => {
 					this.messages.push(msg)
 				})
 			},
 			send() {
-				this.channel.push("new_msg", {type: 'm', msg: this.input})
+				this.channel.push("new:msg", {type: 'm', msg: this.input})
 				this.input = ''
 			}
 		},
@@ -51,7 +51,7 @@
 		components: {RoomHeader, ChatMessages, ChatInput},
 		computed: {
 			topic() {
-				return `room:${this.$route.params.name}`
+				return `${this.$route.name}:${this.$route.params.name}`
 			},
 			channels() {
 				return [{
