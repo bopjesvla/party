@@ -1,90 +1,125 @@
 % seq/1, status
 
-:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2]).
-
-:- use_module(utils).
+:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4]).
 
 setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 
 :- thread_local
-voting/5,
-action_history/5,
-access/4,
-current_phase/1, % false during signups
-player/2, % user_id, player_id
-setup_roles/1,
-phase_timer/1,
-speed/1,
-message/2.
+   voting/5,
+   setup/1,
+   action_history/5,
+   access/4,
+   current_phase/1, % false during signups
+   player/2, % user_id, player_id
+   phase_timer/1,
+   speed/1,
+   message/2,
+   setup_alignment/2,
+   setup_role/2,
+   alignment_role/2,
+   global_role/1,
+   channel_role/2,
+   channel_type/2,
+   locked/3,
+   dead/1.
+
+:- include(roles).
+:- include(resolve).
+:- include(utils).
+
+:- begin_tests(setup).
+
+test(speed) :- set(speed(10)).
+test(alignments) :- set(setup_alignment(1,t)), set(setup_alignment(2,t)), set(setup_alignment(3,m)). % run phase timers at x10000
+test(global_role) :- set(global_role(([], village))).
+test(alignment_roles) :- set(alignment_role(m, ([], killer))).
+test(setup_role) :- set(setup_role(1, ([], cop))).
+test(setup_phases) :- set(setup_phases([day, night])).
+
+:- end_tests(setup).
 
 uid(X) :- random_between(17_000_000, 260_000_000, R), format(atom(X), '~16r', [R]).
 
-send(Type, Msg) :- asserta(message(Type, Msg)).
+send(Type, Msg) :- assertz(message(Type, Msg)).
+flush(Res) :- findall({t: Type, m: Msg}, message(Type, Msg), Res), retractall(message(_,_)).
 
-:- op(995, fx, try).
+phase_name(PhaseNumber, Name) :-
+    setup_phases(Phases),
+    length(Phases, L),
+    I is PhaseNumber mod L,
+    nth0(I, Phases, Name).
 
-current_phase_name(P) :-
-	current_phase(PhaseNumber),
-	setup_phases(Phases),
-	length(Phases, L),
-	I = PhaseNumber mod L,
-	nth0(I, Phases, P).
+current_phase_name(Name) :-
+    current_phase(P),
+    phase_name(P, Name).
 
 players(Players) :- findall(P, player(_, P), Players).
 player_count(N) :- players(Players), length(Players, N).
 full_game :- player_count(P), setup_size(S), P >= S.
 
-remove_phase_timer :- try (retract(phase_timer(T)), remove_alarm(T)).
-set_phase_timer(T) :-
-	speed(Speed),
-	RealT is T / Speed,
-	alarm(RealT, next_phase, Id),
-	asserta(phase_timer(Id)).
+alive(X) :- player(X, _), \+ dead(X).
+
+remove_phase_timer :- retract(phase_timer(T)), remove_alarm(T),!.
+remove_phase_timer.
+
+%set_phase_timer(T) :-
+%speed(Speed),
+%RealT is T / Speed,
+%alarm(RealT, next_phase, Id),
+%asserta(phase_timer(Id)).
 
 join(User) :- player(User, _), !.
 join(User) :-
-	\+ current_phase(_),
-	\+ full_game,
-	asserta(player(User, User)),
-	try (full_game, start_game_countdown).
+    \+ current_phase(_),
+    \+ full_game,
+    asserta(player(User, User)), % player id is the id of the first user
+    (full_game, start_game_countdown, !; true).
 
-start_game_countdown :- set_phase_timer(10).
+start_game_countdown :- send(next_phase, 10).
 
 :- begin_tests(signups).
 
 :- [game1].
 
-test(speed) :- seq [ set(speed(10)) ]. % run phase timers at x10000
 %test(setup) :- assert(setup_roles([[t, [cop]], [t, []], [m, []]])).
 test(join) :-
-	seq [player_count(0),
-	join(1),
-	player_count(1),
-	join(5),
-	player_count(2),
-	join(5),
-	player_count(2)].
+    seq [player_count(0),
+	 join(1),
+	 player_count(1),
+	 join(5),
+	 player_count(2),
+	 join(5),
+	 player_count(2)].
 
-test(starting) :-
-	seq [ \+ phase_timer(_),
-	join(3),
-	phase_timer(_),
-	\+ join(2),
-	join(3),
-	\+ current_phase(_)].
+test(starting, [X = []]) :-
+    flush(X),
+    join(3),
+    \+ join(2),
+    join(3).
+
+test(game_full_message, [X = [{t: next_phase, m: 10}]]) :-
+    flush(X).
 
 :- end_tests(signups).
 
 next_phase :-
-	end_phase,
-	increase_current_phase,
-	start_phase.
+    full_game,
+    end_phase,
+    increase_current_phase,
+    start_phase.
 
-resolve(_).
+locked_actions(Actions) :-
+    current_phase(P),
+    findall(action(Actor, Action, Targets, Channel), (
+		locked(Channel, Action, Targets),
+		once(voting(P, Actor, Channel, Action, Targets); Actor = noone)
+	    ), Actions).
+
+start_phase.
 
 end_phase :-
-	current_phase(P),!,
-	resolve(P).
+    locked_actions(Actions),
+    resolve(Actions).
 
 end_phase :- start_game. % ending signups = starting the game
 
@@ -92,65 +127,112 @@ increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(curr
 increase_current_phase :- asserta(current_phase(0)).
 
 start_game :-
-	players(Players),
-	random_permutation(Players, ShuffledPlayers),
-	forall(setup_role(N, Role), (
-		nth0(N, ShuffledPlayers, Player),
-		create_channel([Player], Role)
-    )),
-	forall(alignment_role(Alignment, Role), (
-		setup_alignment(N, Alignment),
-		findall(Player, nth0(N, ShuffledPlayers, Player), Team),
-		create_channel(Team, Role) 
-	)).
+    players(Players),
+    random_permutation(Players, ShuffledPlayers),
+    forall(setup_role(N, Role), (
+               nth0(N, ShuffledPlayers, Player),
+               create_channel(indie, Role, Channel),
+	       grant_access(Player, Channel)
+	   )),
+    forall(alignment_role(Alignment, Role), ( % for every alignment role, add a channel
+	       create_channel(alignment, Role, Channel),
+               setup_alignment(N, Alignment),
+               forall(nth0(N, ShuffledPlayers, Player), grant_access(Player, Channel))
+	   )),
+    forall(global_role(Role), (
+	       create_channel(global, Role, Channel),
+	       asserta(global_channel(Channel)),
+	       forall(member(Player, Players), grant_access(Player, Channel))
+	   )).
+
+channel_action(Channel, Action, Targets) :- channel_role(Channel, Role), role_action(Role, Action, Targets, Channel).
 
 :- begin_tests(game_start).
 
-test(start) :- seq [sleep(0.2), current_phase(1)].
+test(start) :- next_phase.
+test(global_channel) :- seq [
+			    channel_role(Channel, ([], village)),
+			    access(1, Channel, _, now),
+			    channel_action(Channel, lynch, [3])
+			].
+test(role_channel) :- seq [ channel_role(Channel, ([], cop)),
+			    access(_, Channel, _, now)
+			    % channel_action(Channel, investigate, [noone])
+			  ].
 
 :- end_tests(game_start).
 
-channel_action(_, _).
-
-create_channel(Players, Role) :-
-	uid(Channel),
-	forall(member(Players, P), grant_access(P, Channel)),
-	asserta(channel_role(Channel, Role)).
+create_channel(Type, Role, Channel) :-
+    uid(Channel),
+    asserta(channel_role(Channel, Role)),
+    asserta(channel_type(Channel, Type)).
 
 grant_access(Player, Channel) :- access(Player, Channel, _, now), !.
 grant_access(Player, Channel) :-
-	get_time(T),
-	asserta(access(Player, Channel, T, now)).
+    get_time(T),
+    asserta(access(Player, Channel, T, now)).
 
 kick(Player, Channel) :-
-	retract(access(Player, Channel, Start, now)),
-	get_time(T),
-	asserta(access(Player, Channel, Start, T)).
+    retract(access(Player, Channel, Start, now)),
+    get_time(T),
+    asserta(access(Player, Channel, Start, T)).
 
 join_channel(Player, Channel) :-
-	access(Player, Channel, _, now),
-	channel_action(Channel, _).
+    access(Player, Channel, _, now),
+    channel_action(Channel, _).
 
 unvote(Player, Channel, Action) :-
-	current_phase(P),
-	can_unvote(P, Player, Channel, Action),
-	try retract(voting(P, Player, Channel, Action, _)).
+    current_phase(P),
+    can_unvote(Player, Channel, Action),
+    (retractall(voting(P, Player, Channel, Action, _)); true).
 
 vote(Player, Channel, Action, Targets) :-
-	current_phase(P),
-	unvote(Player, Channel, Action),
-	can_vote(Player, Channel, Action, Targets),
-	asserta(voting(P, Player, Channel, Action, Targets)).
+    current_phase(P),
+    can_vote(Player, Channel, Action, Targets),
+    (retract(voting(P, Player, Channel, Action, _)); true),
+    asserta(voting(P, Player, Channel, Action, Targets)),
+    check_hammer(Channel, Action, Targets).
 
 can_unvote(Player, Channel, Action) :-
-	channel_action(Channel, Action),
-	action_target(Player, Action, false),
-	\+ locked(Channel, Action).
+    channel_action(Channel, Action, _),
+    \+ locked(Channel, Action, _).
 
 can_vote(Player, Channel, Action, Targets) :-
-	channel_action(Channel, Action),
-	action_target(Player, Action, Targets),
-	\+ locked(Channel, Action).
+    channel_action(Channel, Action, Targets),
+    \+ locked(Channel, Action, _).
+
+check_hammer(Channel, Action, Targets) :-
+    aggregate_all(count, access(_, Channel, _, now), ChannelMemberCount),
+    current_phase(P),
+    aggregate_all(count, voting(P, _, Channel, Action, Targets), VoteCount),
+    VoteCount > ChannelMemberCount / 2, !,
+    lock(Channel, Action, Targets),
+    maybe_end_phase.
+
+check_hammer(_, _, _).
+
+lock(Channel, Action, Targets) :-
+    asserta(locked(Channel, Action, Targets)).
+
+:- begin_tests(voting).
+
+test(lynch) :- seq [
+		   channel_type(Channel, global),
+		   vote(1, Channel, lynch, [3]),
+		   \+ vote(1, Channel, lynch, [1235]),
+		   \+ vote(3, Channel, protect, [1]),
+		   vote(3, Channel, lynch, [1]),
+		   unvote(1, Channel, _),
+		   vote(5, Channel, lynch, [5])
+	       ].
+
+:- end_tests(voting).
+
+maybe_end_phase :-
+    forall(channel_action(Channel, Action, _), locked(Channel, Action, _)), !,
+    end_phase.
+
+maybe_end_phase.
 
 %role_action([cop], check, _).
 %role_action([doc], protect, _).

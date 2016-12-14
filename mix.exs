@@ -54,8 +54,8 @@ defmodule Mafia.Mixfile do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
      "test": ["ecto.reset", "test"],
-     "plt": "cmd swipl -f mafia.pl -g run_tests -t halt",
+     "plt": "cmd swipl -f game_server.pl -g run_tests -t halt",
      "install": ["cmd swipl -f install.pl -g install -t halt"],
-     "prolog": "cmd swipl mafia.pl"]
+     "game.serve": "cmd swipl game_server.pl"]
   end
 end
