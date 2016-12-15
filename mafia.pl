@@ -7,7 +7,7 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 :- thread_local
    voting/5,
    setup/1,
-   action_history/5,
+   action_history/3,
    access/4,
    current_phase/1, % false during signups
    player/2, % user_id, player_id
@@ -24,6 +24,7 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
    dead/1.
 
 :- include(roles).
+:- include(actions).
 :- include(resolve).
 :- include(utils).
 
@@ -118,12 +119,14 @@ locked_actions(Actions) :-
 start_phase.
 
 end_phase :-
+    current_phase(_), !, % game has already started
     locked_actions(Actions),
-    resolve(Actions).
+    resolve(Actions, SuccessfulActions),
+    process_actions(SuccessfulActions).
 
 end_phase :- start_game. % ending signups = starting the game
 
-increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)),!.
+increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
 increase_current_phase :- asserta(current_phase(0)).
 
 start_game :-
@@ -145,7 +148,11 @@ start_game :-
 	       forall(member(Player, Players), grant_access(Player, Channel))
 	   )).
 
-channel_action(Channel, Action, Targets) :- channel_role(Channel, Role), role_action(Role, Action, Targets, Channel).
+channel_action(Channel, Action, Targets) :-
+    channel_role(Channel, Role),
+    role_action(Role, Action, Targets, Channel),
+    current_phase(P),
+    \+ action_history(P, action(_, Action, _, Channel), _).
 
 :- begin_tests(game_start).
 
@@ -193,11 +200,11 @@ vote(Player, Channel, Action, Targets) :-
     asserta(voting(P, Player, Channel, Action, Targets)),
     check_hammer(Channel, Action, Targets).
 
-can_unvote(Player, Channel, Action) :-
+can_unvote(_Player, Channel, Action) :-
     channel_action(Channel, Action, _),
     \+ locked(Channel, Action, _).
 
-can_vote(Player, Channel, Action, Targets) :-
+can_vote(_Player, Channel, Action, Targets) :-
     channel_action(Channel, Action, Targets),
     \+ locked(Channel, Action, _).
 
@@ -216,11 +223,11 @@ lock(Channel, Action, Targets) :-
 
 :- begin_tests(voting).
 
-test(lynch) :- seq [
+test(voting) :- seq [
 		   channel_type(Channel, global),
 		   vote(1, Channel, lynch, [3]),
 		   \+ vote(1, Channel, lynch, [1235]),
-		   \+ vote(3, Channel, protect, [1]),
+		   \+ vote(3, Channel, kill, [1]),
 		   vote(3, Channel, lynch, [1]),
 		   unvote(1, Channel, _),
 		   vote(5, Channel, lynch, [5])
@@ -233,6 +240,20 @@ maybe_end_phase :-
     end_phase.
 
 maybe_end_phase.
+
+:- begin_tests(end_phase).
+
+test(lynch) :- seq  [
+		   channel_type(Channel, global),
+		   vote(5, Channel, lynch, [1]),
+		   \+ vote(5, Channel, lynch, [1])
+	       ].
+
+test(lynch_logged, all(X = [action(5, lynch, [1], Channel)])) :-
+    channel_type(Channel, global),
+    action_history(0, X, success).
+
+:- end_tests(end_phase).
 
 %role_action([cop], check, _).
 %role_action([doc], protect, _).

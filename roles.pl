@@ -22,6 +22,8 @@ other(Channel, Player) :- \+ access(Player, Channel, _, now).
 main_role_action(village, lynch).
 main_role_action(cop, investigate).
 main_role_action(killer, kill).
+main_role_action(doctor, protect).
+main_role_action(roleblocker, block).
 
 :- begin_tests(roles).
 

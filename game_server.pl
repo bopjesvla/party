@@ -10,8 +10,6 @@
 
 create_game(Res) :- http_post('http://localhost:5000/pengine/create', json(m{format: json, destroy: false}), Res, []).
 
-sandbox:safe_meta_predicate(time:alarm/3).
-
 :- http_server(http_dispatch, [port(5000)]).
 
 :- begin_tests(game_server).
