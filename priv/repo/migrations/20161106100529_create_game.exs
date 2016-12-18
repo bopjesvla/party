@@ -3,14 +3,14 @@ defmodule Mafia.Repo.Migrations.CreateGame do
 
   def change do
     create table(:games) do
-      add :seed, :integer
-      add :user_id, references(:users, on_delete: :nothing)
-      add :setup, references(:setups, on_delete: :nothing)
+      add :pengine, :string
+      add :channel_id, references(:channels, on_delete: :nothing)
+      add :setup_id, references(:setups, on_delete: :nothing)
 
       timestamps()
     end
-    create index(:games, [:user_id])
-    create index(:games, [:setup])
+    create index(:games, [:setup_id])
+    create index(:games, [:channel_id])
 
   end
 end

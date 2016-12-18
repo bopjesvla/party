@@ -23,9 +23,4 @@ test(ask_single, [Event = success]) :-
     http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask(assert(setup_alignment(1,2)),[])'])], json(X), []),
     member(event=Event, X),!.
 
-test(meta_predicate_sandbox, [Code = permission_error]) :-
-    create_game(json([event=create,id=Id,_])),
-    http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask(alarm(5,thread_create(a,_,[]), _),[])'])], json(X), []),
-    member(code=Code, X),!.
-
 :- end_tests(game_server).

@@ -6,6 +6,7 @@ defmodule Mafia.Channel do
     field :type, :string
     belongs_to :user, Mafia.User
     has_many :messages, Mafia.Message
+    has_one :game, Mafia.Game
 
     timestamps()
   end

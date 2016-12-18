@@ -18,7 +18,7 @@
 
       <main role="main">
         <div class="auth-column">
-          <h1>rty.prty</h1>
+          <h1>rty.party</h1>
           <%= render @view_module, @view_template, assigns %>
         </div>
       </main>

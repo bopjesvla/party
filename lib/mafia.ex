@@ -8,8 +8,6 @@ defmodule Mafia do
 
     # Define workers and child supervisors to be supervised
     children = [
-      # Start the game supervisor
-      supervisor(Mafia.Supervisor, []),
       # Start the Ecto repository
       supervisor(Mafia.Repo, []),
       # Start the endpoint when the application starts

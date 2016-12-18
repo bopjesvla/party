@@ -1,12 +1,13 @@
 % seq/1, status
 
-:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4]).
+:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4, set_setup/1]).
+
+:- use_module(library(http/json)).
 
 setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 
 :- thread_local
    voting/5,
-   setup/1,
    action_history/3,
    access/4,
    current_phase/1, % false during signups
@@ -15,29 +16,38 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
    speed/1,
    message/2,
    setup_alignment/2,
-   setup_role/2,
+   player_role/2,
    alignment_role/2,
    global_role/1,
    channel_role/2,
    channel_type/2,
    locked/3,
-   dead/1.
+   dead/1,
+   setup_phases/1.
 
 :- include(roles).
 :- include(actions).
 :- include(resolve).
 :- include(utils).
 
-:- begin_tests(setup).
+:- begin_tests(set_setup).
 
 test(speed) :- set(speed(10)).
 test(alignments) :- set(setup_alignment(1,t)), set(setup_alignment(2,t)), set(setup_alignment(3,m)). % run phase timers at x10000
 test(global_role) :- set(global_role(([], village))).
 test(alignment_roles) :- set(alignment_role(m, ([], killer))).
-test(setup_role) :- set(setup_role(1, ([], cop))).
+test(player_role) :- set(player_role(1, ([], cop))).
 test(setup_phases) :- set(setup_phases([day, night])).
 
-:- end_tests(setup).
+test(set_setup) :- set_setup(m{'teams': [], 'player_roles': [], 'alignment_roles': [], 'global_roles': []}).
+
+:- end_tests(set_setup).
+
+set_setup(Setup) :-
+    forall(member(A, Setup.teams), assertz(setup_alignment(A.player, A.team))),
+    forall(member(A, Setup.player_roles), assertz(player_role(A.player, (A.mods, A.role)))),
+    forall(member(A, Setup.alignment_roles), assertz(alignment_role(A.team, (A.mods, A.role)))),
+    forall(member(A, Setup.global_roles), assertz(global_role((A.mods, A.role)))).
 
 uid(X) :- random_between(17_000_000, 260_000_000, R), format(atom(X), '~16r', [R]).
 
@@ -82,7 +92,7 @@ start_game_countdown :- send(next_phase, 10).
 
 :- [game1].
 
-%test(setup) :- assert(setup_roles([[t, [cop]], [t, []], [m, []]])).
+%test(set_setup) :- assert(setup_roles([[t, [cop]], [t, []], [m, []]])).
 test(join) :-
     seq [player_count(0),
 	 join(1),
@@ -132,7 +142,7 @@ increase_current_phase :- asserta(current_phase(0)).
 start_game :-
     players(Players),
     random_permutation(Players, ShuffledPlayers),
-    forall(setup_role(N, Role), (
+    forall(player_role(N, Role), (
                nth0(N, ShuffledPlayers, Player),
                create_channel(indie, Role, Channel),
 	       grant_access(Player, Channel)
@@ -186,7 +196,7 @@ kick(Player, Channel) :-
 
 join_channel(Player, Channel) :-
     access(Player, Channel, _, now),
-    channel_action(Channel, _).
+    channel_action(Channel, _, _).
 
 unvote(Player, Channel, Action) :-
     current_phase(P),
