@@ -3,7 +3,7 @@ defmodule Mafia.GameTest do
 
   alias Mafia.Game
 
-  @valid_attrs %{pengine: "asad-fdsf-4353"}
+  @valid_attrs %{pengine: "asad-fdsf-4353", status: "signups"}
 
   test "changeset with valid attributes" do
     changeset = Game.changeset(%Game{}, @valid_attrs)

@@ -4,6 +4,7 @@ defmodule Mafia.UserSocket do
   ## Channels
   channel "room:*", Mafia.RoomChannel
   channel "game:*", Mafia.GameChannel
+  channel "meet:*", Mafia.MeetChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

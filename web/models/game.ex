@@ -3,8 +3,9 @@ defmodule Mafia.Game do
 
   schema "games" do
     belongs_to :setup, Mafia.Setup
-    belongs_to :channel, Mafia.Channel
+    has_many :channel, Mafia.Channel
     field :pengine, :string
+    field :status, :string
 
     timestamps()
   end
@@ -14,7 +15,7 @@ defmodule Mafia.Game do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:pengine])
-    |> validate_required([:pengine])
+    |> cast(params, [:pengine, :status])
+    |> validate_required([:pengine, :status])
   end
 end

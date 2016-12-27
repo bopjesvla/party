@@ -7,7 +7,8 @@ defmodule Mafia.GameChannelTest do
     teams: [%{player: 1, team: "m"}, %{player: 2, team: "t"}, %{player: 3, team: "t"}, %{player: 4, team: "t"}],
     player_roles: [],
     alignment_roles: [],
-    global_roles: []
+    global_roles: [],
+    setup_phases: ["d", "n"]
   }
 
   setup do
@@ -17,11 +18,5 @@ defmodule Mafia.GameChannelTest do
       |> subscribe_and_join!(GameChannel, "game:x")
 
     {:ok, socket: socket}
-  end
-
-  @tag :game
-  test "can send messages", %{socket: socket} do
-    ref = push socket, "new:msg", %{"msg" => "there"}
-    assert_broadcast "new:msg", %{msg: "there", u: "bob", ts: _}
   end
 end

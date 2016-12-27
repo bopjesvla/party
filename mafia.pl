@@ -1,6 +1,6 @@
 % seq/1, status
 
-:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4, set_setup/1]).
+:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4, set_setup/1, game_info/2]).
 
 :- use_module(library(http/json)).
 
@@ -14,7 +14,7 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
    player/2, % user_id, player_id
    phase_timer/1,
    speed/1,
-   message/2,
+   message/1,
    setup_alignment/2,
    player_role/2,
    alignment_role/2,
@@ -37,9 +37,8 @@ test(alignments) :- set(setup_alignment(1,t)), set(setup_alignment(2,t)), set(se
 test(global_role) :- set(global_role(([], village))).
 test(alignment_roles) :- set(alignment_role(m, ([], killer))).
 test(player_role) :- set(player_role(1, ([], cop))).
-test(setup_phases) :- set(setup_phases([day, night])).
 
-test(set_setup) :- set_setup(m{'teams': [], 'player_roles': [], 'alignment_roles': [], 'global_roles': []}).
+test(set_setup) :- set_setup(m{'teams': [], 'player_roles': [], 'alignment_roles': [], 'global_roles': [], phases: [d, n]}).
 
 :- end_tests(set_setup).
 
@@ -47,12 +46,14 @@ set_setup(Setup) :-
     forall(member(A, Setup.teams), assertz(setup_alignment(A.player, A.team))),
     forall(member(A, Setup.player_roles), assertz(player_role(A.player, (A.mods, A.role)))),
     forall(member(A, Setup.alignment_roles), assertz(alignment_role(A.team, (A.mods, A.role)))),
-    forall(member(A, Setup.global_roles), assertz(global_role((A.mods, A.role)))).
+    forall(member(A, Setup.global_roles), assertz(global_role((A.mods, A.role)))),
+    assertz(setup_phases(Setup.phases)).
 
 uid(X) :- random_between(17_000_000, 260_000_000, R), format(atom(X), '~16r', [R]).
 
-send(Type, Msg) :- assertz(message(Type, Msg)).
-flush(Res) :- findall({t: Type, m: Msg}, message(Type, Msg), Res), retractall(message(_,_)).
+send(X) :- assertz(message(X)).
+flush(Res) :- findall(Msg, message(Msg), Res), retractall(message(_)).
+state(X) :- asserta(X), send(X).
 
 phase_name(PhaseNumber, Name) :-
     setup_phases(Phases),
@@ -79,6 +80,17 @@ remove_phase_timer.
 %alarm(RealT, next_phase, Id),
 %asserta(phase_timer(Id)).
 
+game_info(User, m{active: Active, access: Access}) :-
+    player(User, Player),
+    findall(m{channel: C, members: Members, actions: Actions, votes: Votes}, (
+		join_channel(User, C),
+		findall(Member, access(C, Member, _, now), Members),
+		findall(m{act: Action, opt: Targets}, channel_action(C, Action, Targets), Actions),
+		ignore(current_phase(P)),
+		findall(m{player: Player, action: Action, targets: T}, voting(P, Player, C, Action, T), Votes)
+	    ), Active),
+    findall(m{channel: C, start: S, end: E}, access(C, Player, S, E), Access).
+
 join(User) :- player(User, _), !.
 join(User) :-
     \+ current_phase(_),
@@ -86,7 +98,7 @@ join(User) :-
     asserta(player(User, User)), % player id is the id of the first user
     (full_game, start_game_countdown, !; true).
 
-start_game_countdown :- send(next_phase, 10).
+start_game_countdown :- send(next_phase(10)).
 
 :- begin_tests(signups).
 
@@ -101,6 +113,9 @@ test(join) :-
 	 player_count(2),
 	 join(5),
 	 player_count(2)].
+
+test(signups_game_info, [X = _{active: [_{channel: pre, members: _, actions: [], votes: []}], access: _}]) :-
+    game_info(1, X).
 
 test(starting, [X = []]) :-
     flush(X),
@@ -182,7 +197,7 @@ test(role_channel) :- seq [ channel_role(Channel, ([], cop)),
 create_channel(Type, Role, Channel) :-
     uid(Channel),
     asserta(channel_role(Channel, Role)),
-    asserta(channel_type(Channel, Type)).
+    state(channel_type(Channel, Type)).
 
 grant_access(Player, Channel) :- access(Player, Channel, _, now), !.
 grant_access(Player, Channel) :-
@@ -194,7 +209,12 @@ kick(Player, Channel) :-
     get_time(T),
     asserta(access(Player, Channel, Start, T)).
 
-join_channel(Player, Channel) :-
+join_channel(User, pre) :-
+    \+ current_phase(_),
+    join(User).
+
+join_channel(User, Channel) :-
+    player(User, Player),
     access(Player, Channel, _, now),
     channel_action(Channel, _, _).
 
