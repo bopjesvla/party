@@ -8,14 +8,16 @@ defmodule Mafia.GameChannelTest do
     player_roles: [],
     alignment_roles: [],
     global_roles: [],
-    setup_phases: ["d", "n"]
+    phases: ["d", "n"]
   }
 
-  setup do
+  test "can join games" do
     socket =
       socket("user:0", %{user: 0})
       |> subscribe_and_join!(GameChannel, "game:x", %{"setup" => @setup})
-      |> subscribe_and_join!(GameChannel, "game:x")
+      
+    socket("user:0", %{user: 0})
+    |> subscribe_and_join!(GameChannel, "game:x")
 
     {:ok, socket: socket}
   end

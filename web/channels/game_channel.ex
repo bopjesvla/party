@@ -9,9 +9,8 @@ defmodule Mafia.GameChannel do
       #nil -> nil
     #end
   #end
-
   
-  def join("game:" <> name, opts = %{"setup" => setup}, socket = %{assigns: %{user: user}}) do
+  def join("game:" <> name, %{"setup" => setup} = opts, %{assigns: %{user: user}} = socket) do
     prolog_setup = setup |> Prolog.prologize
 
     q = "mafia:set_setup(#{prolog_setup}), join(#{user}), game_info(#{user}, GameInfo)"
@@ -19,7 +18,7 @@ defmodule Mafia.GameChannel do
     changeset = Repo.insert!(%Channel{user_id: user, type: "g", name: name})
 
     {pengine, [%{"GameInfo" => game_info}]} = Prolog.create!(q)
-
+    
     changeset
     |> Repo.preload(:game)
     |> Ecto.Changeset.change
@@ -29,11 +28,13 @@ defmodule Mafia.GameChannel do
     {:ok, game_info, socket}
   end
 
-  def join("game:" <> name, params, socket = %{assigns: %{user: user}}) do
+  def join("game:" <> name, params, %{assigns: %{user: user}} = socket) do
     %{type: "g", id: id, game: game} = Repo.get_by!(Channel, name: name, type: "g") |> Repo.preload(:game)
 
-    Prolog.ask(game.pengine, "join(#{user}), game_info(#{user}, GameInfo)")
+    [%{"GameInfo" => game_info}] = Prolog.ask!(game.pengine, "join(#{user}), game_info(#{user}, GameInfo)")
 
+    IO.inspect game_info["access"]
+    
     messages = Repo.all from m in Message,
     join: u in assoc(m, :user),
     where: m.channel_id == ^id,

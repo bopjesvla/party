@@ -33,7 +33,7 @@ defmodule Mafia.Prolog do
   end
 
   def ask(id, q) do
-    %{body: response} = HTTPoison.get! "localhost:5000/pengine/send", [], params: %{format: "json", id: id, event: "ask(#{q}, [])"}
+    %{body: response} = HTTPoison.get! "localhost:5000/pengine/send", [], params: %{format: "json", id: id, event: "ask((#{q}), [])"}
     %{"event" => event, "data" => data} = Poison.decode!(response)
     {event, data}
   end

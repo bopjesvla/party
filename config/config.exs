@@ -33,7 +33,7 @@ config :coherence,
   repo: Mafia.Repo,
   module: Mafia,
   logged_out_url: "/home",
-  email_from: {"Your Name", "yourname@example.com"},
+  email_from: {"Bob", "negenentwintig@hotmail.com"},
   opts: [:authenticatable, :recoverable, :lockable, :trackable, :unlockable_with_token, :registerable]
 
 config :coherence, Mafia.Coherence.Mailer,

@@ -37,7 +37,7 @@ config :phoenix, :stacktrace_depth, 20
 config :mafia, Mafia.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
-  password: "12zxcv",
+  password: "postgres",
   database: "mafia_dev",
   hostname: "localhost",
   pool_size: 10
