@@ -1,6 +1,6 @@
 % seq/1, status
 
-:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/2, setup_game/1, game_info/2, flush/1, create_channel/3, next_phase/0, add_next_phase_event/0]).
+:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/2, setup_game/1, game_info/2, flush/1, create_channel/3, next_phase/0, call_self/1]).
 
 :- use_module(library(http/json)).
 
@@ -113,15 +113,17 @@ join(User) :-
   asserta(player(User, User)), % player id is the id of the first user taking the slot
   (full_game, start_phase_countdown(10), !; true).
 
-add_next_phase_event :-
-  pengine_self(Id).
+call_self(Q) :-
+  pengine_self(Self),
+  pengine_ask(Self, Q, []).
 
 start_phase_countdown(After) :-
   remove_phase_timer,
   get_time(T),
   speed(Speed),
   End is T + After / Speed,
-  alarm_at(End, add_next_phase_to_event_loop, Alarm, [remove(true)]),
+  % may be subject to race conditions
+  alarm_at(End, next_phase, Alarm, [remove(true)]),
   asserta(phase_timer(Alarm, End)),
   send(check_after(After)).
 

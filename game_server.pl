@@ -2,6 +2,7 @@
 :- use_module(library(http/http_dispatch)).
 :- use_module(library(http/http_json)).
 :- use_module(library(http/http_client)).
+
 :- use_module(library(pengines)).
 :- use_module(library(sandbox)).
 :- use_module(pengine_sandbox:mafia).
@@ -45,12 +46,12 @@ test(safe_primitive, [Event = success]) :-
 test(ask_self, [Event = success]) :-
   create_game(json([event=create,id=Id,_])),
   http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask((
-    add_next_phase_event
+    call_self(next_phase)
   ),[])'])], json(X), []),
   http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask((
     X = 1
   ),[])'])], json(Y), []),
-  writeln(X),
+  writeln(Y),
   member(event=Event, X),!.
   
 :- end_tests(game_server).

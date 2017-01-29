@@ -46,7 +46,7 @@ defmodule Mafia.GameChannelTest do
       socket("user:-3", %{user: -3})
       |> subscribe_and_join!(GameChannel, "game:x", %{})
       
-      :timer.sleep(1000)
+      :timer.sleep(10000)
       
       ref = push socket, "info", %{}
       assert_reply ref, :ok, %{"active" => [%{"channel" => _, "votes" => [], "actions" => [%{"act" => "lynch", "opt" => _}]}]}

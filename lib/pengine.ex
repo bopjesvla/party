@@ -51,9 +51,6 @@ defmodule Mafia.Pengine do
     
     %{body: response} = HTTPoison.get! "localhost:5000/pengine/send", [], params: %{format: "json", id: game.pengine, event: "ask((#{q}, flush(FlushMessages)), [])"}
 
-    IO.inspect q
-    IO.inspect response
-    
     response = Poison.decode!(response) |> handle_answer
 
     case response do
