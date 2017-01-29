@@ -1,15 +1,17 @@
 defmodule Mafia.MeetChannel do
   use Mafia.Web, :channel
 
-  alias Mafia.{Repo, Channel, Message, User, Prolog, Game}
+  alias Mafia.{Repo, Channel, Message, User, Pengine, Game}
+
+  def meet_channel(%{topic: "meet:" <> name}) do
+     Repo.get_by(Channel, name: name, type: "m") |> Repo.preload(:game)
+  end
+
 
   def join("meet:" <> meet, payload, socket) do
-    [game_name, channel] = String.split meet, ":"
-    %{game: game} = Repo.get_by!(Channel, name: game_name, type: "g") |> Repo.preload(:game)
+    meet_channel = Repo.get_by!(Channel, name: meet, type: "m") |> Repo.preload(:game)
     
-    Prolog.ask! game.pengine, "join_channel(#{socket.assigns.user}, #{Prolog.prologize channel})"
-
-    Repo.insert(%Channel{name: meet, game: game, type: "m"})
+    Pengine.ask! meet_channel.game, "join_channel(<%= user %>, <%= meet %>)", user: socket.assigns.user, meet: meet
 
     {:ok, socket}
   end
@@ -27,6 +29,12 @@ defmodule Mafia.MeetChannel do
       {:error, "invalid message"}
     end
   end
+
+  def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
+    %{game: game, name: name} = meet_channel(socket)
+    Pengine.ask! game, "player(#{socket.assigns.user}, Player), vote(Player, <%= name %>, <%= action %>, <%= targets %>)", name: name, action: action, targets: targets
+  end
+
 
   # Channels can be used in a request/response fashion
   # by sending replies to requests from the client

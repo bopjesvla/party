@@ -33,21 +33,6 @@
 					.receive("ok", (d) => {
 						console.log(d.msgs)
 						this.messages = d.msgs
-            if(d.active) {
-              this.channels = d.active.map(meet => socket.channel("meet:" + meet.channel))
-              console.log(this.channels)
-              this.channels.forEach(x => x.join().receive("error", e => console.log(e)))
-              this.activeChannel = this.channels[0]
-            }
-            else {
-              this.channels = [this.channel]
-              this.activeChannel = this.channel
-            }
-            
-	          this.channels.forEach(c => c.on("new:msg", msg => {
-              msg.topic = c.topic
-	            this.messages.push(msg)
-	          }))
 					})
 					.receive("error", e => console.log(e))
 
@@ -56,7 +41,7 @@
 				})
 			},
 			send() {
-				this.activeChannel.push("new:msg", {type: 'm', msg: this.input})
+				this.channel.push("new:msg", {type: 'm', msg: this.input})
 				this.input = ''
 			}
 		},
@@ -67,6 +52,11 @@
 		computed: {
 			topic() {
 				return `${this.$route.name}:${this.$route.params.name}`
+			},
+			channels() {
+				return [{
+				    [this.$route.params.name]: this.topic
+				}]
 			}
 		}
 	}

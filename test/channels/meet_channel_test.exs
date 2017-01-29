@@ -7,16 +7,20 @@ defmodule Mafia.MeetChannelTest do
     teams: [%{player: 1, team: "m"}, %{player: 2, team: "t"}, %{player: 3, team: "t"}, %{player: 4, team: "t"}],
     player_roles: [],
     alignment_roles: [],
-    global_roles: [],
+    global_roles: [%{mods: [], role: "village"}],
     phases: ["d", "n"]
   }
 
   setup do
     socket =
       socket("user:0", %{user: 0})
-      |> subscribe_and_join!(GameChannel, "game:t", %{"setup" => @setup})
-      |> subscribe_and_join!(MeetChannel, "meet:t:pre")
+      |> subscribe_and_join!(GameChannel, "game:t", %{"setup" => @setup, "speed" => 10})
 
+    ref = push socket, "info", %{}
+    assert_reply ref, :ok, %{"active" => [%{"channel" => signups_channel}]}
+   
+    socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> signups_channel)
+    
     {:ok, socket: socket}
   end
 
@@ -30,9 +34,8 @@ defmodule Mafia.MeetChannelTest do
     assert_push "broadcast", %{"some" => "data"}
   end
 
-  @tag :game
   test "can send messages", %{socket: socket} do
-    ref = push socket, "new:msg", %{"msg" => "there"}
+    push socket, "new:msg", %{"msg" => "there"}
     assert_broadcast "new:msg", %{msg: "there", u: "bob", ts: _}
   end
 end

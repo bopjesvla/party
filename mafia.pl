@@ -1,6 +1,6 @@
 % seq/1, status
 
-:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/4, set_setup/1, game_info/2]).
+:- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/2, setup_game/1, game_info/2, flush/1, create_channel/3, next_phase/0, add_next_phase_event/0]).
 
 :- use_module(library(http/json)).
 
@@ -9,12 +9,10 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 :- thread_local
    voting/5,
    action_history/3,
-   access/4,
+   access/2,
    current_phase/1, % false during signups
-   signups_end_time/1,
-   game_end_time/1,
    player/2, % user_id, player_id
-   phase_timer/1,
+   phase_timer/2,
    speed/1,
    message/1,
    setup_alignment/2,
@@ -32,24 +30,38 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 :- include(resolve).
 :- include(utils).
 
-:- begin_tests(set_setup).
-
-test(speed) :- set(speed(10)).
-test(alignments) :- set(setup_alignment(1,t)), set(setup_alignment(2,t)), set(setup_alignment(3,m)). % run phase timers at x10000
-test(global_role) :- set(global_role(([], village))).
-test(alignment_roles) :- set(alignment_role(m, ([], killer))).
-test(player_role) :- set(player_role(1, ([], cop))).
-
-test(set_setup) :- set_setup(m{'teams': [], 'player_roles': [], 'alignment_roles': [], 'global_roles': [], phases: [day, night]}).
-
-:- end_tests(set_setup).
-
-set_setup(Setup) :-
+setup_game(_{setup: Setup, speed: Speed}) :-
   forall(member(A, Setup.teams), assertz(setup_alignment(A.player, A.team))),
   forall(member(A, Setup.player_roles), assertz(player_role(A.player, (A.mods, A.role)))),
   forall(member(A, Setup.alignment_roles), assertz(alignment_role(A.team, (A.mods, A.role)))),
   forall(member(A, Setup.global_roles), assertz(global_role((A.mods, A.role)))),
+  asserta(speed(Speed)),
   assertz(setup_phases(Setup.phases)).
+
+:- begin_tests(setup_game).
+
+%% test(speed) :- set(speed(10)).
+%% test(alignments) :- set(setup_alignment(1,t)), set(setup_alignment(2,t)), set(setup_alignment(3,m)). % run phase timers at x10000
+%% test(global_role) :- set(global_role(([], village))).
+%% test(alignment_roles) :- set(alignment_role(m, ([], killer))).
+%% test(player_role) :- set(player_role(1, ([], cop))).
+
+test(setup_game) :- setup_game(m{
+  setup: m{
+    'teams': [m{player: 1, team: t}, m{player: 2, team: t}, m{player: 3, team: m}],
+    'player_roles': [m{player: 1, mods: [], role: cop}],
+    'alignment_roles': [m{team: m, mods: [], role: killer}],
+    'global_roles': [m{mods: [], role: village}],
+    phases: [day, night]
+  },
+  speed: 10
+}).
+
+test(signups_channel, [X = [create_channel(Channel)]]) :- create_channel(signups, none, Channel), flush(X).
+
+:- end_tests(setup_game).
+
+signups :- \+ current_phase(_).
 
 uid(X) :- random_between(17_000_000, 260_000_000, R), format(atom(X), '~16r', [R]).
 
@@ -73,7 +85,7 @@ full_game :- player_count(P), setup_size(S), P >= S.
 
 alive(X) :- player(X, _), \+ dead(X).
 
-remove_phase_timer :- retract(phase_timer(T)), remove_alarm(T),!.
+remove_phase_timer :- retract(phase_timer(T, _)), remove_alarm(T),!.
 remove_phase_timer.
 
 %set_phase_timer(T) :-
@@ -82,31 +94,39 @@ remove_phase_timer.
 %alarm(RealT, next_phase, Id),
 %asserta(phase_timer(Id)).
 
-game_info(User, m{active: Active, access: Access}) :-
+game_info(User, m{active: Active}) :-
   player(User, Player),
-  findall(m{channel: C, members: Members, actions: Actions, votes: Votes}, (
+  findall(m{channel: C, members: Members, actions: Actions, votes: Votes, role: Role, type: Type}, (
       join_channel(User, C),
       findall(Member, join_channel(C, Member), Members),
+      channel_role(C, Role),
+      channel_type(C, Type),
       findall(m{act: Action, opt: Targets}, channel_action(C, Action, Targets), Actions),
       ignore(current_phase(P)),
       findall(m{player: Player, action: Action, targets: T}, voting(P, Player, C, Action, T), Votes)
-  ), Active),
-  findall(m{channel: C, start: S, end: E}, access(C, Player, S, E), Access).
+  ), Active).
 
 join(User) :- player(User, _), !.
 join(User) :-
-  \+ current_phase(_),
+  signups,
   \+ full_game,
-  asserta(player(User, User)), % player id is the id of the first user
-  (full_game, start_game_countdown, !; true).
+  asserta(player(User, User)), % player id is the id of the first user taking the slot
+  (full_game, start_phase_countdown(10), !; true).
 
-start_game_countdown :- send(next_phase(10)).
+add_next_phase_event :-
+  pengine_self(Id).
+
+start_phase_countdown(After) :-
+  remove_phase_timer,
+  get_time(T),
+  speed(Speed),
+  End is T + After / Speed,
+  alarm_at(End, add_next_phase_to_event_loop, Alarm, [remove(true)]),
+  asserta(phase_timer(Alarm, End)),
+  send(check_after(After)).
 
 :- begin_tests(signups).
 
-:- [game1].
-
-%test(set_setup) :- assert(setup_roles([[t, [cop]], [t, []], [m, []]])).
 test(join) :-
   seq [player_count(0),
    join(1),
@@ -116,17 +136,18 @@ test(join) :-
    join(5),
    player_count(2)].
 
-test(signups_game_info, [X = _{active: [_{channel: pre, members: _, actions: [], votes: []}], access: _}]) :-
+test(signups_game_info, [X = _{active: [_{channel: _, members: _, actions: [], votes: [], type: signups, role: none}]}]) :-
   game_info(1, X).
 
 test(starting, [X = []]) :-
-  flush(X),
+  flush(X), 
   join(3),
   \+ join(2),
   join(3).
 
-test(game_full_message, [X = [next_phase(10)]]) :-
-  flush(X).
+test(game_full_message, [X = [check_after(10)]]) :-
+  flush(X),
+  remove_phase_timer.
 
 :- end_tests(signups).
 
@@ -143,37 +164,54 @@ locked_actions(Actions) :-
     once(voting(P, Actor, Channel, Action, Targets); Actor = noone)
     ), Actions).
 
-start_phase.
-
 end_phase :-
   current_phase(_), !, % game has already started
   locked_actions(Actions),
   resolve(Actions, SuccessfulActions),
-  process_actions(SuccessfulActions).
+  process_actions(SuccessfulActions),
+  forall(channel_type(Channel, player_role), (
+    \+ join_channel(_, Channel),
+    send(leave(all, Channel))
+  )),
+  forall(channel_type(Channel, alignment), (
+    \+ join_channel(_, Channel),
+    send(leave(all, Channel))
+  )).
 
-end_phase :- start_game. % ending signups = starting the game
+end_phase :- send(leave(all, pre)), start_game. % ending signups = starting the game
 
 increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
 increase_current_phase :- asserta(current_phase(0)).
 
+
+start_phase :- !, true.
+start_phase :-
+  forall(player(_, Player), (
+    game_info(Player, GameInfo),
+    send(game_info(Player, GameInfo))
+  )).
+
 start_game :-
   players(Players),
   random_permutation(Players, ShuffledPlayers),
+  forall(player(_, Player), (
+    create_channel(player, none, Channel),
+    grant_access(Player, Channel)
+  )),
   forall(player_role(N, Role), (
-  nth0(N, ShuffledPlayers, Player),
-  create_channel(indie, Role, Channel),
-         grant_access(Player, Channel)
-     )),
-    forall(alignment_role(Alignment, Role), ( % for every alignment role, add a channel
-         create_channel(alignment, Role, Channel),
-  setup_alignment(N, Alignment),
-  forall(nth0(N, ShuffledPlayers, Player), grant_access(Player, Channel))
-     )),
-    forall(global_role(Role), (
-         create_channel(global, Role, Channel),
-         asserta(global_channel(Channel)),
-         forall(member(Player, Players), grant_access(Player, Channel))
-     )).
+    nth1(N, ShuffledPlayers, Player),
+    create_channel(player_role, Role, Channel),
+    grant_access(Player, Channel)
+   )),
+  forall(alignment_role(Alignment, Role), ( % for every alignment role, add a channel
+    create_channel(alignment, Role, Channel),
+    forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), (grant_access(Player, Channel)))
+  )),
+  forall(global_role(Role), (
+    create_channel(global, Role, Channel),
+    asserta(global_channel(Channel)),
+    forall(member(Player, Players), grant_access(Player, Channel))
+  )).
 
 channel_action(Channel, Action, Targets) :-
   channel_role(Channel, Role),
@@ -184,41 +222,64 @@ channel_action(Channel, Action, Targets) :-
 :- begin_tests(game_start).
 
 test(start) :- next_phase.
+
+test(access_messages, [X = [leave(all, pre), create_channel(_), join(_, _) | _]]) :- flush(X).
 test(global_channel) :- seq [
           channel_role(Channel, ([], village)),
-          access(1, Channel, _, now),
+          channel_type(Channel, global),
+          join_channel(1, Channel),
           channel_action(Channel, lynch, [3])
       ].
 test(role_channel) :- seq [ channel_role(Channel, ([], cop)),
-          access(_, Channel, _, now)
+          access(_, Channel)
           % channel_action(Channel, investigate, [noone])
         ].
 
+test(alignment_channel) :- seq [ channel_role(Channel, ([], killer)),
+          channel_type(Channel, alignment),
+          access(_, Channel)
+          % channel_action(Channel, investigate, [noone])
+        ].
+
+test(player_channel) :- seq [ channel_role(Channel, none),
+          channel_type(Channel, player),
+          access(1, Channel)
+          % channel_action(Channel, investigate, [noone])
+        ].
+
+test(start_game_info, [X = _{active: [_{channel: _, members: _, actions: [m{act: lynch, opt: [_]} | _], votes: [], type: global, role: _} | _]}]) :-
+  game_info(1, X).
+        
 :- end_tests(game_start).
 
 create_channel(Type, Role, Channel) :-
   uid(Channel),
+  send(create_channel(Channel)),
   asserta(channel_role(Channel, Role)),
-  state(channel_type(Channel, Type)).
+  asserta(channel_type(Channel, Type)).
 
-grant_access(Player, Channel) :- access(Player, Channel, _, now), !.
+grant_access(Player, Channel) :- access(Player, Channel), !.
 grant_access(Player, Channel) :-
-  get_time(T),
-  asserta(access(Player, Channel, T, now)).
-
-kick(Player, Channel) :-
-  retract(access(Player, Channel, Start, now)),
-  get_time(T),
-  asserta(access(Player, Channel, Start, T)).
-
-join_channel(User, pre) :-
   player(User, Player),
-  \+ current_phase(_).
+  send(join(User, Channel)),  
+  asserta(access(Player, Channel)).
+
+retract_access(Player, Channel) :- \+ access(Player, Channel), !.
+retract_access(Player, Channel) :-
+  retract(access(Player, Channel)),
+  get_time(T),
+  send(leave(Player, Channel)),
+  asserta(access(Player, Channel)).
 
 join_channel(User, Channel) :-
   player(User, Player),
-  access(Player, Channel, _, now),
-  channel_action(Channel, _, _).
+  channel_type(Channel, signups),
+  signups.
+
+join_channel(User, Channel) :-
+  player(User, Player),
+  access(Player, Channel),
+  (channel_type(Channel, player); once(channel_action(Channel, _, _))).
 
 unvote(Player, Channel, Action) :-
   current_phase(P),
@@ -241,12 +302,12 @@ can_vote(_Player, Channel, Action, Targets) :-
   \+ locked(Channel, Action, _).
 
 check_hammer(Channel, Action, Targets) :-
-  aggregate_all(count, access(_, Channel, _, now), ChannelMemberCount),
+  aggregate_all(count, access(_, Channel), ChannelMemberCount),
   current_phase(P),
   aggregate_all(count, voting(P, _, Channel, Action, Targets), VoteCount),
   VoteCount > ChannelMemberCount / 2, !,
   lock(Channel, Action, Targets),
-  maybe_end_phase.
+  maybe_next_phase.
 
 check_hammer(_, _, _).
 
@@ -255,8 +316,7 @@ lock(Channel, Action, Targets) :-
 
 :- begin_tests(voting).
 
-test(voting) :- seq [
-      channel_type(Channel, global),
+test(voting) :- channel_type(Channel, global), seq [
       vote(1, Channel, lynch, [3]),
       \+ vote(1, Channel, lynch, [1235]),
       \+ vote(3, Channel, kill, [1]),
@@ -267,19 +327,21 @@ test(voting) :- seq [
 
 :- end_tests(voting).
 
-maybe_end_phase :-
+maybe_next_phase :-
     forall(channel_action(Channel, Action, _), locked(Channel, Action, _)), !,
-    end_phase.
+    next_phase.
 
-maybe_end_phase.
+maybe_next_phase.
 
 :- begin_tests(end_phase).
 
-test(lynch) :- seq [
-       channel_type(Channel, global),
-       vote(5, Channel, lynch, [1]),
-       \+ vote(5, Channel, lynch, [1])
-    ].
+test(lynch) :-
+  channel_type(Channel, global),
+  seq [
+    vote(5, Channel, lynch, [1]),
+    \+ vote(5, Channel, lynch, [1]),
+    current_phase(1)
+  ].
 
 test(lynch_logged, all(X = [action(5, lynch, [1], Channel)])) :-
     channel_type(Channel, global),

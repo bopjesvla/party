@@ -35,7 +35,6 @@ let router = new VueRouter({
         path: '',
         name: 'lobby',
         components: {
-          main: 'lobby',
           sidebar: LobbySidebar,
           default: Lobby
         }

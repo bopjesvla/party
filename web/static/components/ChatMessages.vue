@@ -18,7 +18,7 @@
 	export default {
 		props: ['messages'],
 		filters: {
-			time: x => x.split('T')[1].slice(0,5)
+			time: x => x.split(/[T ]/)[1].slice(0,5)
 		}
 	}
 </script>

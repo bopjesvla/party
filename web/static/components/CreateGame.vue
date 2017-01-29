@@ -6,6 +6,16 @@
 <script>
 	import socket from '../socket'
 
+  let test_setup = {
+    setup: {
+      global_roles: [],
+      player_roles: [],
+      alignment_roles: [],
+      phases: ["d", "n"],
+      teams: [{player: 1, team: "m"}, {player: 2, team: "t"}, {player: 3, team: "t"}, {player: 4, team: "t"}]
+    }
+  }
+ 
 	let generateID = function() {
 		let d = new Date().getTime();
 		let uuid = ""
@@ -21,7 +31,7 @@
 		methods: {
 			start() {
 				let id = generateID()
-				socket.channel(`game:${id}`, {setup: 1}).join()
+				socket.channel(`game:${id}`, test_setup).join()
 					.receive("ok", _ => this.$router.push({name: 'game', params: {name: id}}))
 					.receive("error", x => console.log(x))
 			}

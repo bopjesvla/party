@@ -17,7 +17,7 @@ default_target_constraint(_, Channel, Target) :-
     (alive(Target); Target = noone),
     (channel_type(Channel, global); other(Channel, Target)).
 
-other(Channel, Player) :- \+ access(Player, Channel, _, now).
+other(Channel, Player) :- \+ access(Player, Channel).
 
 main_role_action(village, lynch).
 main_role_action(cop, investigate).

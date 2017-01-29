@@ -1,7 +1,7 @@
 defmodule Mafia.RegistrationControllerTest do
   use Mafia.ConnCase
 
-  @user_data %{registration: %{email: "a@b", name: "q", password: "1234", password_confirmation: "1234"}}
+  @user_data %{registration: %{email: "a@b", name: "q", password: "4321", password_confirmation: "4321"}}
 
   test "GET /", %{conn: conn} do
     conn = get conn, "/"

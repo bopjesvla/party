@@ -39,9 +39,8 @@ defmodule Mafia.Mixfile do
      {:gettext, "~> 0.11"},
      {:coherence, "~> 0.3"},
      {:cowboy, "~> 1.0"},
-     {:gproc, "~> 0.6.1"},
-     {:exactor, "~> 2.2.2"},
-     {:httpoison, "~> 0.10.0"}
+     {:httpoison, "~> 0.10.0"},
+     {:mock, "~> 0.2.0", only: :test}
    ]
   end
 
