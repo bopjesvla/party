@@ -46,7 +46,7 @@ test(safe_primitive, [Event = success]) :-
 test(ask_self, [Event = success]) :-
   create_game(json([event=create,id=Id,_])),
   http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask((
-    call_self(next_phase)
+    call_self((true; true))
   ),[])'])], json(X), []),
   http_get([host(localhost), port(5000), path('/pengine/send'), search([format='json',id=Id,event='ask((
     X = 1
