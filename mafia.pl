@@ -4,7 +4,7 @@
 
 setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 
-% hack to define dynamic predicatess in erlog
+% defining dynamic predicates in erlog
 voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
@@ -42,8 +42,6 @@ setup_phases(q) :- fail.
 %%   assertz(setup_phases(Phases)).
 
 signups :- \+ current_phase(_).
-
-uid(X) :- random_between(17000000, 260000000, R), format(atom(X), '~16r', [R]).
 
 send(X) :- assertz(message(X)).
 flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
@@ -95,14 +93,7 @@ call_self(Q) :-
   pengine_ask(Self, Q, []).
 
 start_phase_countdown(After) :-
-  remove_phase_timer,
-  get_time(T),
-  speed(Speed),
-  End is T + After / Speed,
-  % may be subject to race conditions
-  alarm_at(End, next_phase, Alarm, [remove(true)]),
-  asserta(phase_timer(Alarm, End)),
-  send(check_after(After)).
+  send(next_phase(After)).
 
 next_phase :-
   full_game,
@@ -120,7 +111,7 @@ locked_actions(Actions) :-
 end_phase :-
   current_phase(_), !, % game has already started
   locked_actions(Actions),
-  retractall(locked(_, _, _)),
+  retract_all(locked(_, _, _)),
   resolve(Actions, SuccessfulActions),
   process_actions(SuccessfulActions),
   forall(channel_type(Channel, player_role), (
@@ -136,7 +127,6 @@ end_phase :- send(leave(all, pre)), start_game. % ending signups = starting the 
 
 increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
 increase_current_phase :- asserta(current_phase(0)).
-
 
 start_phase :- !, true.
 start_phase :-
@@ -159,7 +149,7 @@ start_game :-
    )),
   forall(alignment_role(Alignment, Role), ( % for every alignment role, add a channel
     create_channel(alignment, Role, Channel),
-    forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), (grant_access(Player, Channel)))
+    forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), grant_access(Player, Channel))
   )),
   forall(global_role(Role), (
     create_channel(global, Role, Channel),
@@ -205,7 +195,7 @@ join_channel(User, Channel) :-
 unvote(Player, Channel, Action) :-
   current_phase(P),
   can_unvote(Player, Channel, Action),
-  (retractall(voting(P, Player, Channel, Action, _)); true).
+  (retract_all(voting(P, Player, Channel, Action, _)); true).
 
 vote(Player, Channel, Action, Targets) :-
   current_phase(P),
@@ -223,9 +213,9 @@ can_vote(_Player, Channel, Action, Targets) :-
   \+ locked(Channel, Action, _).
 
 check_hammer(Channel, Action, Targets) :-
-  aggregate_all(count, access(_, Channel), ChannelMemberCount),
+  count(access(_, Channel), ChannelMemberCount),
   current_phase(P),
-  aggregate_all(count, voting(P, _, Channel, Action, Targets), VoteCount),
+  count(voting(P, _, Channel, Action, Targets), VoteCount),
   VoteCount > ChannelMemberCount / 2, !,
   lock(Channel, Action, Targets),
   maybe_next_phase.
@@ -236,8 +226,8 @@ lock(Channel, Action, Targets) :-
     asserta(locked(Channel, Action, Targets)).
 
 maybe_next_phase :-
-    forall(channel_action(Channel, Action, _), locked(Channel, Action, _)), !,
-    next_phase.
+  forall(channel_action(Channel, Action, _), locked(Channel, Action, _)), !,
+  next_phase.
 
 maybe_next_phase.
 

@@ -8,7 +8,7 @@ role_action(([], Role), Action, [Target], Channel, Constraints) :-
 % role_status(([], bulletproof), bulletproof).
 
 default_phase_constraint(village) :-
-    current_phase_name(day), !.
+    !, current_phase_name(day).
 
 default_phase_constraint(_) :-
     current_phase_name(night).

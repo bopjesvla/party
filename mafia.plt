@@ -1,11 +1,5 @@
 :- begin_tests(setup_game).
 
-test(speed) :- asserta(speed(10)).
-test(alignments) :- asserta(setup_alignment(1,t)), asserta(setup_alignment(2,t)), asserta(setup_alignment(3,m)). % run phase timers at x10000
-test(global_role) :- asserta(global_role(([], village))).
-test(alignment_roles) :- asserta(alignment_role(m, ([], killer))).
-test(player_role) :- asserta(player_role(1, ([], cop))).
-
 %% test(setup_game) :- setup_game(m{
 %%   setup(m){
 %%     'teams'([m){player(1), team(t)}, m{player(2), team(t)}, m{player(3), team(m)}],
@@ -17,7 +11,10 @@ test(player_role) :- asserta(player_role(1, ([], cop))).
 %%   speed(10)
 %% }).
 
-test(signups_channel, [X = [create_channel(Channel)]]) :- create_channel(signups, none, Channel), flush(X).
+test(signups_channel) :-
+  create_channel(signups, none, Channel),
+  flush(X),
+  X = [create_channel(Channel)].
 
 :- end_tests(setup_game).
 :- begin_tests(signups).
@@ -40,18 +37,26 @@ test(starting) :-
   \+ join(2),
   join(3).
 
-test(game_full_message, [X = [check_after(10)]]) :-
+test(game_full_message) :-
   flush(X),
-  remove_phase_timer.
+  X = [next_phase(10)].
 
 :- end_tests(signups).
 :- begin_tests(game_start).
 
-test(start) :- next_phase.
+test(start) :-
+  next_phase,
+  current_phase(0),
+  current_phase_name(day).
 
-test(access_messages, [X = [leave(all, pre), create_channel(_), join(_, _) | _]]) :- flush(X).
+test(access_messages) :-
+  flush(X),
+  X = [leave(all, pre), create_channel(_), join(_, _) | _].
+
 test(global_channel) :-
   channel_role(Channel, ([], village)),
+  channel_action(Channel, X, _),
+  X = lynch,
   channel_type(Channel, global),
   join_channel(1, Channel),
   channel_action(Channel, lynch, [3]).
@@ -61,7 +66,8 @@ test(role_channel) :- channel_role(Channel, ([], cop)),
   % channel_action(Channel, investigate, [noone])
   .
 
-test(alignment_channel) :- channel_role(Channel, ([], killer)),
+test(alignment_channel) :-
+          channel_role(Channel, ([], killer)),
           channel_type(Channel, alignment),
           access(_, Channel)
           % channel_action(Channel, investigate, [noone])
@@ -93,11 +99,12 @@ test(voting) :- channel_type(Channel, global),
 
 test(lynch) :-
   channel_type(Channel, global),
- 
-    vote(5, Channel, lynch, [1]),
-    \+ vote(5, Channel, lynch, [1]),
-    current_phase(1)
-  .
+  vote(5, Channel, lynch, [1]).
+
+test(night) :-
+  current_phase(1),
+  current_phase_name(night),
+  \+ vote(5, Channel, lynch, [1]).
 
 test(lynch_logged, all(X = [action(5, lynch, [1], Channel)])) :-
     channel_type(Channel, global),
