@@ -4,7 +4,7 @@
 
 setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 
-% defining dynamic predicates in erlog
+% defining dynamic predicates the erlog way
 voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
@@ -14,9 +14,7 @@ phase_timer(q, q) :- fail.
 speed(q) :- fail.
 message(q) :- fail.
 setup_alignment(q, q) :- fail.
-player_role(q, q) :- fail.
-alignment_role(q, q) :- fail.
-global_role(q) :- fail.
+setup_role(q, q, q) :- fail.
 channel_role(q, q) :- fail.
 channel_type(q, q) :- fail.
 locked(q, q, q) :- fail.
@@ -114,11 +112,8 @@ end_phase :-
   retract_all(locked(_, _, _)),
   resolve(Actions, SuccessfulActions),
   process_actions(SuccessfulActions),
-  forall(channel_type(Channel, player_role), (
-    \+ join_channel(_, Channel),
-    send(leave(all, Channel))
-  )),
-  forall(channel_type(Channel, alignment), (
+  forall(
+    channel_role(Channel, _),
     \+ join_channel(_, Channel),
     send(leave(all, Channel))
   )).
@@ -142,17 +137,17 @@ start_game :-
     create_channel(player, none, Channel),
     grant_access(Player, Channel)
   )),
-  forall(player_role(N, Role), (
+  forall(setup_role(player, N, Role), (
     nth1(N, ShuffledPlayers, Player),
     create_channel(player_role, Role, Channel),
     grant_access(Player, Channel)
    )),
-  forall(alignment_role(Alignment, Role), ( % for every alignment role, add a channel
-    create_channel(alignment, Role, Channel),
+  forall(setup_role(alignment, Alignment, Role), ( % for every alignment role, add a channel
+    create_channel(alignment_role, Role, Channel),
     forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), grant_access(Player, Channel))
   )),
-  forall(global_role(Role), (
-    create_channel(global, Role, Channel),
+  forall(setup_role(global, _, Role), (
+    create_channel(global_role, Role, Channel),
     asserta(global_channel(Channel)),
     forall(member(Player, Players), grant_access(Player, Channel))
   )).
