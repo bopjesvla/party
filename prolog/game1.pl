@@ -5,6 +5,6 @@ setup_alignment(3, t).
 
 setup_phases(string_chars("dn")).
 global_role([], mob).
-alignment_role(mafia, [], vig).
+alignment_role(m, [], vig).
 
 

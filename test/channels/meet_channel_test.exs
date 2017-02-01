@@ -4,11 +4,11 @@ defmodule Mafia.MeetChannelTest do
   alias Mafia.{GameChannel,MeetChannel}
 
   @setup %{
-    teams: [%{player: 1, team: "m"}, %{player: 2, team: "t"}, %{player: 3, team: "t"}, %{player: 4, team: "t"}],
+    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
     player_roles: [],
     alignment_roles: [],
     global_roles: [%{mods: [], role: "village"}],
-    phases: ["d", "n"]
+    phases: ["day", "night"]
   }
 
   # setup do

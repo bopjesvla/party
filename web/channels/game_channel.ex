@@ -1,7 +1,7 @@
 defmodule Mafia.GameChannel do
   use Phoenix.Channel
 
-  alias Mafia.{Repo, Channel, Message, User, Pengine, Game}
+  alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameSupervisor, GameServer}
   import Ecto.Query
 
   #def handle_in("room_info", %{name: name}, socket) do
@@ -17,33 +17,23 @@ defmodule Mafia.GameChannel do
   def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10 do
     prolog_setup = %{setup: setup, speed: speed} |> Pengine.prologize
 
-    q = "mafia:setup_game(#{prolog_setup}), create_channel(signups, none, _), join(<%= user %>), game_info(<%= user %>, GameInfo)"
-
-    game_channel = Repo.insert!(%Channel{user_id: user, type: "g", name: name})
-
-    {pengine, %{"GameInfo" => game_info}} = Pengine.create!(q, user: user)
+    Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}]}
     
-    game_channel
-    |> Repo.preload(:game)
-    |> Ecto.Changeset.change
-    |> Ecto.Changeset.put_assoc(:game, %Game{pengine: pengine, status: "signups"})
-    |> Repo.update!
-
-    info = Map.put(game_info, :msgs, [])
+    {:ok, _} = GameSupervisor.start_game({name, user, setup})
+    
+    info = game_info(name, user)
+    |> Map.put(:msgs, [])
 
     {:ok, info, socket}
   end
 
   def join("game:" <> name, params, %{assigns: %{user: user}} = socket) do
-    channel = Repo.get_by!(Channel, name: name, type: "g") |> Repo.preload(:game)
-
-    %{"GameInfo" => info} = Pengine.ask!(channel.game, "join(<%= user %>), game_info(<%= user %>, GameInfo)", user: user)
-
-    %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, channel.game_id])
+    %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, name])
 
     messages = Enum.map rows, &render_message/1
 
-    info = Map.put(info, :msgs, messages)
+    info = game_info(name, user)
+    |> Map.put(:msgs, messages)
     
     #channels = Repo.get_by(Channel, room_id: id)
     {:ok, info, socket}
@@ -59,16 +49,17 @@ defmodule Mafia.GameChannel do
   def between_joins_and_kicks([_ | events], target), do: between_joins_and_kicks(events, target)
   def between_joins_and_kicks([], _), do: ""
 
-  def game_info(game, socket) do
-    x = Pengine.ask! game, "game_info(<%= user %>, GameInfo)", user: socket.assigns.user
-    x["GameInfo"]
+  def game_info(name, user) do
+    {:succeed, info: game_info} = GameServer.prove(name, {:game_info, user, {:info}})
+
+    info = game_info
+    |> Enum.into(%{})
   end
 
   
-  def handle_in("info", _, socket) do
+  def handle_in("info", _, socket)    "game:" <> name = socket.topic
+ do
     "game:" <> name = socket.topic
-    channel = Repo.get_by!(Channel, name: name, type: "g") |> Repo.preload(:game)
-
-    {:reply, {:ok, game_info(channel.game, socket)}, socket}
+    {:reply, {:ok, game_info(name, socket.assigns.user)}, socket}
   end
 end

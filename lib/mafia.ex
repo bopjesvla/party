@@ -14,6 +14,8 @@ defmodule Mafia do
       supervisor(Mafia.Endpoint, []),
       # Start your own worker by calling: Mafia.Worker.start_link(arg1, arg2, arg3)
       # worker(Mafia.Worker, [arg1, arg2, arg3]),
+      supervisor(Mafia.GameSupervisor, []),
+      supervisor(Registry, [:unique, :game_registry])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

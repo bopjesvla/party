@@ -57,7 +57,7 @@ test(global_channel) :-
   channel_role(Channel, ([], village)),
   channel_action(Channel, X, _),
   X = lynch,
-  channel_type(Channel, global_role),
+  channel_type(Channel, global),
   join_channel(1, Channel),
   channel_action(Channel, lynch, [3]).
 
@@ -68,7 +68,7 @@ test(role_channel) :- channel_role(Channel, ([], cop)),
 
 test(alignment_channel) :-
           channel_role(Channel, ([], killer)),
-          channel_type(Channel, alignment_role),
+          channel_type(Channel, alignment),
           access(_, Channel)
           % channel_action(Channel, investigate, [noone])
         .

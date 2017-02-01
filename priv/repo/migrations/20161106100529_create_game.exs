@@ -3,7 +3,7 @@ defmodule Mafia.Repo.Migrations.CreateGame do
 
   def change do
     create table(:games) do
-      add :pengine, :string
+      add :name, :string
       add :setup_id, references(:setups, on_delete: :nothing)
       add :status, :string
 
