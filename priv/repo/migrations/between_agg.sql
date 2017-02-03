@@ -20,7 +20,7 @@ RETURNS table(msg text, u text, ts text, ty text, ch int) AS $$
 SELECT m.msg, u.name as m, m.inserted_at::text as ts, m.type as ty, m.channel_id as ch
 FROM (
   SELECT m.*,
-  between_agg(m.type = 'j' and m.user_id = $1, m.type = 'k' and m.user_id = $1) over (partition by m.channel_id order by m.inserted_at) as between_joins_and_kicks
+  between_agg(m.type = 'join' and m.user_id = $1, m.type = 'kick' and m.user_id = $1) over (partition by m.channel_id order by m.inserted_at) as between_joins_and_kicks
   FROM messages m
   JOIN channels c on (m.channel_id = c.id)
   JOIN games g on (c.game_id = g.id)

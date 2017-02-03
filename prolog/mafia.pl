@@ -67,12 +67,12 @@ alive(X) :- player(X, _), \+ dead(X).
 %alarm(RealT, next_phase, Id),
 %asserta(phase_timer(Id)).
 
-game_info(User, [active(Active)]) :-
+game_info(User, [active(Active), next_phase(Time)]) :-
   player(User, Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
-      findall(Member, join_channel(C, Member), Members),
-      channel_role(C, Role),
+      findall(Member, join_channel(Member, C), Members),
+      (channel_role(C, Role); role = nil),
       channel_type(C, Type),
       findall([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
       ignore(current_phase(P)),
@@ -84,13 +84,12 @@ join(User) :-
   signups,
   \+ full_game,
   asserta(player(User, User)), % player id is the id of the first user taking the slot
+  forall(join_channel(User, Channel), send(join(User, Channel))),
   (full_game, start_phase_countdown(10), !; true).
 
-call_self(Q) :-
-  pengine_self(Self),
-  pengine_ask(Self, Q, []).
-
 start_phase_countdown(After) :-
+  Ms is After * 1000,
+  erl(timer:send_after(Ms, query(next_phase))),
   send(next_phase(After)).
 
 next_phase :-
@@ -112,11 +111,11 @@ end_phase :-
   retract_all(locked(_, _, _)),
   resolve(Actions, SuccessfulActions),
   process_actions(SuccessfulActions),
-  forall(
+  forall((
     channel_role(Channel, _),
-    \+ join_channel(_, Channel),
+    \+ join_channel(_, Channel)),
     send(leave(all, Channel))
-  )).
+  ).
 
 end_phase :- send(leave(all, pre)), start_game. % ending signups = starting the game
 

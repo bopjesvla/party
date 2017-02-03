@@ -27,19 +27,24 @@ test(resolve) :-
        ], _SuccessfulActions),
 	retract(current_phase(123)).
 
-test(blocked, all(X = [blocked])) :-
-    action_history(123, action(-105, block, [-101], w), X).
+test(blocked) :-
+    action_history(123, action(-105, block, [-101], w), X),
+    X = blocked.
 
-test(not_blocked, [X = success]) :-
-    action_history(123, action(-101, kill, [-105], q), X).
+test(not_blocked) :-
+    action_history(123, action(-101, kill, [-105], q), X),
+    X = success.
 
-test(prefer_block_to_fail, all(X = [blocked])) :-
-    action_history(123, action(-301, kill, _, y), X).
+test(prefer_block_to_fail) :-
+    action_history(123, action(-301, kill, _, y), X),
+    X = blocked.
 
-test(protects, all(X = [failed, failed, failed])) :-
-    action_history(123, action(_, _, _, protected), X).
+test(protects) :-
+    findall(X, action_history(123, action(_, _, _, protected), X), Y),
+    Y = [failed, failed, failed].
 
-test(paradox, all(X = [success, success])) :-
-    action_history(123, action(_, kill, _, paradox), X).
+test(paradox) :-
+    findall(X, action_history(123, action(_, kill, _, paradox), X), Y),
+    Y = [success, success].
 
 :- end_tests(resolve).

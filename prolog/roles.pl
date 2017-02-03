@@ -15,7 +15,7 @@ default_phase_constraint(_) :-
 
 default_target_constraint(_, Channel, Target) :-
     (alive(Target); Target = noone),
-    (channel_type(Channel, global); other(Channel, Target)).
+    (channel_type(Channel, global_role); other(Channel, Target)).
 
 other(Channel, Player) :- \+ access(Player, Channel).
 

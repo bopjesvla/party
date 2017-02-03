@@ -12,7 +12,7 @@
 %% }).
 
 test(signups_channel) :-
-  create_channel(signups, none, Channel),
+  create_channel(signups, nil, Channel),
   flush(X),
   X = [create_channel(Channel)].
 
@@ -28,18 +28,21 @@ test(join) :-
   join(5),
   player_count(2).
 
-test(signups_game_info, [X = [active([channel(_), members(_), actions([]), votes([]), type(signups), role(none)])]]) :-
-  game_info(1, X).
+test(signups_game_info) :-
+  game_info(1, X),
+  perm(X, [active([Y])]),
+  perm(Y, [channel(_), members(_), actions([]), votes([]), type(signups), role(nil)]).
 
 test(starting) :-
-  flush([]),
+  flush(X),
+  X = [join(1, Channel), join(5, Channel)],
   join(3),
   \+ join(2),
   join(3).
 
 test(game_full_message) :-
   flush(X),
-  X = [next_phase(10)].
+  X = [join(3, Channel), next_phase(10)].
 
 :- end_tests(signups).
 :- begin_tests(game_start).
@@ -85,7 +88,7 @@ test(player_channel) :- channel_role(Channel, none),
 :- end_tests(game_start).
 :- begin_tests(voting).
 
-test(voting) :- channel_type(Channel, global),
+test(voting) :- channel_type(Channel, global_role),
       vote(1, Channel, lynch, [3]),
       \+ vote(1, Channel, lynch, [1235]),
       \+ vote(3, Channel, kill, [1]),
@@ -98,7 +101,7 @@ test(voting) :- channel_type(Channel, global),
 :- begin_tests(end_phase).
 
 test(lynch) :-
-  channel_type(Channel, global),
+  channel_type(Channel, global_role),
   vote(5, Channel, lynch, [1]).
 
 test(night) :-
@@ -106,8 +109,9 @@ test(night) :-
   current_phase_name(night),
   \+ vote(5, Channel, lynch, [1]).
 
-test(lynch_logged, all(X = [action(5, lynch, [1], Channel)])) :-
-    channel_type(Channel, global),
-    action_history(0, X, success).
+test(lynch_logged) :-
+    channel_type(Channel, global_role),
+    findall(X, action_history(0, X, success), Y),
+    Y = [action(5, lynch, [1], Channel)].
 
 :- end_tests(end_phase).

@@ -34,7 +34,19 @@ defmodule Mafia.MeetChannel do
     %{game: game, name: name} = meet_channel(socket)
     Pengine.ask! game, "player(#{socket.assigns.user}, Player), vote(Player, <%= name %>, <%= action %>, <%= targets %>)", name: name, action: action, targets: targets
   end
-
+  
+  def external_message(meet, type, user, message) do
+    channel = Repo.get_by(Channel, name: meet, type: "m")
+    %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
+    
+    username = if user do
+      Repo.get(User, user).name
+    else
+      nil
+    end
+    
+    Mafia.Endpoint.broadcast! "meet:#{meet}", type, %{msg: message, u: username, ts: inserted_at}
+  end
 
   # Channels can be used in a request/response fashion
   # by sending replies to requests from the client

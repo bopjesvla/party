@@ -28,4 +28,11 @@ defmodule Mafia.PrologTest do
     assert {:succeed, [errors: errors]} = result
     assert [] = errors
   end
+  
+  test "utils.pl tests", %{db: db} do
+    assert {:ok, db} = :erlog.consult('prolog/utils.plt', db)
+    assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
+    assert {:succeed, [errors: errors]} = result
+    assert [] = errors
+  end
 end

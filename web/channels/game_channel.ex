@@ -30,8 +30,10 @@ defmodule Mafia.GameChannel do
   def join("game:" <> name, params, %{assigns: %{user: user}} = socket) do
     %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, name])
 
-    messages = Enum.map rows, &render_message/1
+    {:succeed, _} = GameServer.query(name, {:join, user})
 
+    messages = Enum.map rows, &render_message/1
+    
     info = game_info(name, user)
     |> Map.put(:msgs, messages)
     
@@ -39,26 +41,24 @@ defmodule Mafia.GameChannel do
     {:ok, info, socket}
   end
 
-  def between_joins_and_kicks(events, target \\ :join)
-  def between_joins_and_kicks([{"j", time} | events], :join) do
-    "or inserted_at >= '#{time}' " <> between_joins_and_kicks(events, :kick)
+  def to_map([{a, _} | _] = l) when is_atom(a) do
+    Enum.into l, %{}, fn {a, x} -> {a, to_map x} end
   end
-  def between_joins_and_kicks([{"k", time} | events], :kick) do
-    "and inserted_at <= '#{time}' " <> between_joins_and_kicks(events, :join)
+
+  def to_map(l) when is_list(l) do
+    Enum.map l, &to_map/1
   end
-  def between_joins_and_kicks([_ | events], target), do: between_joins_and_kicks(events, target)
-  def between_joins_and_kicks([], _), do: ""
+
+  def to_map(x), do: x
 
   def game_info(name, user) do
-    {:succeed, info: game_info} = GameServer.prove(name, {:game_info, user, {:info}})
-
+    {:succeed, info: game_info} = GameServer.query(name, {:game_info, user, {:info}})
+    
     info = game_info
-    |> Enum.into(%{})
+    |> to_map
   end
-
   
-  def handle_in("info", _, socket)    "game:" <> name = socket.topic
- do
+  def handle_in("info", _, socket) do
     "game:" <> name = socket.topic
     {:reply, {:ok, game_info(name, socket.assigns.user)}, socket}
   end

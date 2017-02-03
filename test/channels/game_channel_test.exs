@@ -26,30 +26,30 @@ defmodule Mafia.GameChannelTest do
 
   test "can request game info", %{socket: socket} do
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{"active" => [%{"channel" => _}]}
+    assert_reply ref, :ok, %{active: [%{channel: _}]}
   end
 
-  # test "disconnects after signups", %{socket: _socket} do
-  #   socket("user:-1", %{user: -1})
-  #   |> subscribe_and_join!(GameChannel, topic, %{})
+  test "disconnects after signups", %{socket: socket, topic: topic} do
+    socket("user:-1", %{user: -1})
+    |> subscribe_and_join!(GameChannel, topic, %{})
     
-  #   socket("user:-2", %{user: -2})
-  #   |> subscribe_and_join!(GameChannel, topic, %{})
+    socket("user:-2", %{user: -2})
+    |> subscribe_and_join!(GameChannel, topic, %{})
     
-  #   ref = push socket, "info", %{}
-  #   assert_reply ref, :ok, %{"active" => [%{"channel" => channel, "votes" => [], "actions" => [], "type" => "signups"}]}
+    ref = push socket, "info", %{}
+    assert_reply ref, :ok, %{active: [%{channel: channel, votes: [], actions: [], type: signups}]}
     
-  #   socket("user:-3", %{user: -3})
-  #   |> subscribe_and_join!(GameChannel, topic, %{})
+    socket("user:-3", %{user: -3})
+    |> subscribe_and_join!(GameChannel, topic, %{})
     
-  #   :timer.sleep(10000)
+    :timer.sleep(10000)
     
-  #   ref = push socket, "info", %{}
-  #   assert_reply ref, :ok, %{"active" => [%{"channel" => _, "votes" => [], "actions" => [%{"act" => "lynch", "opt" => _}]}]}
+    ref = push socket, "info", %{}
+    assert_reply ref, :ok, %{active: [%{channel: _, votes: [], actions: [%{act: lynch, opt: _}]}]}
     
   #   socket("user:4", %{user: 4})
   #   |> subscribe_and_join!(GameChannel, topic, %{})
-  # end
+  end
 
   
   # test "games are isolated", %{socket: socket} do
