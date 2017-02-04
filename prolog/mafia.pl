@@ -199,16 +199,20 @@ join_channel(User, Channel) :-
   access(Player, Channel),
   (channel_type(Channel, player); once(channel_action(Channel, _, _))).
 
-unvote(Player, Channel, Action) :-
+unvote(User, Channel, Action) :-
+  player(User, Player),
   current_phase(P),
   can_unvote(Player, Channel, Action),
-  (retract_all(voting(P, Player, Channel, Action, _)); true).
+  ignore(retract_all(voting(P, Player, Channel, Action, _))),
+  send(unvote(Player, Channel, Action)).
 
-vote(Player, Channel, Action, Targets) :-
+vote(User, Channel, Action, Targets) :-
+  player(User, Player),
   current_phase(P),
   can_vote(Player, Channel, Action, Targets),
-  (retract(voting(P, Player, Channel, Action, _)); true),
+  ignore(retract(voting(P, Player, Channel, Action, _))),
   asserta(voting(P, Player, Channel, Action, Targets)),
+  send(vote(Player, Channel, Action, Targets)),
   check_hammer(Channel, Action, Targets).
 
 can_unvote(_Player, Channel, Action) :-

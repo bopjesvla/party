@@ -14,7 +14,7 @@ defmodule Mafia.GameChannel do
     %{msg: msg, u: u, ts: ts, ty: type, ch: ch}
   end
   
-  def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10 do
+  def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10000 do
     Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}]}
     
     {:ok, _} = GameSupervisor.start_game({name, user, setup, speed: speed})

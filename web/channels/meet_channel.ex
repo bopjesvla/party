@@ -21,7 +21,7 @@ defmodule Mafia.MeetChannel do
       %{id: id} = Repo.get_by(Channel, name: meet, type: "m")
 
       %{inserted_at: inserted_at} = Repo.insert! Message.changeset(%Message{channel_id: id, user_id: socket.assigns.user}, %{type: "m", msg: msg})
-      broadcast! socket, "new:msg", %{msg: msg, u: socket.assigns.user, ts: inserted_at}
+      broadcast! socket, "new:msg", %{msg: msg, u: socket.assigns.user, ts: inserted_at, type: "m"}
       {:noreply, socket}
     else
       {:error, "invalid message"}
@@ -30,7 +30,8 @@ defmodule Mafia.MeetChannel do
 
   def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
     %{game: game, name: name} = meet_channel(socket)
-    GameServer.query! game, {:',', {:player, socket.assigns.user, {:Player}}, {:vote, {:Player}, name, action, targets}}
+    GameServer.query! game.name, {:vote, socket.assigns.user, name, String.to_existing_atom(action), targets}
+    {:reply, :ok, socket}
   end
   
   # Channels can be used in a request/response fashion
@@ -50,7 +51,7 @@ defmodule Mafia.MeetChannel do
       nil
     end
     
-    Mafia.Endpoint.broadcast! "meet:#{meet}", type, %{msg: message, u: username, ts: inserted_at}
+    Mafia.Endpoint.broadcast! "meet:#{meet}", "new:msg", %{msg: message, u: username, ts: inserted_at, type: type}
   end
   
   # Add authorization logic here as required.

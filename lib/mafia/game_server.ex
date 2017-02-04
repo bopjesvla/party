@@ -76,6 +76,11 @@ defmodule Mafia.GameServer do
     {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
     {:noreply, %{state | db: db}}
   end
+  def handle_info({:vote, user, channel, act, targets}, state) do
+    message = %{act: act, targets: targets} |> Poison.encode!
+    MeetChannel.external_message(channel, "vote", user, message)
+    {:noreply, state}
+  end
   def handle_info(s, _) do
     raise "shit" ++ s
   end
