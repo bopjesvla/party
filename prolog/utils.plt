@@ -15,3 +15,6 @@ test(nil_fallback) :-
   nil_fallback(Y, (Y = 1, Y = 2)),
   \+ Y = 1,
   Y = nil.
+
+test(strings) :-
+  "abc" = "abc".

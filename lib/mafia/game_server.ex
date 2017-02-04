@@ -21,6 +21,11 @@ defmodule Mafia.GameServer do
     |> GenServer.call({:query, terms})
   end
 
+  def query!(name, terms) do
+    {:succeed, res} = query(name, terms)
+    res
+  end
+
   def stop(name) do
     name
     |> via_tuple
