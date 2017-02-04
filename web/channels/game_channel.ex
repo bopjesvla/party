@@ -15,11 +15,9 @@ defmodule Mafia.GameChannel do
   end
   
   def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10 do
-    prolog_setup = %{setup: setup, speed: speed} |> Pengine.prologize
-
     Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}]}
     
-    {:ok, _} = GameSupervisor.start_game({name, user, setup})
+    {:ok, _} = GameSupervisor.start_game({name, user, setup, speed: speed})
     
     info = game_info(name, user)
     |> Map.put(:msgs, [])

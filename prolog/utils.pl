@@ -15,11 +15,16 @@ uid(Random) :-
 ignore(X) :- X,!.
 ignore(_).
 
+bool(X, true) :- X, !.
+bool(X, false).
+
+nil_fallback(_, Y) :- Y, !.
+nil_fallback(nil, _).
+
 count(Clause, N) :- findall(Clause, Clause, X), length(X, N).
 
 get_time(Time) :-
-  erl(os:timestamp(millisecond), R),
-  Time is T * 0.001.
+  erl(os:system_time(millisecond), Time).
 
 get_time(Goal, Duration) :-
   get_time(Before),
@@ -43,10 +48,11 @@ select(Selected, [Selected | Y], Y).
 select(Selected, [X | Y], [X | YminusOne]) :- select(Selected, Y, YminusOne).
 
 run_tests(Failures) :-
+  asserta(mock),
   findall([test(Name), failure_at(FailureStatement)], (
     clause(test(Name), Body),
     locate_failure(Body, FailureStatement)
-  ), Failures).
+  ), Failures), retract_all(mock).
 
 locate_failure((Statement, Body), Failure) :-
   Statement, !,
@@ -55,3 +61,13 @@ locate_failure((Statement, Body), Failure) :-
 locate_failure((FailureStatement, _), FailureStatement) :- !.
 
 locate_failure(FailureStatement, FailureStatement) :- \+ FailureStatement.
+
+message(q) :- fail.
+mock :- fail.
+
+send(X) :- mock, !, assertz(message(X)).
+flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
+
+send(Msg) :-
+  erl(erlang:self, Self),
+  erl(erlang:send(Self, Msg), _).

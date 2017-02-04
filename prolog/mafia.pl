@@ -12,7 +12,6 @@ current_phase(q) :- fail. % false during signups
 player(q, q) :- fail. % user_id. player_id
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
-message(q) :- fail.
 setup_alignment(q, q) :- fail.
 setup_role(q, q, q) :- fail.
 channel_role(q, q) :- fail.
@@ -41,8 +40,6 @@ setup_phases(q) :- fail.
 
 signups :- \+ current_phase(_).
 
-send(X) :- assertz(message(X)).
-flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
 state(X) :- asserta(X), send(X).
 
 phase_name(PhaseNumber, Name) :-
@@ -67,17 +64,21 @@ alive(X) :- player(X, _), \+ dead(X).
 %alarm(RealT, next_phase, Id),
 %asserta(phase_timer(Id)).
 
-game_info(User, [active(Active), next_phase(Time)]) :-
+game_info(User, [active(Active), next_phase(End), players(Players)]) :-
   player(User, Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
       findall(Member, join_channel(Member, C), Members),
-      (channel_role(C, Role); role = nil),
+      nil_fallback(Role, channel_role(C, Role)),
       channel_type(C, Type),
       findall([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
       ignore(current_phase(P)),
       findall([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
-  ), Active).
+  ), Active),
+  nil_fallback(End, phase_timer(_, End)),
+  findall([player(P), user(U), status(Status)], (
+      player(U, P), status(P, Status)
+  ), Players).
 
 join(User) :- player(User, _), !.
 join(User) :-
@@ -85,12 +86,25 @@ join(User) :-
   \+ full_game,
   asserta(player(User, User)), % player id is the id of the first user taking the slot
   forall(join_channel(User, Channel), send(join(User, Channel))),
-  (full_game, start_phase_countdown(10), !; true).
+  (full_game, set_phase_timer(10), !; true).
 
-start_phase_countdown(After) :-
-  Ms is After * 1000,
-  erl(timer:send_after(Ms, query(next_phase))),
-  send(next_phase(After)).
+set_phase_timer(After) :-
+  remove_phase_timer,
+  speed(Speed),
+  Ms is truncate(After * 1000 / Speed),
+  get_time(Time),
+  End is Time + Ms,
+  erl(erlang:self, Self),
+  erl(erlang:send_after(Ms, Self, next_phase), Timer),
+  send(next_phase(End)),
+  asserta(phase_timer(Timer, End)).
+
+remove_phase_timer :-
+  phase_timer(Timer, _), !,
+  erl(timer:cancel(Timer), _),
+  retract(phase_timer(_, _)).
+
+remove_phase_timer.
 
 next_phase :-
   full_game,
@@ -172,7 +186,6 @@ grant_access(Player, Channel) :-
 retract_access(Player, Channel) :- \+ access(Player, Channel), !.
 retract_access(Player, Channel) :-
   retract(access(Player, Channel)),
-  get_time(T),
   send(leave(Player, Channel)),
   asserta(access(Player, Channel)).
 
@@ -224,6 +237,9 @@ maybe_next_phase :-
   next_phase.
 
 maybe_next_phase.
+
+status(Player, dead) :- dead(Player), !.
+status(Player, alive).
 
 %role_action([cop], check, _).
 %role_action([doc], protect, _).

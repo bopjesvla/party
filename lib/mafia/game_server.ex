@@ -9,8 +9,8 @@ defmodule Mafia.GameServer do
     {:via, Registry, {:game_registry, name}}
   end
 
-  def start_link({name, user, setup}) do
-    GenServer.start_link(__MODULE__, {name, user, setup}, name: via_tuple(name))
+  def start_link({name, _, _, _} = args) do
+    GenServer.start_link(__MODULE__, args, name: via_tuple(name))
   end
   
   # API
@@ -26,36 +26,55 @@ defmodule Mafia.GameServer do
     |> via_tuple
     |> GenServer.stop
   end
-  
-  def handle_message(game, {:create_channel, channel}) do
-    %{id: game_id} = Repo.get_by(Game, name: game)
-    Repo.insert!(%Channel{game_id: game_id, name: channel, type: "m"})
-  end
-    
-  def handle_message(game, {:join, user, channel}), do: MeetChannel.external_message(channel, "join", user, nil)
-  def handle_message(game, {:next_phase, delay}) do
-    # __MODULE__ for test mocking
-    MeetChannel.update_info(:next_phase, delay)
-  end
-  def handle_message(game, {"leave", [who, channel]}), do: Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: who}
 
   # callbacks
   
-  def init({name, user, setup}) do
+  def init({name, user, setup, facts}) do
     db = game_db
     |> load_setup(setup)
+
+    db = Enum.reduce facts, db, fn (fact, db) ->
+      {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
+      db
+    end
     
     {{:succeed, _}, db} = :erlog.prove({:create_channel, :signups, nil, {:_}}, db)   
     {{:succeed, _}, db} = :erlog.prove({:join, user}, db)
-    {:ok, %{db: db}}
+    {:ok, %{db: db, name: name}}
   end
   
   def handle_call({:query, terms}, _, state) do
-    {res, db, messages} = query_and_flush(state.db, terms)
-    {res, db} = :erlog.prove(terms, db)
+    {res, db} = :erlog.prove(terms, state.db)
 
     {:reply, res, %{state | db: db}}
   end
+  
+  def handle_info({:create_channel, channel}, %{name: name} = state) do
+    %{id: game_id} = Repo.get_by(Game, name: name)
+    Repo.insert!(%Channel{game_id: game_id, name: channel, type: "m"})
+    {:noreply, state}
+  end
+  
+  def handle_info({:join, user, channel}, state) do
+    MeetChannel.external_message(channel, "join", user, nil)
+    {:noreply, state}
+  end
+  def handle_info({:next_phase, at}, %{name: name} = state) do
+    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{next_phase: at})
+    {:noreply, state}
+  end
+  def handle_info({:leave, who, channel}, state) do
+    Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: who}
+    {:noreply, state}
+  end
+  def handle_info(:next_phase, state) do
+    {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
+    {:noreply, %{state | db: db}}
+  end
+  def handle_info(s, _) do
+    raise "shit" ++ s
+  end
+
   
   # helpers
   
@@ -78,18 +97,16 @@ defmodule Mafia.GameServer do
       db
     end
     
-    Enum.reduce setup.roles, db, fn (r, db) ->
+    db = Enum.reduce setup.roles, db, fn (r, db) ->
       target = if r.type == "alignment", do: atom(r.team), else: r.player
       role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
-  end
-  
-  def query_and_flush(db, terms) do
-    {res, db} = :erlog.prove(terms, db)
-    {{:succeed, [messages: messages]}, flushed_db} = :erlog.prove({:flush, {:messages}}, db)
-    {res, flushed_db, messages}
+
+    phases = Enum.map setup.phases, &String.to_existing_atom/1
+    {{:succeed, _}, db} = :erlog.prove({:asserta, {:setup_phases, phases}}, db)
+    db
   end
 end

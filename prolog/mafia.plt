@@ -30,19 +30,24 @@ test(join) :-
 
 test(signups_game_info) :-
   game_info(1, X),
-  perm(X, [active([Y])]),
+  perm(X, [active([Y]), players(_), next_phase(_)]),
   perm(Y, [channel(_), members(_), actions([]), votes([]), type(signups), role(nil)]).
 
 test(starting) :-
   flush(X),
   X = [join(1, Channel), join(5, Channel)],
+  \+ phase_timer(_, _),
   join(3),
   \+ join(2),
   join(3).
 
-test(game_full_message) :-
+test(game_full) :-
   flush(X),
-  X = [join(3, Channel), next_phase(10)].
+  X = [join(3, Channel), next_phase(_)],
+  phase_timer(_, _),
+  game_info(1, G),
+  member(next_phase(T), G),
+  \+ T = nil.
 
 :- end_tests(signups).
 :- begin_tests(game_start).
