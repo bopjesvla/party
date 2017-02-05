@@ -116,7 +116,8 @@ locked_actions(Actions) :-
   current_phase(P),
   findall(action(Actor, Action, Targets, Channel, ActionMods), (
     locked(Channel, Action, Targets, ActionMods),
-    once(voting(P, Actor, Channel, Action, Targets))
+    once(voting(P, Actor, Channel, Action, Targets)),
+    \+ member(noone, Targets)
     ), Actions).
 
 end_phase :-
