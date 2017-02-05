@@ -1,1 +1,1 @@
-process_actions(Actions).
+process_action(_).  

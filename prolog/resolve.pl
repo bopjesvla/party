@@ -26,11 +26,11 @@ stopped(Action, Pool, Res) :-
 stops(Stopper, Action, Rest, blocked) :- blocks(Stopper, Action), \+ stopped(Stopper, Rest, _Anyhow).
 stops(Stopper, Action, Rest, failed) :- makes_fail(Stopper, Action), \+ stopped(Stopper, Rest, _Anyhow).
 
-blocks(action(_, block, [Player], _), action(Player, _, _, _)).
-blocks(action(_, rolestop, [Target], _), action(_, _, Targets, _)) :- member(Target, Targets).
+blocks(action(_, block, [Player], _, _), action(Player, _, _, _, _)).
+blocks(action(_, rolestop, [Target], _, _), action(_, _, Targets, _, _)) :- member(Target, Targets).
 
 makes_fail(X, Y) :- protects(X, Target), kills(Y, Target).
 makes_fail(X, Y) :- protects(Y, Target), kills(X, Target).
 
-protects(action(_, protect, [Target], _), Target).
-kills(action(_, kill, [Target], _), Target).
+protects(action(_, protect, [Target], _, _), Target).
+kills(action(_, kill, [Target], _, _), Target).

@@ -117,6 +117,6 @@ test(night) :-
 test(lynch_logged) :-
     channel_type(Channel, global_role),
     findall(X, action_history(0, X, success), Y),
-    Y = [action(5, lynch, [1], Channel)].
+    Y = [action(5, lynch, [1], Channel, [])].
 
 :- end_tests(end_phase).

@@ -16,7 +16,7 @@ setup_alignment(q, q) :- fail.
 setup_role(q, q, q) :- fail.
 channel_role(q, q) :- fail.
 channel_type(q, q) :- fail.
-locked(q, q, q) :- fail.
+locked(q, q, q, q) :- fail.
 dead(q) :- fail.
 setup_phases(q) :- fail.
 
@@ -114,17 +114,17 @@ next_phase :-
 
 locked_actions(Actions) :-
   current_phase(P),
-  findall(action(Actor, Action, Targets, Channel), (
-    locked(Channel, Action, Targets),
+  findall(action(Actor, Action, Targets, Channel, ActionMods), (
+    locked(Channel, Action, Targets, ActionMods),
     once(voting(P, Actor, Channel, Action, Targets))
     ), Actions).
 
 end_phase :-
   current_phase(_), !, % game has already started
   locked_actions(Actions),
-  retract_all(locked(_, _, _)),
+  retract_all(locked(_, _, _, _)),
   resolve(Actions, SuccessfulActions),
-  process_actions(SuccessfulActions),
+  forall(member(A, SuccessfulActions), process_action(A)),
   forall((
     channel_role(Channel, _),
     \+ join_channel(_, Channel)),
@@ -165,9 +165,14 @@ start_game :-
     forall(member(Player, Players), grant_access(Player, Channel))
   )).
 
-channel_action(Channel, Action, Targets) :-
+
+channel_action(C, A, T) :- channel_action(C, A, T, _).
+channel_action(C, A) :- once(channel_action(C, A, _, _)).
+channel_action(C) :- once(channel_action(C, _, _, _)).
+
+channel_action(Channel, Action, Targets, ActionMods) :-
   channel_role(Channel, Role),
-  role_action(Role, Action, Targets, Channel),
+  role_action(Role, Action, Targets, Channel, [], ActionMods),
   current_phase(P),
   \+ action_history(P, action(_, Action, _, Channel), _).
 
@@ -209,35 +214,35 @@ unvote(User, Channel, Action) :-
 vote(User, Channel, Action, Targets) :-
   player(User, Player),
   current_phase(P),
-  can_vote(Player, Channel, Action, Targets),
+  can_vote(Player, Channel, Action, Targets, ActionMods),
   ignore(retract(voting(P, Player, Channel, Action, _))),
   asserta(voting(P, Player, Channel, Action, Targets)),
   send(vote(Player, Channel, Action, Targets)),
-  check_hammer(Channel, Action, Targets).
+  check_hammer(Channel, Action, Targets, ActionMods).
 
 can_unvote(_Player, Channel, Action) :-
   channel_action(Channel, Action, _),
-  \+ locked(Channel, Action, _).
+  \+ locked(Channel, Action, _, _).
 
-can_vote(_Player, Channel, Action, Targets) :-
-  channel_action(Channel, Action, Targets),
-  \+ locked(Channel, Action, _).
+can_vote(_Player, Channel, Action, Targets, ActionMods) :-
+  channel_action(Channel, Action, Targets, ActionMods),
+  \+ locked(Channel, Action, _, _).
 
-check_hammer(Channel, Action, Targets) :-
+check_hammer(Channel, Action, Targets, ActionMods) :-
   count(access(_, Channel), ChannelMemberCount),
   current_phase(P),
   count(voting(P, _, Channel, Action, Targets), VoteCount),
   VoteCount > ChannelMemberCount / 2, !,
-  lock(Channel, Action, Targets),
+  lock(Channel, Action, Targets, ActionMods),
   maybe_next_phase.
 
-check_hammer(_, _, _).
+check_hammer(_, _, _, _).
 
-lock(Channel, Action, Targets) :-
-    asserta(locked(Channel, Action, Targets)).
+lock(Channel, Action, Targets, ActionMods) :-
+    asserta(locked(Channel, Action, Targets, ActionMods)).
 
 maybe_next_phase :-
-  forall(channel_action(Channel, Action, _), locked(Channel, Action, _)), !,
+  forall(channel_action(Channel, Action, _), locked(Channel, Action, _, _)), !,
   next_phase.
 
 maybe_next_phase.

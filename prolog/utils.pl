@@ -1,6 +1,13 @@
 erl(Code, Result) :-
   ecall(erlog_demo:efunc(Code), Result).
 
+erl(_, _, Right, ToRight) :-
+  var(Right), !,
+  erl(ToRight, Right).
+
+erl(Left, ToLeft, _, _) :-
+  erl(ToLeft, Left).
+
 random_permutation(List, Shuffled) :-
   erl('Elixir.Enum':shuffle(List), Shuffled).
 
