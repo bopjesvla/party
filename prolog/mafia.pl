@@ -10,6 +10,7 @@ action_history(q, q, q) :- fail.
 access(q, q) :- fail.
 current_phase(q) :- fail. % false during signups
 player(q, q) :- fail. % user_id. player_id
+player_alignment(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
 setup_alignment(q, q) :- fail.
@@ -125,7 +126,7 @@ end_phase :-
   locked_actions(Actions),
   retract_all(locked(_, _, _, _)),
   resolve(Actions, SuccessfulActions),
-  forall(member(A, SuccessfulActions), process_action(A)),
+  forall(member(A, SuccessfulActions), call(A)),
   forall((
     channel_role(Channel, _),
     \+ join_channel(_, Channel)),
@@ -156,9 +157,12 @@ start_game :-
     create_channel(player_role, Role, Channel),
     grant_access(Player, Channel)
    )),
+  forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), ( % for every alignment role, add a channel
+    asserta(player_alignment(Player, Alignment))
+  )),
   forall(setup_role(alignment, Alignment, Role), ( % for every alignment role, add a channel
     create_channel(alignment_role, Role, Channel),
-    forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), grant_access(Player, Channel))
+    forall(player_alignment(Player, Alignment), grant_access(Player, Channel))
   )),
   forall(setup_role(global, _, Role), (
     create_channel(global_role, Role, Channel),
