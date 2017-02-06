@@ -37,22 +37,22 @@ defmodule Mafia.GameChannelTest do
     |> subscribe_and_join!(GameChannel, topic, %{})
     
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{active: [%{channel: channel, votes: [], actions: [], type: signups}], next_phase: nil, players: _}
+    assert_reply ref, :ok, %{active: [%{channel: channel, votes: [], actions: [], type: signups}], phase: %{name: nil, number: nil, next: nil}, players: _}
     
     socket("user:-3", %{user: -3})
     |> subscribe_and_join!(GameChannel, topic, %{})
 
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{active: [%{channel: channel, votes: [], actions: [], type: signups}], next_phase: np, players: players}
-
-    IO.inspect np
+    assert_reply ref, :ok, %{active: [%{channel: channel, votes: [], actions: [], type: signups}], phase: %{name: nil, number: nil, next: np}, players: players}
     
     assert is_number(np)
     
     :timer.sleep(1000)
     
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{active: [%{channel: _, votes: [], actions: [%{act: lynch, opt: _} | _]}, _]}
+    assert_reply ref, :ok, (%{active: [%{channel: _, votes: [], actions: [%{act: lynch, opt: _} | _]}, _]} = info)
+    
+    assert %{phase: %{name: :day, number: 1, next: np2}} = info
     
   #   socket("user:4", %{user: 4})
   #   |> subscribe_and_join!(GameChannel, topic, %{})

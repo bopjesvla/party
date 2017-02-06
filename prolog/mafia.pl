@@ -30,15 +30,29 @@ signups :- \+ current_phase(_).
 
 state(X) :- asserta(X), send(X).
 
-phase_name(PhaseNumber, Name) :-
+phase_name(Phase, Name) :-
   setup_phases(Phases),
   length(Phases, L),
-  I is PhaseNumber mod L,
+  I is Phase mod L,
   nth0(I, Phases, Name).
+
+phase_number(Phase, Number) :-
+  setup_phases(Phases),
+  length(Phases, L),
+  Number is truncate(Phase / L + 1).
 
 current_phase_name(Name) :-
   current_phase(P),
   phase_name(P, Name).
+
+current_phase_number(Number) :-
+  current_phase(P),
+  phase_number(P, Number).
+
+current_phase_info([name(Name), number(Number), next(End)]) :-
+  nil_fallback(End, phase_timer(_, End)),
+  nil_fallback(Name, current_phase_name(Name)),
+  nil_fallback(Number, current_phase_number(Number)).
 
 players(Players) :- findall(P, player(_, P), Players).
 player_count(N) :- players(Players), length(Players, N).
@@ -46,7 +60,7 @@ full_game :- player_count(P), setup_size(S), P >= S.
 
 alive(X) :- player(X, _), \+ dead(X).
 
-game_info(User, [active(Active), next_phase(End), players(Players)]) :-
+game_info(User, [active(Active), players(Players), phase(PhaseInfo)]) :-
   player(User, Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
@@ -57,7 +71,7 @@ game_info(User, [active(Active), next_phase(End), players(Players)]) :-
       ignore(current_phase(P)),
       findall([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
   ), Active),
-  nil_fallback(End, phase_timer(_, End)),
+  current_phase_info(PhaseInfo),
   findall([player(P), user(U), status(Status)], (
       player(U, P), status(P, Status)
   ), Players).
@@ -77,7 +91,7 @@ set_phase_timer(After) :-
   get_time(Time),
   End is Time + Ms,
   erl(erlang:self, Self),
-  erl(erlang:send_after(Ms, Self, next_phase), Timer),
+  erl(erlang:send_after(Ms, Self, do_next_phase), Timer),
   send(next_phase(End)),
   asserta(phase_timer(Timer, End)).
 

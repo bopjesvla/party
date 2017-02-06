@@ -1,12 +1,17 @@
-erl(Code, Result) :-
-  ecall(erlog_demo:efunc(Code), Result).
+erl(Code, Result2) :-
+  ecall(erlog_demo:efunc(Code), Result),
+  Result = Result2. % ecall doesn't support bindings :(
 
-erl(_, _, Right, ToRight) :-
-  var(Right), !,
+erl(Left, _, Right, ToRight) :-
+  \+ var(Left),
   erl(ToRight, Right).
 
-erl(Left, ToLeft, _, _) :-
+erl(Left, ToLeft, Right, _) :-
+  \+ var(Right),
   erl(ToLeft, Left).
+
+string_number(String, Number) :-
+  erl(Number, 'Elixir.String':to_integer(String), String, erlang:integer_to_list(Number)).
 
 random_permutation(List, Shuffled) :-
   erl('Elixir.Enum':shuffle(List), Shuffled).

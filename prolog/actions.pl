@@ -9,13 +9,11 @@ action(_, lynch, [X], _) :- !,
   send(message(X, "has been lynched")),
   asserta(dead(X)).
 
-action(_, investigate, [X], _) :-
-  player_alignment(X, "mafia"),
-  send(message(X, "has been lynched")).
-
-action(_, investigate, [X], _) :- !,
-  player_alignment(X, _),
-  send(message(X, "has been lynched")).
+action(Channel, investigate, [X], _) :-
+  player_alignment(X, "mafia"), !,
+  send(message(Channel, X, "is Mafia")).
+action(Channel, investigate, [X], _) :- !,
+  send(message(Channel, X, "is not Mafia")).
 
 action(_, _, _, _).
 action(Actor, Act, T, C, [_ | Mods]) :-

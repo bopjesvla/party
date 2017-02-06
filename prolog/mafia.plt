@@ -19,7 +19,7 @@ test(join) :-
 
 test(signups_game_info) :-
   game_info(1, X),
-  perm(X, [active([Y]), players(_), next_phase(_)]),
+  perm(X, [active([Y]), players(_), phase(_)]),
   perm(Y, [channel(_), members(_), actions([]), votes([]), type(signups), role(nil)]).
 
 test(starting) :-
@@ -35,8 +35,9 @@ test(game_full) :-
   X = [join(3, Channel), next_phase(_)],
   phase_timer(_, _),
   game_info(1, G),
-  member(next_phase(T), G),
-  \+ T = nil.
+  member(phase(T), G),
+  member(next(N), T),
+  \+ N = nil.
 
 :- end_tests(signups).
 :- begin_tests(game_start).
@@ -66,15 +67,11 @@ test(role_channel) :- channel_role(Channel, ([], cop)),
 test(alignment_channel) :-
           channel_role(Channel, ([], killer)),
           channel_type(Channel, alignment_role),
-          access(_, Channel)
-          % channel_action(Channel, investigate, [noone])
-        .
+          access(_, Channel).
 
 test(player_channel) :- channel_role(Channel, none),
           channel_type(Channel, player),
-          access(1, Channel)
-          % channel_action(Channel, investigate, [noone])
-        .
+          access(1, Channel).
         
 :- end_tests(game_start).
 :- begin_tests(voting).
@@ -85,15 +82,21 @@ test(voting) :- channel_type(Channel, global_role),
       \+ vote(3, Channel, kill, [1]),
       vote(3, Channel, lynch, [1]),
       unvote(1, Channel, _),
-      vote(5, Channel, lynch, [5])
-    .
+      vote(5, Channel, lynch, [5]),
+      flush(X),
+      X = [vote(1, Channel, lynch, [3]),
+      vote(3, Channel, lynch, [1]),
+      unvote(1, Channel, lynch),
+      vote(5, Channel, lynch, [5])].
 
 :- end_tests(voting).
 :- begin_tests(end_phase).
 
 test(lynch) :-
   channel_type(Channel, global_role),
-  vote(5, Channel, lynch, [1]).
+  vote(5, Channel, lynch, [1]), % if this fails, next_phase probably failed
+  flush(X),
+  X = [vote(5, Channel, lynch, [1]), message(1, "has been lynched") | _].
 
 test(night) :-
   current_phase(1),

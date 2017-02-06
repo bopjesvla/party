@@ -65,16 +65,20 @@ defmodule Mafia.GameServer do
     {:noreply, state}
   end
   def handle_info({:next_phase, at}, %{name: name} = state) do
-    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{next_phase: at})
+    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{'phase.next': at})
     {:noreply, state}
   end
   def handle_info({:leave, who, channel}, state) do
     Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: who}
     {:noreply, state}
   end
-  def handle_info(:next_phase, state) do
+  def handle_info(:do_next_phase, state) do
     {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
     {:noreply, %{state | db: db}}
+  end
+  def handle_info({:new_phase, phase}, %{name: name} = state) do
+    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{phase: phase})
+    {:noreply, state}
   end
   def handle_info({:vote, user, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
