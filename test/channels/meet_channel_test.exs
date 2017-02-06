@@ -1,7 +1,7 @@
 defmodule Mafia.MeetChannelTest do
   use Mafia.ChannelCase
 
-  alias Mafia.{GameChannel,MeetChannel}
+  alias Mafia.{GameChannel, MeetChannel, GameServer}
 
   @setup %{
     teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
@@ -10,13 +10,14 @@ defmodule Mafia.MeetChannelTest do
   }
 
   setup do
-    topic = "game:#{Enum.random(0..9000000)}"
+    name = "#{Enum.random(0..9000000)}"
+    topic = "game:#{name}"
     
     socket =
       socket("user:0", %{user: 0})
-      |> subscribe_and_join!(GameChannel, topic, %{"setup" => @setup, "speed" => 10000})
+      |> subscribe_and_join!(GameChannel, topic, %{"setup" => @setup, "speed" => 10})
     
-    {:ok, socket: socket, topic: topic}
+    {:ok, socket: socket, topic: topic, name: name}
   end
 
   # test "ping replies with status ok", %{socket: socket} do
@@ -39,7 +40,7 @@ defmodule Mafia.MeetChannelTest do
     assert_broadcast "new:msg", %{msg: "there", u: 0, ts: _}
   end
 
-  test "can vote", %{socket: socket, topic: topic} do
+  test "can vote", %{socket: socket, topic: topic, name: name} do
     socket("user:-1", %{user: -1})
     |> subscribe_and_join!(GameChannel, topic, %{})
     
@@ -49,7 +50,8 @@ defmodule Mafia.MeetChannelTest do
     socket("user:-3", %{user: -3})
     |> subscribe_and_join!(GameChannel, topic, %{})
 
-    :timer.sleep(100)
+    GameServer.query!(name, :remove_phase_timer)
+    GameServer.query!(name, :next_phase)
 
     ref = push socket, "info", %{}
     assert_reply ref, :ok, %{active: [%{channel: global_channel, type: :global_role} | _]}

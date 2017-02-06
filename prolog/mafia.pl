@@ -92,7 +92,7 @@ set_phase_timer(After) :-
   End is Time + Ms,
   erl(erlang:self, Self),
   erl(erlang:send_after(Ms, Self, do_next_phase), Timer),
-  send(next_phase(End)),
+  send(next_phase(End)), !,
   asserta(phase_timer(Timer, End)).
 
 remove_phase_timer :-
@@ -105,6 +105,11 @@ remove_phase_timer.
 next_phase :-
   full_game,
   end_phase,
+  forall((
+    channel_role(Channel, _),
+    \+ join_channel(_, Channel)),
+    send(leave(all, Channel))
+  ),
   increase_current_phase,
   start_phase.
 
@@ -121,14 +126,9 @@ end_phase :-
   locked_actions(Actions),
   retract_all(locked(_, _, _, _)),
   resolve(Actions, SuccessfulActions),
-  forall(member(A, SuccessfulActions), call(A)),
-  forall((
-    channel_role(Channel, _),
-    \+ join_channel(_, Channel)),
-    send(leave(all, Channel))
-  ).
+  forall(member(A, SuccessfulActions), call(A)).
 
-end_phase :- send(leave(all, pre)), start_game. % ending signups = starting the game
+end_phase :- start_game. % ending signups = starting the game
 
 increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
 increase_current_phase :- asserta(current_phase(0)).

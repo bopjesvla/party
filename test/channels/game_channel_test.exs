@@ -1,7 +1,7 @@
 defmodule Mafia.GameChannelTest do
   use Mafia.ChannelCase
 
-  alias Mafia.GameChannel
+  alias Mafia.{GameChannel, GameServer}
 
   @setup %{
     teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
@@ -10,13 +10,14 @@ defmodule Mafia.GameChannelTest do
   }
 
   setup do
-    topic = "game:#{Enum.random(0..9000000)}"
+    name = "#{Enum.random(0..9000000)}"
+    topic = "game:#{name}"
     
     socket =
       socket("user:0", %{user: 0})
       |> subscribe_and_join!(GameChannel, topic, %{"setup" => @setup, "speed" => 10})
 
-    {:ok, socket: socket, topic: topic}
+    {:ok, socket: socket, topic: topic, name: name}
   end
 
   test "can rejoin game", %{topic: topic} do
@@ -29,7 +30,7 @@ defmodule Mafia.GameChannelTest do
     assert_reply ref, :ok, %{active: [%{channel: _}]}
   end
 
-  test "signups", %{socket: socket, topic: topic} do
+  test "signups", %{socket: socket, topic: topic, name: name} do
     socket("user:-1", %{user: -1})
     |> subscribe_and_join!(GameChannel, topic, %{})
     
@@ -47,10 +48,11 @@ defmodule Mafia.GameChannelTest do
     
     assert is_number(np)
     
-    :timer.sleep(1000)
+    GameServer.query!(name, :remove_phase_timer)
+    GameServer.query!(name, :next_phase)
     
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, (%{active: [%{channel: _, votes: [], actions: [%{act: lynch, opt: _} | _]}, _]} = info)
+    assert_reply ref, :ok, (%{active: [%{channel: _, votes: [], actions: [%{act: :lynch, opt: _} | _]}, _]} = info)
     
     assert %{phase: %{name: :day, number: 1, next: np2}} = info
     

@@ -39,19 +39,29 @@ defmodule Mafia.MeetChannel do
   def handle_in("ping", payload, socket) do
     {:reply, {:ok, payload}, socket}
   end
-
+  
+  intercept ["leave"]
+  def handle_out("leave", msg, socket) do
+    push socket, "leave", msg
+    
+    %{who: who} = Poison.decode! msg
+    case who do
+      "all" ->
+        {:stop, :normal, socket}
+      who ->
+        if socket.assigns.user in who do
+          {:stop, :normal, socket}
+        else
+          {:noreply, socket}
+        end
+    end
+  end
   
   def external_message(meet, type, user, message) do
     channel = Repo.get_by(Channel, name: meet, type: "m")
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
     
-    username = if user do
-      Repo.get(User, user).name
-    else
-      nil
-    end
-    
-    Mafia.Endpoint.broadcast! "meet:#{meet}", "new:msg", %{msg: message, u: username, ts: inserted_at, type: type}
+    Mafia.Endpoint.broadcast! "meet:#{meet}", "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
   end
   
   # Add authorization logic here as required.

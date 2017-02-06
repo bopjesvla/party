@@ -49,7 +49,9 @@ test(start) :-
 
 test(access_messages) :-
   flush(X),
-  X = [leave(all, pre), create_channel(_), join(_, _) | _].
+  member(leave(all, _), X),
+  member(create_channel(_), X),
+  member(join(_, _), X).
 
 test(global_channel) :-
   channel_role(Channel, ([], village)),

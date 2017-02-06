@@ -23,6 +23,9 @@ uid(Random) :-
 ignore(X) :- X,!.
 ignore(_).
 
+log(X) :-
+  erl('Elixir.IO':inspect(X), _).
+
 bool(X, true) :- X, !.
 bool(X, false).
 
@@ -77,6 +80,7 @@ send(X) :- mock, !, assertz(message(X)).
 flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
 
 send(Msg) :-
+  log(Msg),
   erl(erlang:self, Self),
   erl(erlang:send(Self, Msg), _).
 

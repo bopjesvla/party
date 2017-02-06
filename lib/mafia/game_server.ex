@@ -69,7 +69,8 @@ defmodule Mafia.GameServer do
     {:noreply, state}
   end
   def handle_info({:leave, who, channel}, state) do
-    Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: who}
+    message = %{who: who} |> Poison.encode!
+    MeetChannel.external_message channel, "leave", nil, message
     {:noreply, state}
   end
   def handle_info(:do_next_phase, state) do
@@ -83,6 +84,10 @@ defmodule Mafia.GameServer do
   def handle_info({:vote, user, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
     MeetChannel.external_message(channel, "vote", user, message)
+    {:noreply, state}
+  end
+  def handle_info({:message, user, message}, %{name: name} = state) do
+    GameChannel.external_message(name, "sys", user, message)
     {:noreply, state}
   end
   def handle_info(s, _) do

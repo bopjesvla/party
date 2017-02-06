@@ -55,6 +55,15 @@ defmodule Mafia.GameChannel do
     info = game_info
     |> to_map
   end
+
+  
+  def external_message(game_name, type, user, message) do
+    game = Repo.get_by(Channel, game: game_name, type: "g")
+    channel = Repo.get_by(Channel, game: game, type: "g")
+    %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
+    
+    Mafia.Endpoint.broadcast! "game:#{game_name}", "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+  end
   
   def handle_in("info", _, socket) do
     "game:" <> name = socket.topic
