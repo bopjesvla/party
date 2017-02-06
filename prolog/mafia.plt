@@ -61,33 +61,32 @@ test(global_channel) :-
 
 test(role_channel) :- channel_role(Channel, ([], cop)),
   access(_, Channel)
-  % channel_action(Channel, investigate, [noone])
   .
 
 test(alignment_channel) :-
-          channel_role(Channel, ([], killer)),
-          channel_type(Channel, alignment_role),
-          access(_, Channel).
+  channel_role(Channel, ([], killer)),
+  channel_type(Channel, alignment_role),
+  access(_, Channel).
 
 test(player_channel) :- channel_role(Channel, none),
-          channel_type(Channel, player),
-          access(1, Channel).
+  channel_type(Channel, player),
+  access(1, Channel).
         
 :- end_tests(game_start).
 :- begin_tests(voting).
 
 test(voting) :- channel_type(Channel, global_role),
-      vote(1, Channel, lynch, [3]),
-      \+ vote(1, Channel, lynch, [1235]),
-      \+ vote(3, Channel, kill, [1]),
-      vote(3, Channel, lynch, [1]),
-      unvote(1, Channel, _),
-      vote(5, Channel, lynch, [5]),
-      flush(X),
-      X = [vote(1, Channel, lynch, [3]),
-      vote(3, Channel, lynch, [1]),
-      unvote(1, Channel, lynch),
-      vote(5, Channel, lynch, [5])].
+  vote(1, Channel, lynch, [3]),
+  \+ vote(1, Channel, lynch, [1235]),
+  \+ vote(3, Channel, kill, [1]),
+  vote(3, Channel, lynch, [1]),
+  unvote(1, Channel, _),
+  vote(5, Channel, lynch, [5]),
+  flush(X),
+  X = [vote(1, Channel, lynch, [3]),
+  vote(3, Channel, lynch, [1]),
+  unvote(1, Channel, lynch),
+  vote(5, Channel, lynch, [5])].
 
 :- end_tests(voting).
 :- begin_tests(end_phase).
@@ -101,11 +100,13 @@ test(lynch) :-
 test(night) :-
   current_phase(1),
   current_phase_name(night),
-  \+ vote(5, Channel, lynch, [1]).
+  \+ vote(5, Channel, lynch, [1]),
+  channel_action(_, investigate, [noone]),
+  vote(_, _, kill, _).
 
 test(lynch_logged) :-
-    channel_type(Channel, global_role),
-    findall(X, action_history(0, X, success), Y),
-    Y = [action(5, lynch, [1], Channel, [])].
+  channel_type(Channel, global_role),
+  findall(X, action_history(0, X, success), Y),
+  Y = [action(5, lynch, [1], Channel, [])].
 
 :- end_tests(end_phase).
