@@ -102,13 +102,13 @@ defmodule Mafia.GameServer do
   
   def load_setup(db, setup) do
     db = Enum.reduce setup.teams, db, fn (t, db) ->
-      fact = {:setup_alignment, t.player, atom(t.team)}
+      fact = {:setup_alignment, t.player, t.team}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
     
     db = Enum.reduce setup.roles, db, fn (r, db) ->
-      target = if r.type == "alignment", do: atom(r.team), else: r.player
+      target = if r.type == "alignment", do: r.team, else: r.player
       role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)

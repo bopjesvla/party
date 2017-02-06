@@ -1,16 +1,5 @@
 :- begin_tests(setup_game).
 
-%% test(setup_game) :- setup_game(m{
-%%   setup(m){
-%%     'teams'([m){player(1), team(t)}, m{player(2), team(t)}, m{player(3), team(m)}],
-%%     'player_roles'([m){player(1), mods([]), role(cop)}],
-%%     'alignment_roles'([m){team(m), mods([]), role(killer)}],
-%%     'global_roles'([m){mods([]), role(village)}],
-%%     phases([day), night]
-%%   },
-%%   speed(10)
-%% }).
-
 test(signups_channel) :-
   create_channel(signups, nil, Channel),
   flush(X),
@@ -86,9 +75,6 @@ test(player_channel) :- channel_role(Channel, none),
           access(1, Channel)
           % channel_action(Channel, investigate, [noone])
         .
-
-%% test(start_game_info, [X = [active([channel(_), members(_), actions([[act(lynch), opt(_)] | _], votes([]), type(global), role(_)] | _)]]) :-
-%%   game_info(1, X).
         
 :- end_tests(game_start).
 :- begin_tests(voting).

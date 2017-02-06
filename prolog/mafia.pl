@@ -26,19 +26,6 @@ setup_phases(q) :- fail.
 :- include(resolve).
 :- include(utils).
 
-%% setup_game(Setup, Speed) :-
-%%   dict_get_ex(teams, Setup, Teams),
-%%   dict_get_ex(player_roles, Setup, PlayerRoles),
-%%   dict_get_ex(alignment_roles, Setup, AlignmentRoles),
-%%   dict_get_ex(global_roles, Setup, GlobalRoles),
-%%   dict_get_ex(phases, Setup, Phases),
-%%   forall(member(A, Teams), assertz(setup_alignment(A.player,A.team))),
-%%   forall(member(A, PlayerRoles), assertz(player_role(A.player, (A.mods, A.role)))),
-%%   forall(member(A, AlignmentRoles), assertz(alignment_role(A.team, (A.mods, A.role)))),
-%%   forall(member(A, GlobalRoles), assertz(global_role((A.mods, A.role)))),
-%%   asserta(speed(Speed)),
-%%   assertz(setup_phases(Phases)).
-
 signups :- \+ current_phase(_).
 
 state(X) :- asserta(X), send(X).
@@ -58,12 +45,6 @@ player_count(N) :- players(Players), length(Players, N).
 full_game :- player_count(P), setup_size(S), P >= S.
 
 alive(X) :- player(X, _), \+ dead(X).
-
-%set_phase_timer(T) :-
-%speed(Speed),
-%RealT is T / Speed,
-%alarm(RealT, next_phase, Id),
-%asserta(phase_timer(Id)).
 
 game_info(User, [active(Active), next_phase(End), players(Players)]) :-
   player(User, Player),
@@ -157,7 +138,7 @@ start_game :-
     create_channel(player_role, Role, Channel),
     grant_access(Player, Channel)
    )),
-  forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), ( % for every alignment role, add a channel
+  forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), (
     asserta(player_alignment(Player, Alignment))
   )),
   forall(setup_role(alignment, Alignment, Role), ( % for every alignment role, add a channel
@@ -254,15 +235,3 @@ maybe_next_phase.
 
 status(Player, dead) :- dead(Player), !.
 status(Player, alive).
-
-%role_action([cop], check, _).
-%role_action([doc], protect, _).
-%role_action([{shot, 1} | Role], Action, Channel) :- action_history(_, Action, Channel, _), role_action(Role, Action).
-
-%blocked(Player, (_, Phase, _), _) :- status(Phase, Player, blocked).
-%blocked(Player, Action, Targets) :- member(X, Targets), status(Phase, X, rolestopped).
-
-%do_action(Player, Action, Targets) :- action(Player, Action, Targets), \+ blocked(Player).
-%do_action(Player, Action, Targets).
-
-%status(Phase, Player, blocked) :- action(_, (block, _), Targets), member(Player, Targets).
