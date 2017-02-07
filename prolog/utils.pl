@@ -80,7 +80,6 @@ send(X) :- mock, !, assertz(message(X)).
 flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
 
 send(Msg) :-
-  log(Msg),
   erl(erlang:self, Self),
   erl(erlang:send(Self, Msg), _).
 

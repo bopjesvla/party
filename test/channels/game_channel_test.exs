@@ -52,7 +52,7 @@ defmodule Mafia.GameChannelTest do
     GameServer.query!(name, :next_phase)
     
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, (%{active: [%{channel: _, votes: [], actions: [%{act: :lynch, opt: _} | _]}, _]} = info)
+    assert_reply ref, :ok, (%{active: [%{channel: _, votes: [], actions: [%{act: :lynch, opt: _} | _]}, _]} = info), 10000
     
     assert %{phase: %{name: :day, number: 1, next: np2}} = info
     
