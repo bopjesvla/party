@@ -12,9 +12,9 @@ defmodule Mafia.GameServer do
   def start_link({name, _, _, _} = args) do
     GenServer.start_link(__MODULE__, args, name: via_tuple(name))
   end
-  
+
   # API
-  
+
   def query(name, terms) do
     name
     |> via_tuple
@@ -33,7 +33,7 @@ defmodule Mafia.GameServer do
   end
 
   # callbacks
-  
+
   def init({name, user, setup, facts}) do
     db = game_db()
     |> load_setup(setup)
@@ -42,24 +42,24 @@ defmodule Mafia.GameServer do
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
-    
-    {{:succeed, _}, db} = :erlog.prove({:create_channel, :signups, nil, {:_}}, db)   
+
+    {{:succeed, _}, db} = :erlog.prove({:create_channel, :signups, nil, {:_}}, db)
     {{:succeed, _}, db} = :erlog.prove({:join, user}, db)
     {:ok, %{db: db, name: name}}
   end
-  
+
   def handle_call({:query, terms}, _, state) do
     {res, db} = :erlog.prove(terms, state.db)
 
     {:reply, res, %{state | db: db}}
   end
-  
+
   def handle_info({:create_channel, channel}, %{name: name} = state) do
     %{id: game_id} = Repo.get_by(Game, name: name)
     Repo.insert!(%Channel{game_id: game_id, name: channel, type: "m"})
     {:noreply, state}
   end
-  
+
   def handle_info({:join, user, channel}, state) do
     MeetChannel.external_message(channel, "join", user, nil)
     {:noreply, state}
@@ -94,11 +94,11 @@ defmodule Mafia.GameServer do
     raise "shit" ++ s
   end
 
-  
+
   # helpers
-  
+
   defdelegate atom(string), to: String, as: :to_existing_atom
-  
+
   def game_db do
     {:ok, db} = :erlog.new
     Enum.reduce ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl)c, db, fn (file, db) ->
@@ -108,14 +108,14 @@ defmodule Mafia.GameServer do
       end
     end
   end
-  
+
   def load_setup(db, setup) do
     db = Enum.reduce setup.teams, db, fn (t, db) ->
       fact = {:setup_alignment, t.player, t.team}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
-    
+
     db = Enum.reduce setup.roles, db, fn (r, db) ->
       target = if r.type == "alignment", do: r.team, else: r.player
       role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}

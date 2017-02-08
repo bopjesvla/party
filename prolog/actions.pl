@@ -2,19 +2,25 @@ action(Actor, Action, Targets, Channel, []) :-
   action(Actor, Action, Targets, Channel).
 
 action(_, kill, [X], _) :- !,
-  send(message(X, "has been killed")),
+  kill(X, "has been killed"),
   asserta(dead(X)).
 
 action(_, lynch, [X], _) :- !,
-  send(message(X, "has been lynched")),
+  kill(X, "has been lynched"),
   asserta(dead(X)).
 
-action(Channel, investigate, [X], _) :-
+action(_, investigate, [X], Channel) :-
   player_alignment(X, "mafia"), !,
   send(message(Channel, X, "is Mafia")).
-action(Channel, investigate, [X], _) :- !,
+action(_, investigate, [X], Channel) :- !,
   send(message(Channel, X, "is not Mafia")).
 
-action(_, _, _, _).
+action(_, visit, _, _).
 action(Actor, Act, T, C, [_ | Mods]) :-
   action(Actor, Act, T, C, Mods).
+
+kill(Player, Message) :-
+  send(message(Player, Message)),
+  flip(Player, Flip),
+  send(flip(Flip)),
+  asserta(dead(Player)).

@@ -185,7 +185,7 @@ create_channel(Type, Role, Channel) :-
 grant_access(Player, Channel) :- access(Player, Channel), !.
 grant_access(Player, Channel) :-
   player(User, Player),
-  send(join(User, Channel)),  
+  send(join(User, Channel)),
   asserta(access(Player, Channel)).
 
 retract_access(Player, Channel) :- \+ access(Player, Channel), !.
@@ -252,3 +252,12 @@ maybe_next_phase.
 
 status(Player, dead) :- dead(Player), !.
 status(Player, alive).
+
+
+flip(Player, [player(Player), roles(Roles), alignments(Alignments)]) :-
+  findall(Alignment, player_alignment(Player, Alignment), Alignments),
+  findall(Role, (
+    access(Player, Channel),
+    channel_type(Channel, player_role),
+    channel_role(Channel, Role)
+  ), Roles).
