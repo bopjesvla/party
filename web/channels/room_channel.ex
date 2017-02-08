@@ -26,11 +26,12 @@ defmodule Mafia.RoomChannel do
           #Repo.insert! %Subchannel
         end)
         {:ok, %{msgs: []}, socket}
-      %{type: "r", id: id} ->
+      %{id: id} ->
         messages = Repo.all from m in Message,
         join: u in assoc(m, :user),
         where: m.channel_id == ^id,
-        select: %{msg: m.msg, u: u.name, ts: m.inserted_at}
+        select: %{msg: m.msg, u: u.name, ts: m.inserted_at},
+        order_by: m.inserted_at
 
         #channels = Repo.get_by(Channel, room_id: id)
         {:ok, %{msgs: messages}, socket}

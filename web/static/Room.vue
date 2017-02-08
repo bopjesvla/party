@@ -34,17 +34,17 @@
 						console.log(d.msgs)
 						this.messages = d.msgs
             if(d.active) {
-              this.channels = d.active.map(meet => socket.channel("meet:" + meet.channel))
-              console.log(this.channels)
-              this.channels.forEach(x => x.join().receive("error", e => console.log(e)))
-              this.activeChannel = this.channels[0]
+              this.meets = d.active.map(meet => socket.channel("meet:" + meet.channel))
+              console.log(this.meets)
+              this.meets.forEach(x => x.join().receive("error", e => console.log(e)))
+              this.activeChannel = this.meets[0]
             }
             else {
-              this.channels = [this.channel]
+              this.meets = []
               this.activeChannel = this.channel
             }
-            
-	          this.channels.forEach(c => c.on("new:msg", msg => {
+
+	          this.meets.forEach(c => c.on("new:msg", msg => {
               msg.topic = c.topic
 	            this.messages.push(msg)
 	          }))
@@ -52,6 +52,7 @@
 					.receive("error", e => console.log(e))
 
 				this.channel.on("new:msg", msg => {
+					console.log(msg)
 					this.messages.push(msg)
 				})
 			},
