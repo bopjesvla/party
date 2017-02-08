@@ -19,4 +19,4 @@ test(investigate) :-
     flush(X),
     member(message(M, "has been killed"), X),
     member(flip(F), X),
-    member(alignments(["mafia"]), F).
+    member(teams(["mafia"]), F).

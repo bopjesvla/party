@@ -12,7 +12,7 @@ defmodule Mafia.RoomChannelTest do
   end
 
   test "can send messages", %{socket: socket} do
-    ref = push socket, "new:msg", %{"msg" => "there"}
+    _ref = push socket, "new:msg", %{"msg" => "there"}
     assert_broadcast "new:msg", %{msg: "there", u: "bob", ts: _}
   end
 end

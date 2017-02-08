@@ -254,7 +254,7 @@ status(Player, dead) :- dead(Player), !.
 status(Player, alive).
 
 
-flip(Player, [player(Player), roles(Roles), alignments(Alignments)]) :-
+flip(Player, [player(Player), roles(Roles), teams(Alignments)]) :-
   findall(Alignment, player_alignment(Player, Alignment), Alignments),
   findall(Role, (
     access(Player, Channel),
