@@ -42,7 +42,7 @@ defmodule Mafia.Mixfile do
      {:httpoison, "~> 0.10.0"},
      {:mock, "~> 0.2.0", only: :test},
      # {:erlog, git: "git://github.com/rvirding/erlog"}
-     {:erlog, path: "~/erlog"}
+     {:erlog, github: "rvirding/erlog"}
    ]
   end
 

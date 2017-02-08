@@ -30,7 +30,7 @@ defmodule Mafia.Router do
     get "/", Coherence.RegistrationController, :new
     get "/sign-in", Coherence.SessionController, :new
     get "/forgot-password", Coherence.PasswordController, :new
-    coherence_routes
+    coherence_routes()
   end
 
   scope "/", Mafia do

@@ -35,7 +35,7 @@ defmodule Mafia.GameServer do
   # callbacks
   
   def init({name, user, setup, facts}) do
-    db = game_db
+    db = game_db()
     |> load_setup(setup)
 
     db = Enum.reduce facts, db, fn (fact, db) ->
