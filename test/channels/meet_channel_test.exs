@@ -4,19 +4,19 @@ defmodule Mafia.MeetChannelTest do
   alias Mafia.{GameChannel, MeetChannel, GameServer}
 
   @setup %{
-    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
-    roles: [%{type: "global", player: nil, team: nil, mods: [], role: "village"}],
+    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player
+    roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}],
     phases: ["day", "night"]
   }
 
   setup do
     name = "#{Enum.random(0..9000000)}"
     topic = "game:#{name}"
-    
+
     socket =
       socket("user:0", %{user: 0})
       |> subscribe_and_join!(GameChannel, topic, %{"setup" => @setup, "speed" => 10})
-    
+
     {:ok, socket: socket, topic: topic, name: name}
   end
 
@@ -33,9 +33,9 @@ defmodule Mafia.MeetChannelTest do
   test "can send messages", %{socket: socket} do
     ref = push socket, "info", %{}
     assert_reply ref, :ok, %{active: [%{channel: signups_channel}]}
-    
+
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> signups_channel)
-    
+
     push socket, "new:msg", %{"msg" => "there"}
     assert_broadcast "new:msg", %{msg: "there", u: 0, ts: _}
   end
@@ -43,10 +43,10 @@ defmodule Mafia.MeetChannelTest do
   test "can vote", %{socket: socket, topic: topic, name: name} do
     socket("user:-1", %{user: -1})
     |> subscribe_and_join!(GameChannel, topic, %{})
-    
+
     socket("user:-2", %{user: -2})
     |> subscribe_and_join!(GameChannel, topic, %{})
-    
+
     socket("user:-3", %{user: -3})
     |> subscribe_and_join!(GameChannel, topic, %{})
 

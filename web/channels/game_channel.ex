@@ -13,12 +13,12 @@ defmodule Mafia.GameChannel do
   def render_message([msg, u, ts, type, ch]) do
     %{msg: msg, u: u, ts: ts, ty: type, ch: ch}
   end
-  
+
   def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10000 do
-    Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}]}
-    
+    Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}], setup_id: setup, speed: speed}
+
     {:ok, _} = GameSupervisor.start_game({name, user, setup, speed: speed})
-    
+
     info = game_info(name, user)
     |> Map.put(:msgs, [])
 
@@ -31,10 +31,10 @@ defmodule Mafia.GameChannel do
     {:succeed, _} = GameServer.query(name, {:join, user})
 
     messages = Enum.map rows, &render_message/1
-    
+
     info = game_info(name, user)
     |> Map.put(:msgs, messages)
-    
+
     #channels = Repo.get_by(Channel, room_id: id)
     {:ok, info, socket}
   end
@@ -51,20 +51,20 @@ defmodule Mafia.GameChannel do
 
   def game_info(name, user) do
     {:succeed, info: game_info} = GameServer.query(name, {:game_info, user, {:info}})
-    
+
     info = game_info
     |> to_map
   end
 
-  
+
   def external_message(game_name, type, user, message) do
     game = Repo.get_by(Channel, game: game_name, type: "g")
     channel = Repo.get_by(Channel, game: game, type: "g")
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
-    
+
     Mafia.Endpoint.broadcast! "game:#{game_name}", "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
   end
-  
+
   def handle_in("info", _, socket) do
     "game:" <> name = socket.topic
     {:reply, {:ok, game_info(name, socket.assigns.user)}, socket}

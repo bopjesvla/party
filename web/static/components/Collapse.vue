@@ -43,7 +43,7 @@
 			cursor: pointer;
 			user-select: none;
 			padding: 5px;
-			letter-spacing: 2px;
+			background: rgba(0, 0, 0, 0.2);
 			&:before {
 				position: relative;
 				top: -3px;

@@ -4,6 +4,8 @@ defmodule Mafia.Repo.Migrations.CreateSetup do
   def change do
     create table(:setups) do
       add :name, :text
+      add :size, :integer
+      add :phases, {:array, :string}
       add :user_id, references(:users, on_delete: :nothing)
 
       timestamps()

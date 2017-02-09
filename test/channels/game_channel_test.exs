@@ -4,8 +4,8 @@ defmodule Mafia.GameChannelTest do
   alias Mafia.{GameChannel, GameServer}
 
   @setup %{
-    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
-    roles: [%{type: "global", player: nil, team: nil, mods: [], role: "village"}],
+    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player
+    roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}],
     phases: ["day", "night"]
   }
 

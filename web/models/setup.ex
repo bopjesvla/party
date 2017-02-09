@@ -3,6 +3,10 @@ defmodule Mafia.Setup do
 
   schema "setups" do
     field :name, :string
+    field :size, :integer
+    field :phases, {:array, :string}
+    has_many :roles, Mafia.SetupRole
+    has_many :teams, Mafia.SetupTeam
     belongs_to :user, Mafia.User
 
     timestamps()
@@ -13,8 +17,10 @@ defmodule Mafia.Setup do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:name])
-    |> validate_required([:name])
+    |> cast(params, [:name, :size, :phases])
+    |> cast_assoc(:roles)
+    |> cast_assoc(:teams)
+    |> validate_required([:name, :size, :phases, :roles, :teams])
     |> unique_constraint(:name)
   end
 end

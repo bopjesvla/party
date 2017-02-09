@@ -1,8 +1,8 @@
 <template>
 	<div class="room">
-		<room-header :name=$route.params.name></room-header>
+		<room-header :name="$route.params.name"></room-header>
 		<div class="room-inner">
-			<chat-messages :messages=messages></chat-messages>
+			<chat-messages :messages="messages"></chat-messages>
 		</div>
 		<form @submit.prevent="send">
 			<input type="text" v-model="input"/>

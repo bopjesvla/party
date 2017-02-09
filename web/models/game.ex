@@ -6,6 +6,7 @@ defmodule Mafia.Game do
     has_many :channels, Mafia.Channel
     field :name, :string
     field :status, :string
+    field :speed, :integer
 
     timestamps()
   end

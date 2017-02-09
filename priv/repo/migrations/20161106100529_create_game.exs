@@ -6,6 +6,7 @@ defmodule Mafia.Repo.Migrations.CreateGame do
       add :name, :string
       add :setup_id, references(:setups, on_delete: :nothing)
       add :status, :string
+      add :speed, :integer
 
       timestamps()
     end

@@ -3,12 +3,19 @@ defmodule Mafia.SetupTest do
 
   alias Mafia.Setup
 
-  @valid_attrs %{name: "some content"}
+  @valid_attrs %{
+    name: "Simple",
+    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
+    roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}],
+    phases: ["day", "night"],
+    size: 4
+  }
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do
     changeset = Setup.changeset(%Setup{}, @valid_attrs)
-    assert changeset.valid?
+    assert changeset.errors == []
+    assert changeset.changes == []
   end
 
   test "changeset with invalid attributes" do
