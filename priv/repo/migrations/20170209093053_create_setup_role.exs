@@ -8,11 +8,11 @@ defmodule Mafia.Repo.Migrations.CreateSetupRole do
       add :str, :string
       add :mods, {:array, :string}
       add :role, :string
-      add :setup, references(:setups, on_delete: :nothing)
+      add :setup_id, references(:setups, on_delete: :nothing)
 
       timestamps()
     end
-    create index(:setup_roles, [:setup])
+    create index(:setup_roles, [:setup_id])
 
   end
 end

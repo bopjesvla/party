@@ -1,7 +1,7 @@
 defmodule Mafia.GameChannel do
   use Phoenix.Channel
 
-  alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameSupervisor, GameServer}
+  alias Mafia.{Repo, Channel, Message, User, Game, GameSupervisor, GameServer, Queries}
   import Ecto.Query
 
   #def handle_in("room_info", %{name: name}, socket) do
@@ -15,11 +15,11 @@ defmodule Mafia.GameChannel do
   end
 
   def join("game:" <> name, %{"setup" => setup, "speed" => speed} = opts, %{assigns: %{user: user}} = socket) when speed in 1..10000 do
-    Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}], setup_id: setup, speed: speed}
+    Repo.insert! %Game{name: name, channels: [%Channel{user_id: user, type: "g"}], setup_id: setup, speed: speed, status: "signups"}
 
-    {:ok, _} = GameSupervisor.start_game({name, user, setup, speed: speed})
+    # {:ok, _} = GameSupervisor.start_game({name, user, setup, speed: speed})
 
-    info = game_info(name, user)
+    info = Queries.game_info(name, user)
     |> Map.put(:msgs, [])
 
     {:ok, info, socket}
@@ -32,7 +32,7 @@ defmodule Mafia.GameChannel do
 
     messages = Enum.map rows, &render_message/1
 
-    info = game_info(name, user)
+    info = Queries.game_info(name, user)
     |> Map.put(:msgs, messages)
 
     #channels = Repo.get_by(Channel, room_id: id)
@@ -40,22 +40,10 @@ defmodule Mafia.GameChannel do
   end
 
   def to_map([{a, _} | _] = l) when is_atom(a) do
-    Enum.into l, %{}, fn {a, x} -> {a, to_map x} end
+    for {a, x} <- l, into: %{} do
+      {a, to_map x}
+    end
   end
-
-  def to_map(l) when is_list(l) do
-    Enum.map l, &to_map/1
-  end
-
-  def to_map(x), do: x
-
-  def game_info(name, user) do
-    {:succeed, info: game_info} = GameServer.query(name, {:game_info, user, {:info}})
-
-    info = game_info
-    |> to_map
-  end
-
 
   def external_message(game_name, type, user, message) do
     game = Repo.get_by(Channel, game: game_name, type: "g")
@@ -67,6 +55,6 @@ defmodule Mafia.GameChannel do
 
   def handle_in("info", _, socket) do
     "game:" <> name = socket.topic
-    {:reply, {:ok, game_info(name, socket.assigns.user)}, socket}
+    {:reply, {:ok, Queries.game_info(name, socket.assigns.user)}, socket}
   end
 end

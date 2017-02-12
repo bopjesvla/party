@@ -7,7 +7,7 @@ defmodule Mafia.SetupRole do
     field :str, :string
     field :mods, {:array, :string}
     field :role, :string
-    belongs_to :setup_id, Mafia.Setup
+    belongs_to :setup, Mafia.Setup
 
     timestamps()
   end

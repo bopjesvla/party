@@ -3,19 +3,13 @@ defmodule Mafia.GameChannelTest do
 
   alias Mafia.{GameChannel, GameServer}
 
-  @setup %{
-    teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player
-    roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}],
-    phases: ["day", "night"]
-  }
-
   setup do
     name = "#{Enum.random(0..9000000)}"
     topic = "game:#{name}"
 
     socket =
       socket("user:0", %{user: 0})
-      |> subscribe_and_join!(GameChannel, topic, %{"setup" => @setup, "speed" => 10})
+      |> subscribe_and_join!(GameChannel, topic, %{"setup" => 0, "speed" => 10})
 
     {:ok, socket: socket, topic: topic, name: name}
   end
@@ -76,7 +70,7 @@ defmodule Mafia.GameChannelTest do
 
   #   socket =
   #     socket("user:-1", %{user: -1})
-  #     |> subscribe_and_join!(GameChannel, "game:y", %{"setup" => @setup, "speed" => 10})
+  #     |> subscribe_and_join!(GameChannel, "game:y", %{"setup" => 0, "speed" => 10})
 
   #   socket =
   #     socket("user:-2", %{user: -3})

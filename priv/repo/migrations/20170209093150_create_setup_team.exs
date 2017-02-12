@@ -9,7 +9,7 @@ defmodule Mafia.Repo.Migrations.CreateSetupTeam do
 
       timestamps()
     end
-    create index(:setup_teams, [:setup])
+    create index(:setup_teams, [:setup_id])
 
   end
 end

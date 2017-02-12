@@ -15,7 +15,7 @@ defmodule Mafia.SetupTest do
   test "changeset with valid attributes" do
     changeset = Setup.changeset(%Setup{}, @valid_attrs)
     assert changeset.errors == []
-    assert changeset.changes == []
+    assert [%{valid?: true} | _] = changeset.changes.roles
   end
 
   test "changeset with invalid attributes" do
