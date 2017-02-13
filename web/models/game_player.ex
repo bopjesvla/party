@@ -16,5 +16,7 @@ defmodule Mafia.GamePlayer do
     struct
     |> cast(params, [:status])
     |> validate_required([:status])
+    |> unique_constraint(:user,
+      name: "unique_player", message: "You already played in this game")
   end
 end

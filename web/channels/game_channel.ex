@@ -1,7 +1,7 @@
 defmodule Mafia.GameChannel do
   use Phoenix.Channel
 
-  alias Mafia.{Repo, Channel, Message, User, Game, GameSupervisor, GameServer, Queries}
+  alias Mafia.{Repo, Channel, Message, User, Game, GamePlayer, GameSupervisor, GameServer, Queries}
   import Ecto.Query
 
   #def handle_in("room_info", %{name: name}, socket) do
@@ -25,7 +25,29 @@ defmodule Mafia.GameChannel do
     {:ok, info, socket}
   end
 
-  def join("game:" <> name, params, %{assigns: %{user: user}} = socket) do
+  def join("game:" <> name, %{"signup" => true}, %{assigns: %{user: user}} = socket) do
+    game = Repo.get_by(Channel, game: game_name, type: "g") |> Repo.preload(:setup)
+
+    {:ok, player_count} = Repo.transaction fn ->
+      Repo.run! "lock table game_players in exclusive mode"
+      count = Repo.one from p in GamePlayer,
+      where: p.game_id == game.id,
+      select: count(p)
+
+      if count < game.setup.size do
+        GamePlayer.changeset(%GamePlayer{user_id: user, game: game}, %{"status" => "playing"})
+        |> Repo.insert
+        |> case do
+          {:ok, _} -> count + 1
+          {:error, changeset} -> Ecto.Changeset.traverse_errors(changeset, )
+        end
+      end
+    end
+
+    if player_count do
+
+    end
+
     %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, name])
 
     {:succeed, _} = GameServer.query(name, {:join, user})
@@ -37,12 +59,6 @@ defmodule Mafia.GameChannel do
 
     #channels = Repo.get_by(Channel, room_id: id)
     {:ok, info, socket}
-  end
-
-  def to_map([{a, _} | _] = l) when is_atom(a) do
-    for {a, x} <- l, into: %{} do
-      {a, to_map x}
-    end
   end
 
   def external_message(game_name, type, user, message) do

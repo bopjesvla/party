@@ -18,6 +18,12 @@ defmodule Mafia.Queries do
 	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
   end
 
+  def to_map([{a, _} | _] = l) when is_atom(a) do
+    for {a, x} <- l, into: %{} do
+      {a, to_map x}
+    end
+  end
+
   def to_map(l) when is_list(l) do
     Enum.map l, &to_map/1
   end
@@ -50,4 +56,3 @@ defmodule Mafia.Queries do
     end
   end
 end
-

@@ -9,8 +9,7 @@ defmodule Mafia.Repo.Migrations.CreateGamePlayer do
 
       timestamps()
     end
-    create index(:game_players, [:game_id])
+    create unique_index(:game_players, [:game_id, :user_id], name: "unique_player")
     create index(:game_players, [:user_id])
-
   end
 end
