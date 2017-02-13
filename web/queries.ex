@@ -1,5 +1,5 @@
 defmodule Mafia.Queries do
-  alias Mafia.{Repo, Message, User, Game, Setup}
+  alias Mafia.{Repo, Message, User, Game, Setup, GameServer}
   import Ecto.Query
 
   def setup_info(id) do
@@ -33,19 +33,19 @@ defmodule Mafia.Queries do
   def game_info(name, user) do
     game = Repo.get_by(Game, name: name)
 
-	setup = setup_info(game.setup_id)
+  	setup = setup_info(game.setup_id)
 
-	players = Repo.all from g in Game,
-	join: p in assoc(g, :players),
-	join: u in assoc(p, :user),
-	where: g.id == ^game.id,
-	select: %{id: p.id, user: u.id, name: u.name}
+  	players = Repo.all from g in Game,
+  	join: p in assoc(g, :players),
+  	join: u in assoc(p, :user),
+  	where: g.id == ^game.id,
+  	select: %{id: p.id, user: u.id, name: u.name}
 
-    game_info = game
-	|> Map.take(~w(name speed status)a)
-	|> Map.merge(%{players: players, setup: setup})
+      game_info = game
+  	|> Map.take(~w(name speed status)a)
+  	|> Map.merge(%{players: players, setup: setup})
 
-    if game.status == "playing" do
+    if game.status == "ongoing" do
       {:succeed, info: game_info} = GameServer.query(name, {:game_info, user, {:info}})
 
       info = game_info

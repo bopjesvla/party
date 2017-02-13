@@ -1,29 +1,62 @@
 defmodule Mafia.QueueChannel do
   use Mafia.Web, :channel
 
+  alias Mafia.{Repo, Channel, Message, User, Game, GamePlayer, GameSupervisor, GameServer, Queries}
+  import Ecto.Query
+
   def join("queue", payload, socket) do
-    if authorized?(payload) do
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
+    {:ok, socket}
+  end
+
+  def handle_in("new:setup", %{"setup" => setup, "speed" => speed} = opts, socket) do
+    {:ok, 1, socket}
+  end
+
+  def handle_in("new:game", %{"setup" => setup} = opts, %{assigns: %{user: user}} = socket) do
+    game = %Game{
+      channels: [%Channel{user_id: user, type: "game"}, %Channel{user_id: user, type: "talk"}],
+      status: "signups",
+      setup_id: setup
+    }
+    |> Game.changeset(opts)
+    |> Repo.insert!
+    {:reply, :ok, socket}
+  end
+
+  def handle_in("signup", %{"name" => name}, %{assigns: %{user: user}} = socket) do
+    game = Repo.get_by(Game, name: name) |> Repo.preload(:setup)
+    changeset = GamePlayer.changeset(%GamePlayer{user_id: user, game: game}, %{"status" => "playing"})
+
+    {:ok, {res, count}} = Repo.transaction fn ->
+      Repo.run! "lock table game_players in exclusive mode"
+
+      count = Repo.one from p in GamePlayer,
+      where: p.game_id == ^game.id,
+      select: count(1)
+
+      res = if count < game.setup.size do
+        Repo.insert changeset
+      else
+        {:error, Ecto.Changeset.add_error(changeset, :game, "Already filled")}
+      end
+      {res, count}
     end
-  end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
-  def handle_in("ping", payload, socket) do
-    {:reply, {:ok, payload}, socket}
-  end
+    reply = case res do
+      {:ok, _} ->
+        new_count = count + 1
+        broadcast! socket, "player_count", %{
+          game: name,
+          count: new_count
+        }
+        if new_count == game.setup.size do
+          :erlang.send_after 10000, GameSupervisor, %{game: game}
+        end
+        :ok
+      {:error, changeset} ->
+        {:error, Mafia.ChangesetView.render("error.json", changeset)}
+    end
 
-  # It is also common to receive messages from the client and
-  # broadcast to everyone in the current topic (queue:lobby).
-  def handle_in("shout", payload, socket) do
-    broadcast socket, "shout", payload
-    {:noreply, socket}
-  end
-
-  # Add authorization logic here as required.
-  defp authorized?(_payload) do
-    true
+    {:reply, reply, socket}
   end
 end

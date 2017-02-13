@@ -3,16 +3,18 @@ defmodule Mafia.MeetChannelTest do
 
   alias Mafia.{GameChannel, MeetChannel, GameServer}
 
-  setup do
-    name = "#{Enum.random(0..9000000)}"
-    topic = "game:#{name}"
-
-    socket =
-      socket("user:0", %{user: 0})
-      |> subscribe_and_join!(GameChannel, topic, %{"setup" => 0, "speed" => 10})
-
-    {:ok, socket: socket, topic: topic, name: name}
-  end
+  @name "test"
+  @topic "game:test"
+  @game %Mafia.Game{
+    name: @name,
+    setup_id: 0,
+    players: [
+      %Mafia.GamePlayer{status: "playing", user_id: 0},
+      %Mafia.GamePlayer{status: "playing", user_id: -1},
+      %Mafia.GamePlayer{status: "playing", user_id: -2},
+      %Mafia.GamePlayer{status: "playing", user_id: -3}
+    ]
+  }
 
   # test "ping replies with status ok", %{socket: socket} do
   #   ref = push socket, "ping", %{"hello" => "there"}
@@ -24,11 +26,11 @@ defmodule Mafia.MeetChannelTest do
   #   assert_push "broadcast", %{"some" => "data"}
   # end
 
-  test "can send messages", %{socket: socket} do
-    ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{active: [%{channel: signups_channel}]}
+  test "can send messages" do
+    Repo.insert! %{@game | status: "signups"}
 
-    socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> signups_channel)
+    socket = socket("user:0", %{user: 0})
+    |> subscribe_and_join!(MeetChannel, "talk:test")
 
     push socket, "new:msg", %{"msg" => "there"}
     assert_broadcast "new:msg", %{msg: "there", u: 0, ts: _}

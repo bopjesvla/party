@@ -34,18 +34,12 @@ defmodule Mafia.GameServer do
 
   # callbacks
 
-  def init({name, user, setup, facts}) do
+  def init(game) do
     db = game_db()
-    |> load_setup(setup)
+    |> load_setup(game.setup)
 
-    db = Enum.reduce facts, db, fn (fact, db) ->
-      {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
-      db
-    end
-
-    {{:succeed, _}, db} = :erlog.prove({:create_channel, :signups, nil, {:_}}, db)
-    {{:succeed, _}, db} = :erlog.prove({:join, user}, db)
-    {:ok, %{db: db, name: name}}
+    {{:succeed, _}, db} = :erlog.prove({:player, game.user}, db)
+    {:ok, %{db: db, game: game}}
   end
 
   def handle_call({:query, terms}, _, state) do
@@ -56,12 +50,12 @@ defmodule Mafia.GameServer do
 
   def handle_info({:create_channel, channel}, %{name: name} = state) do
     %{id: game_id} = Repo.get_by(Game, name: name)
-    Repo.insert!(%Channel{game_id: game_id, name: channel, type: "m"})
+    Repo.insert!(%Channel{game_id: game_id, name: channel, type: "meet"})
     {:noreply, state}
   end
 
   def handle_info({:join, user, channel}, state) do
-    MeetChannel.external_message(channel, "join", user, nil)
+    MeetChannel.new_message(channel, "join", user, nil)
     {:noreply, state}
   end
   def handle_info({:next_phase, at}, %{name: name} = state) do
@@ -70,7 +64,7 @@ defmodule Mafia.GameServer do
   end
   def handle_info({:leave, who, channel}, state) do
     message = %{who: who} |> Poison.encode!
-    MeetChannel.external_message channel, "leave", nil, message
+    MeetChannel.new_message channel, "leave", nil, message
     {:noreply, state}
   end
   def handle_info(:do_next_phase, state) do
@@ -83,11 +77,11 @@ defmodule Mafia.GameServer do
   end
   def handle_info({:vote, user, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
-    MeetChannel.external_message(channel, "vote", user, message)
+    MeetChannel.new_message(channel, "vote", user, message)
     {:noreply, state}
   end
   def handle_info({:message, user, message}, %{name: name} = state) do
-    GameChannel.external_message(name, "sys", user, message)
+    GameChannel.new_message(name, "sys", user, message)
     {:noreply, state}
   end
   def handle_info(s, _) do

@@ -5,10 +5,23 @@ defmodule Mafia.QueueChannelTest do
 
   setup do
     {:ok, _, socket} =
-      socket("user_id", %{some: :assign})
-      |> subscribe_and_join(QueueChannel, "queue:lobby")
+      socket("user:0", %{user: 0})
+      |> subscribe_and_join(QueueChannel, "queue")
 
     {:ok, socket: socket}
+  end
+
+  test "create game, signups", %{socket: socket} do
+    name = "#{Enum.random(0..9000000)}"
+    topic = "game:#{name}"
+
+    ref = push socket, "new:game", %{"name" => "game1", "setup" => 0, "speed" => 10}
+    assert_reply ref, :ok, _
+
+    ref = push socket, "signup", %{"name" => "game1"}
+    assert_reply ref, :ok, _
+
+    {:ok, socket: socket, topic: topic, name: name}
   end
 
   # test "ping replies with status ok", %{socket: socket} do
