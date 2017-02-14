@@ -26,6 +26,8 @@ ignore(_).
 log(X) :-
   erl('Elixir.IO':inspect(X), _).
 
+log_all(X) :- forall(X, log(X)).
+
 bool(X, true) :- X, !.
 bool(X, false).
 

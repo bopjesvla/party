@@ -8,8 +8,8 @@ setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
 voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
-current_phase(q) :- fail. % false during signups
-player(q, q) :- fail. % user_id. player_id
+current_phase(q) :- fail.
+player(q) :- fail. % user_id. player_id
 player_alignment(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
@@ -54,14 +54,11 @@ current_phase_info([name(Name), number(Number), next(End)]) :-
   nil_fallback(Name, current_phase_name(Name)),
   nil_fallback(Number, current_phase_number(Number)).
 
-players(Players) :- findall(P, player(_, P), Players).
-player_count(N) :- players(Players), length(Players, N).
-full_game :- player_count(P), setup_size(S), P >= S.
+players(Players) :- findall(P, player(P), Players).
 
-alive(X) :- player(X, _), \+ dead(X).
+alive(X) :- player(X), \+ dead(X).
 
-game_info(User, [active(Active), players(Players), phase(PhaseInfo)]) :-
-  player(User, Player),
+game_info([active(Active), players(Players), phase(PhaseInfo)]) :-
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
       findall(Member, join_channel(Member, C), Members),
@@ -72,17 +69,9 @@ game_info(User, [active(Active), players(Players), phase(PhaseInfo)]) :-
       findall([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
   ), Active),
   current_phase_info(PhaseInfo),
-  findall([player(P), user(U), status(Status)], (
-      player(U, P), status(P, Status)
+  findall([player(P), status(Status)], (
+      player(P), status(P, Status)
   ), Players).
-
-join(User) :- player(User, _), !.
-join(User) :-
-  signups,
-  \+ full_game,
-  asserta(player(User, User)), % player id is the id of the first user taking the slot
-  forall(join_channel(User, Channel), send(join(User, Channel))),
-  (full_game, set_phase_timer(10), !; true).
 
 set_phase_timer(After) :-
   remove_phase_timer,
@@ -103,7 +92,6 @@ remove_phase_timer :-
 remove_phase_timer.
 
 next_phase :-
-  full_game,
   end_phase,
   forall((
     channel_role(Channel, _),
@@ -135,7 +123,7 @@ increase_current_phase :- asserta(current_phase(0)).
 
 start_phase :- !, true.
 start_phase :-
-  forall(player(_, Player), (
+  forall(player(Player), (
     game_info(Player, GameInfo),
     send(game_info(Player, GameInfo))
   )).
@@ -143,8 +131,8 @@ start_phase :-
 start_game :-
   players(Players),
   random_permutation(Players, ShuffledPlayers),
-  forall(player(_, Player), (
-    create_channel(player, none, Channel),
+  forall(player(Player), (
+    create_channel(player, nil, Channel),
     grant_access(Player, Channel)
   )),
   forall(setup_role(player, N, Role), (
@@ -184,8 +172,8 @@ create_channel(Type, Role, Channel) :-
 
 grant_access(Player, Channel) :- access(Player, Channel), !.
 grant_access(Player, Channel) :-
-  player(User, Player),
-  send(join(User, Channel)),
+  player(Player),
+  send(join(Player, Channel)),
   asserta(access(Player, Channel)).
 
 retract_access(Player, Channel) :- \+ access(Player, Channel), !.
@@ -194,25 +182,19 @@ retract_access(Player, Channel) :-
   send(leave(Player, Channel)),
   asserta(access(Player, Channel)).
 
-join_channel(User, Channel) :-
-  player(User, Player),
-  channel_type(Channel, signups),
-  signups.
-
-join_channel(User, Channel) :-
-  player(User, Player),
+join_channel(Player, Channel) :-
   access(Player, Channel),
   (channel_type(Channel, player); once(channel_action(Channel, _, _))).
 
-unvote(User, Channel, Action) :-
-  player(User, Player),
+unvote(Player, Channel, Action) :-
+  player(Player),
   current_phase(P),
   can_unvote(Player, Channel, Action),
   ignore(retract_all(voting(P, Player, Channel, Action, _))),
   send(unvote(Player, Channel, Action)).
 
-vote(User, Channel, Action, Targets) :-
-  player(User, Player),
+vote(Player, Channel, Action, Targets) :-
+  player(Player),
   current_phase(P),
   can_vote(Player, Channel, Action, Targets, ActionMods),
   do_vote(Player, Channel, Action, Targets, ActionMods).

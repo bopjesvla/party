@@ -40,9 +40,8 @@ defmodule Mafia.Mixfile do
      {:coherence, "~> 0.3"},
      {:cowboy, "~> 1.0"},
      {:httpoison, "~> 0.10.0"},
-     {:mock, "~> 0.2.0", only: :test},
-     {:erlog, github: "rvirding/erlog"},
-	 {:porta, path: "../porta"}
+     {:erlog, github: "rvirding/erlog", branch: "develop"},
+	   {:porta, path: "../porta"}
    ]
   end
 

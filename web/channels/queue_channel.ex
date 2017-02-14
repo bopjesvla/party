@@ -54,12 +54,17 @@ defmodule Mafia.QueueChannel do
     reply = case res do
       {:ok, _} ->
         new_count = count + 1
-      broadcast! socket, "game_info", %{
+        broadcast! socket, "game_info", %{
           name: name,
           count: new_count
         }
         if new_count == game.setup.size do
-          :erlang.send_after 10000, GameSupervisor, %{game: game}
+          {:ok, _} = GameSupervisor.start_game(game)
+          pid = spawn fn ->
+            Registry.register(:timer_registry, game.name, 10000)
+            Process.sleep(10000)
+            GameSupervisor.start_game(game)
+          end
         end
         :ok
       {:error, changeset} ->

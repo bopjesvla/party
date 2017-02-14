@@ -53,6 +53,8 @@ defmodule Mafia.QueueChannelTest do
     |> subscribe_and_join!(QueueChannel, "queue")
     |> push("signup", %{"name" => "game1"})
 
+    :timer.sleep(100)
+
     assert_reply(ref, :error, %{errors: %{game: ["Already filled"]}})
 
 

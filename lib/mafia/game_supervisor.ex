@@ -2,7 +2,7 @@ defmodule Mafia.GameSupervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, [])
+    Supervisor.start_link(__MODULE__, [], name: :game_supervisor)
   end
 
   def start_game(args) do

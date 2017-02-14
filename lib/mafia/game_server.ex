@@ -1,7 +1,6 @@
-alias Mafia.{Repo,Game,Channel,MeetChannel,GameChannel}
-
 defmodule Mafia.GameServer do
   use GenServer
+  alias Mafia.{Repo,Game,Channel,MeetChannel,GameChannel}
 
   # management
 
@@ -9,8 +8,11 @@ defmodule Mafia.GameServer do
     {:via, Registry, {:game_registry, name}}
   end
 
-  def start_link({name, _, _, _} = args) do
-    GenServer.start_link(__MODULE__, args, name: via_tuple(name))
+  def start_link(%{name: name} = game) do
+    game = game
+    |> Repo.preload([setup: [:teams, :roles], players: []])
+
+    GenServer.start_link(__MODULE__, game, name: via_tuple(name))
   end
 
   # API
@@ -37,8 +39,10 @@ defmodule Mafia.GameServer do
   def init(game) do
     db = game_db()
     |> load_setup(game.setup)
+    |> load_players(game.players)
 
-    {{:succeed, _}, db} = :erlog.prove({:player, game.user}, db)
+    # {{:succeed, _}, db} = :erlog.prove(:next_phase, db)
+
     {:ok, %{db: db, game: game}}
   end
 
@@ -111,7 +115,7 @@ defmodule Mafia.GameServer do
     end
 
     db = Enum.reduce setup.roles, db, fn (r, db) ->
-      target = if r.type == "alignment", do: r.team, else: r.player
+      target = if r.type == "alignment", do: r.str, else: r.nr
       role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
@@ -121,5 +125,12 @@ defmodule Mafia.GameServer do
     phases = Enum.map setup.phases, &String.to_existing_atom/1
     {{:succeed, _}, db} = :erlog.prove({:asserta, {:setup_phases, phases}}, db)
     db
+  end
+
+  def load_players(db, players) do
+    Enum.reduce players, db, fn (player, db) ->
+      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, player.id}}, db)
+      db
+    end
   end
 end

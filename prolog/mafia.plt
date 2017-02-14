@@ -1,43 +1,16 @@
 :- begin_tests(setup_game).
 
-test(signups_channel) :-
-  create_channel(signups, nil, Channel),
-  flush(X),
-  X = [create_channel(Channel)].
-
 :- end_tests(setup_game).
 :- begin_tests(signups).
 
-test(join) :-
-  player_count(0),
-  join(1),
-  player_count(1),
-  join(5),
-  player_count(2),
-  join(5),
-  player_count(2).
-
-test(signups_game_info) :-
-  game_info(1, X),
-  perm(X, [active([Y]), players(_), phase(_)]),
-  perm(Y, [channel(_), members(_), actions([]), votes([]), type(signups), role(nil)]).
-
-test(starting) :-
-  flush(X),
-  X = [join(1, Channel), join(5, Channel)],
-  \+ phase_timer(_, _),
-  join(3),
-  \+ join(2),
-  join(3).
-
-test(game_full) :-
-  flush(X),
-  X = [join(3, Channel), next_phase(_)],
-  phase_timer(_, _),
-  game_info(1, G),
-  member(phase(T), G),
-  member(next(N), T),
-  \+ N = nil.
+% test(game_full) :-
+%   flush(X),
+%   X = [join(3, Channel), next_phase(_)],
+%   phase_timer(_, _),
+%   game_info(1, G),
+%   member(phase(T), G),
+%   member(next(N), T),
+%   \+ N = nil.
 
 :- end_tests(signups).
 :- begin_tests(game_start).
@@ -61,7 +34,8 @@ test(global_channel) :-
   join_channel(1, Channel),
   channel_action(Channel, lynch, [3]).
 
-test(role_channel) :- channel_role(Channel, ([], cop)),
+test(role_channel) :-
+  channel_role(Channel, ([], cop)),
   access(_, Channel)
   .
 
@@ -70,10 +44,11 @@ test(alignment_channel) :-
   channel_type(Channel, alignment_role),
   access(_, Channel).
 
-test(player_channel) :- channel_role(Channel, none),
+test(player_channel) :-
   channel_type(Channel, player),
-  access(1, Channel).
-        
+  access(_, Channel),
+  channel_role(Channel, nil).
+
 :- end_tests(game_start).
 :- begin_tests(voting).
 

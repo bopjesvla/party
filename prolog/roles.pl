@@ -9,7 +9,7 @@ role_action(([], Role), Action, Targets, Channel, ActionMods, ActionMods) :-
 % special limiting modifiers, mostly ones that alter default behavior such as day and self
 role_action(([Mod | Mods], Role), Action, Targets, Channel, LeftActionMods, RightActionMods) :-
   \+ role_action_filter(Mod, Action, Targets, Channel),
-  action_mods(Mod, LeftActionMods, NewActionMods),  
+  action_mods(Mod, LeftActionMods, NewActionMods),
   role_action(([Mods], Role), Action, Targets, Channel, NewActionMods, RightActionMods).
 
 default_phase_constraint(village) :-
