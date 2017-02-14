@@ -7,7 +7,8 @@ use Mix.Config
 
 # General application configuration
 config :mafia,
-  ecto_repos: [Mafia.Repo]
+  ecto_repos: [Mafia.Repo],
+  signups_countdown: 10000
 
 # Configures the endpoint
 config :mafia, Mafia.Endpoint,

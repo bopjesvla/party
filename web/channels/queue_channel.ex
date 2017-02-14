@@ -13,13 +13,22 @@ defmodule Mafia.QueueChannel do
   end
 
   def handle_in("new:game", %{"setup" => setup} = opts, %{assigns: %{user: user}} = socket) do
+    player = GamePlayer.changeset(%GamePlayer{user_id: user}, %{"status" => "playing"})
+
     game = %Game{
       channels: [%Channel{user_id: user, type: "game"}, %Channel{user_id: user, type: "talk"}],
       status: "signups",
-      setup_id: setup
+      setup_id: setup,
+      players: [player]
     }
     |> Game.changeset(opts)
     |> Repo.insert!
+
+    broadcast! socket, "game_info", %{
+      name: game.name,
+      count: 1
+    }
+
     {:reply, :ok, socket}
   end
 
@@ -45,8 +54,8 @@ defmodule Mafia.QueueChannel do
     reply = case res do
       {:ok, _} ->
         new_count = count + 1
-        broadcast! socket, "player_count", %{
-          game: name,
+      broadcast! socket, "game_info", %{
+          name: name,
           count: new_count
         }
         if new_count == game.setup.size do
@@ -54,7 +63,7 @@ defmodule Mafia.QueueChannel do
         end
         :ok
       {:error, changeset} ->
-        {:error, Mafia.ChangesetView.render("error.json", changeset)}
+        {:error, Mafia.ChangesetView.render("error.json", %{changeset: changeset})}
     end
 
     {:reply, reply, socket}

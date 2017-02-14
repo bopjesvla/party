@@ -11,6 +11,14 @@ defmodule Mafia.QueueChannelTest do
     {:ok, socket: socket}
   end
 
+  defp empty_mailbox do
+    receive do
+      _ -> empty_mailbox()
+    after
+      0 -> :ok
+    end
+  end
+
   test "create game, signups", %{socket: socket} do
     name = "#{Enum.random(0..9000000)}"
     topic = "game:#{name}"
@@ -18,8 +26,36 @@ defmodule Mafia.QueueChannelTest do
     ref = push socket, "new:game", %{"name" => "game1", "setup" => 0, "speed" => 10}
     assert_reply ref, :ok, _
 
-    ref = push socket, "signup", %{"name" => "game1"}
-    assert_reply ref, :ok, _
+    assert_broadcast("game_info", %{name: "game1", count: 1})
+
+    ref = socket("user:-1", %{user: -1})
+    |> subscribe_and_join!(QueueChannel, "queue")
+    |> push("signup", %{"name" => "game1"})
+
+    assert_reply(ref, :ok, _)
+    assert_broadcast("game_info", %{name: "game1", count: 2})
+
+    ref = socket("user:-2", %{user: -2})
+    |> subscribe_and_join!(QueueChannel, "queue")
+    |> push("signup", %{"name" => "game1"})
+
+    assert_reply(ref, :ok, _)
+
+    ref = socket("user:-3", %{user: -3})
+    |> subscribe_and_join!(QueueChannel, "queue")
+    |> push("signup", %{"name" => "game1"})
+
+    assert_reply(ref, :ok, _)
+
+    empty_mailbox()
+
+    ref = socket("user:-4", %{user: -4})
+    |> subscribe_and_join!(QueueChannel, "queue")
+    |> push("signup", %{"name" => "game1"})
+
+    assert_reply(ref, :error, %{errors: %{game: ["Already filled"]}})
+
+
 
     {:ok, socket: socket, topic: topic, name: name}
   end
