@@ -20,9 +20,6 @@ defmodule Mafia.QueueChannelTest do
   end
 
   test "create game, signups", %{socket: socket} do
-    name = "#{Enum.random(0..9000000)}"
-    topic = "game:#{name}"
-
     ref = push socket, "new:game", %{"setup" => 0, "speed" => 10}
     assert_reply ref, :ok, %{id: id}
 
@@ -31,7 +28,7 @@ defmodule Mafia.QueueChannelTest do
     {:ok, reply, newsocket} = socket("user:-1", %{user: -1})
     |> subscribe_and_join(QueueChannel, "queue")
 
-    assert %{games: [%{count: 1, size: 5}]} = reply
+    assert %{games: [%{count: 1, size: 4}]} = reply
 
     ref = push(newsocket, "signup", %{"id" => id})
     assert_reply(ref, :ok, _)

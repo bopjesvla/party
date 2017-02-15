@@ -1,12 +1,12 @@
 defmodule Mafia.QueueChannel do
   use Mafia.Web, :channel
 
-  alias Mafia.{Repo, Channel, Message, User, Game, GamePlayer, GameSupervisor, GameServer, Queries}
+  alias Mafia.{Repo, Channel, Game, GamePlayer, GameSupervisor}
   import Ecto.Query
 
   @signups_countdown Application.get_env(:mafia, :signups_countdown)
 
-  def join("queue", payload, socket) do
+  def join("queue", _payload, socket) do
     games = Repo.all from g in Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
@@ -16,7 +16,7 @@ defmodule Mafia.QueueChannel do
     {:ok, %{games: games}, socket}
   end
 
-  def handle_in("new:setup", %{"setup" => setup, "speed" => speed} = opts, socket) do
+  def handle_in("new:setup", %{"setup" => setup}, socket) do
     {:ok, 1, socket}
   end
 
@@ -67,9 +67,14 @@ defmodule Mafia.QueueChannel do
           count: new_count
         }
         if new_count == game.setup.size do
-          pid = spawn fn ->
+          spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
             Process.sleep(@signups_countdown)
+
+            {1, _} = Game
+            |> where(id: ^game.id, status: "signups")
+            |> Repo.update_all(set: [status: "ongoing"])
+
             {:ok, _} = GameSupervisor.start_game(game)
           end
         end

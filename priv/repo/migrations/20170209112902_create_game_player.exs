@@ -9,7 +9,9 @@ defmodule Mafia.Repo.Migrations.CreateGamePlayer do
 
       timestamps()
     end
-    create unique_index(:game_players, [:game_id, :user_id], name: "unique_player")
+    create unique_index(:game_players, [:game_id, :user_id],
+      name: "unique_player",
+      where: "game_players.status = 'playing' or game_players.status = 'replaced'")
     create index(:game_players, [:user_id])
   end
 end

@@ -3,10 +3,7 @@ defmodule Mafia.MeetChannelTest do
 
   alias Mafia.{GameChannel, MeetChannel, GameServer}
 
-  @name "test"
-  @topic "game:test"
   @game %Mafia.Game{
-    name: @name,
     setup_id: 0,
     players: [
       %Mafia.GamePlayer{status: "playing", user_id: 0},
@@ -15,6 +12,17 @@ defmodule Mafia.MeetChannelTest do
       %Mafia.GamePlayer{status: "playing", user_id: -3}
     ]
   }
+
+  test "can join ongoing game, request game info" do
+    Repo.insert!(%{@game | status: "ongoing", id: -3})
+    |> Mafia.GameSupervisor.start_game
+
+    socket = socket("user:0", %{user: 0})
+    |> subscribe_and_join!(GameChannel, "game:-3")
+
+    ref = push socket, "info", %{}
+    assert_reply ref, :ok, %{id: -3}
+  end
 
   # test "ping replies with status ok", %{socket: socket} do
   #   ref = push socket, "ping", %{"hello" => "there"}
