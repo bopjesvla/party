@@ -66,6 +66,12 @@ defmodule Mafia.QueueChannel do
           id: id,
           count: new_count
         }
+		Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
+		  game: id,
+		  setup: game.setup.name,
+		  status: game.status,
+		  speed: game.speed
+		}
         if new_count == game.setup.size do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)

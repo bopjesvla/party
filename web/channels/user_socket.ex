@@ -3,6 +3,7 @@ defmodule Mafia.UserSocket do
 
   ## Channels
   channel "room:*", Mafia.RoomChannel
+  channel "user:*", Mafia.UserChannel
   channel "game:*", Mafia.GameChannel
   channel "meet:*", Mafia.MeetChannel
   channel "talk:*", Mafia.MeetChannel
