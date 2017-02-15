@@ -20,7 +20,7 @@ defmodule Mafia.QueueChannelTest do
   end
 
   test "create game, signups", %{socket: socket} do
-    ref = push socket, "new:game", %{"setup" => 0, "speed" => 10}
+    ref = push socket, "new:game", %{"setup_id" => 0, "speed" => 10}
     assert_reply ref, :ok, %{id: id}
 
     assert_broadcast("game_info", %{id: ^id, count: 1})

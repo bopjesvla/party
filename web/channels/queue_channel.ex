@@ -45,7 +45,7 @@ defmodule Mafia.QueueChannel do
     changeset = GameSlot.changeset(%GameSlot{user_id: user, game: game}, %{"status" => "playing"})
 
     {:ok, {res, count}} = Repo.transaction fn ->
-      Repo.run! "lock table game_players in exclusive mode"
+      Repo.run! "lock table game_slots in exclusive mode"
 
       count = Repo.one from p in GameSlot,
       where: p.game_id == ^id and p.status == "playing",

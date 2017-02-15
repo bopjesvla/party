@@ -1,7 +1,7 @@
 defmodule Mafia.GameSlot do
   use Mafia.Web, :model
 
-  schema "game_players" do
+  schema "game_slots" do
     field :status, :string
     belongs_to :game, Mafia.Game
     belongs_to :user, Mafia.User
