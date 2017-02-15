@@ -28,11 +28,14 @@ defmodule Mafia.QueueChannelTest do
 
     assert_broadcast("game_info", %{id: ^id, count: 1})
 
-    ref = socket("user:-1", %{user: -1})
-    |> subscribe_and_join!(QueueChannel, "queue")
-    |> push("signup", %{"id" => id})
+    {:ok, reply, newsocket} = socket("user:-1", %{user: -1})
+    |> subscribe_and_join(QueueChannel, "queue")
 
+    assert %{games: [%{count: 1, size: 5}]} = reply
+
+    ref = push(newsocket, "signup", %{"id" => id})
     assert_reply(ref, :ok, _)
+
     assert_broadcast("game_info", %{id: ^id, count: 2})
 
     ref = socket("user:-2", %{user: -2})

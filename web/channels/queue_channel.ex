@@ -7,7 +7,13 @@ defmodule Mafia.QueueChannel do
   @signups_countdown Application.get_env(:mafia, :signups_countdown)
 
   def join("queue", payload, socket) do
-    {:ok, socket}
+    games = Repo.all from g in Game,
+    join: p in assoc(g, :players),
+    join: s in assoc(g, :setup),
+    group_by: [g.id, s.name, s.size],
+    select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)}
+
+    {:ok, %{games: games}, socket}
   end
 
   def handle_in("new:setup", %{"setup" => setup, "speed" => speed} = opts, socket) do
