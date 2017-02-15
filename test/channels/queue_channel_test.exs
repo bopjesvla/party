@@ -5,7 +5,7 @@ defmodule Mafia.QueueChannelTest do
 
   setup do
     {:ok, _, socket} =
-      socket("user:0", %{user: 0})
+      socket("user_socket:0", %{user: 0})
       |> subscribe_and_join(QueueChannel, "queue")
 
     {:ok, socket: socket}
@@ -25,7 +25,7 @@ defmodule Mafia.QueueChannelTest do
 
     assert_broadcast("game_info", %{id: ^id, count: 1})
 
-    {:ok, reply, newsocket} = socket("user:-1", %{user: -1})
+    {:ok, reply, newsocket} = socket("user_socket:-1", %{user: -1})
     |> subscribe_and_join(QueueChannel, "queue")
 
     assert %{games: [%{count: 1, size: 4}]} = reply
@@ -35,13 +35,13 @@ defmodule Mafia.QueueChannelTest do
 
     assert_broadcast("game_info", %{id: ^id, count: 2})
 
-    ref = socket("user:-2", %{user: -2})
+    ref = socket("user_socket:-2", %{user: -2})
     |> subscribe_and_join!(QueueChannel, "queue")
     |> push("signup", %{"id" => id})
 
     assert_reply(ref, :ok, _)
 
-    ref = socket("user:-3", %{user: -3})
+    ref = socket("user_socket:-3", %{user: -3})
     |> subscribe_and_join!(QueueChannel, "queue")
     |> push("signup", %{"id" => id})
 
@@ -49,7 +49,7 @@ defmodule Mafia.QueueChannelTest do
 
     empty_mailbox()
 
-    ref = socket("user:-4", %{user: -4})
+    ref = socket("user_socket:-4", %{user: -4})
     |> subscribe_and_join!(QueueChannel, "queue")
     |> push("signup", %{"id" => id})
 

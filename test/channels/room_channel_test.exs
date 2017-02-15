@@ -5,7 +5,7 @@ defmodule Mafia.RoomChannelTest do
 
   setup do
     {:ok, _, socket} =
-      socket("user:0", %{user: 0})
+      socket("user_socket:0", %{user: 0})
       |> subscribe_and_join(RoomChannel, "room:lobby")
 
     {:ok, socket: socket}

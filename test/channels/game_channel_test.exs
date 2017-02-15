@@ -16,7 +16,7 @@ defmodule Mafia.GameChannelTest do
   test "can join game in signups, request game info" do
     Repo.insert! %{@game | status: "signups", id: -1}
 
-    socket = socket("user:0", %{user: 0})
+    socket = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join!(GameChannel, "game:-1")
 
     ref = push socket, "info", %{}
@@ -27,7 +27,7 @@ defmodule Mafia.GameChannelTest do
     Repo.insert!(%{@game | status: "ongoing", id: -2})
     |> Mafia.GameSupervisor.start_game
 
-    socket = socket("user:0", %{user: 0})
+    socket = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join!(GameChannel, "game:-2")
 
     ref = push socket, "info", %{}

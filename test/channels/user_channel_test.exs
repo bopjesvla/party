@@ -5,7 +5,7 @@ defmodule Mafia.UserChannelTest do
 
   setup do
     {:ok, _, socket} =
-      socket = socket("user:0", %{user: 0})
+      socket("user:0", %{user: 0})
       |> subscribe_and_join(UserChannel, "user:0")
 
     {:ok, socket: socket}

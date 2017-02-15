@@ -21,7 +21,7 @@ defmodule Mafia.MeetChannelTest do
     Repo.insert!(%{@game | status: "signups", id: -3})
     |> Mafia.GameSupervisor.start_game
 
-    socket = socket("user:0", %{user: 0})
+    socket = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join!(MeetChannel, "talk:-3")
 
     push socket, "new:msg", %{"msg" => "there"}
@@ -32,7 +32,7 @@ defmodule Mafia.MeetChannelTest do
     Repo.insert!(%{@game | status: "ongoing", id: -4})
     |> Mafia.GameSupervisor.start_game
 
-    {:ok, reply, socket} = socket("user:0", %{user: 0})
+    {:ok, reply, socket} = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join(GameChannel, "game:-4")
 
     assert %{active: [%{channel: global_channel, type: :global_role} | _]} = reply
