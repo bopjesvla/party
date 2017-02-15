@@ -42,7 +42,7 @@ defmodule Mafia.QueueChannel do
       Repo.run! "lock table game_players in exclusive mode"
 
       count = Repo.one from p in GamePlayer,
-      where: p.game_id == ^id,
+      where: p.game_id == ^id and p.status == "playing",
       select: count(1)
 
       res = if count < game.setup.size do
