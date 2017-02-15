@@ -22,7 +22,7 @@ test(start) :-
 
 test(access_messages) :-
   flush(X),
-  member(leave(all, _), X),
+  member(leave(_), X),
   member(create_channel(_), X),
   member(join(_, _), X).
 

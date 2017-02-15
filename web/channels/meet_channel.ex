@@ -3,20 +3,21 @@ defmodule Mafia.MeetChannel do
 
   alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameServer}
 
-  def meet_channel(%{topic: "meet:" <> name}) do
-     Repo.get_by(Channel, name: name, type: "meet") |> Repo.preload(:game)
+  def player(meet, socket) do
+    Repo.get_by!(Mafia.GamePlayer, user_id: socket.assigns.user, game_id: meet.game_id)
   end
 
   def join("meet:" <> name, _payload, socket) do
-    meet_channel = Repo.get_by!(Channel, name: name, type: "meet") |> Repo.preload(:game)
+    player = Repo.get_by!(Channel, name: name, type: "meet")
+    |> player(socket)
 
-    GameServer.query! meet_channel.game.name, {:join_channel, socket.assigns.user, name}
+    GameServer.query! player.game_id, {:join_channel, player.id, name}
 
     {:ok, socket}
   end
 
-  def join("talk:" <> game_name, _params, socket) do
-    game = Repo.get_by(Game, name: game_name)
+  def join("talk:" <> game_id, _params, socket) do
+    game = Repo.get!(Game, game_id)
 
     if game.status == "ongoing" do
       raise "Ongoing"
@@ -26,9 +27,8 @@ defmodule Mafia.MeetChannel do
   end
 
   def channel("meet:" <> name), do: Repo.get_by!(Channel, name: name)
-  def channel("talk:" <> name) do
-    game = Repo.get_by!(Game, name: name)
-    Repo.get_by!(Channel, game: game, type: "talk")
+  def channel("talk:" <> game_id) do
+    Repo.get_by!(Channel, game_id: game_id, type: "talk")
   end
 
   def handle_in("new:msg", %{"msg" => msg}, socket) do
@@ -44,24 +44,27 @@ defmodule Mafia.MeetChannel do
   end
 
   def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
-    %{game: game, name: name} = meet_channel(socket)
-    GameServer.query! game.name, {:vote, socket.assigns.user, name, String.to_existing_atom(action), targets}
+    "meet:" <> name = socket.topic
+
+    player = Repo.get_by!(Channel, name: name, type: "meet")
+    |> player(socket)
+
+    targets = Enum.map targets, fn
+      t when is_integer(t) ->
+        Repo.get_by!(Mafia.GamePlayer, user_id: t, game_id: player.game_id).id
+      t -> t
+    end
+
+    GameServer.query! player.game_id, {:vote, player.id, name, String.to_existing_atom(action), targets}
     {:reply, :ok, socket}
   end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
-  def handle_in("ping", payload, socket) do
-    {:reply, {:ok, payload}, socket}
-  end
-
   intercept ["leave"]
-  def handle_out("leave", msg, socket) do
-    push socket, "leave", msg
+  def handle_out("leave", %{who: who}, socket) do
+    push socket, "new:msg", %{type: "leave"}
 
-    %{who: who} = Poison.decode! msg
     case who do
-      "all" ->
+      :all ->
         {:stop, :normal, socket}
       who ->
         if socket.assigns.user in who do

@@ -31,7 +31,8 @@ defmodule Mafia.GameChannel do
     channel = Repo.get_by(Channel, game_id: game_id, type: "game")
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
 
-    Mafia.Endpoint.broadcast! "game:#{game_id}", "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+    Mafia.Endpoint.broadcast! "game:#{game_id}", "new:msg",
+      %{msg: message, u: user, ts: inserted_at, type: type}
   end
 
   def handle_in("info", _, socket) do

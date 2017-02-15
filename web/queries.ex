@@ -48,11 +48,11 @@ defmodule Mafia.Queries do
     if game.status == "ongoing" do
       %{id: player_id} = Enum.find players, &(&1.user == user)
       # GameServer.query(id, {:player, {:player}}) |> raise
-      {:succeed, info: game_info} = GameServer.query(id, {:game_info, player_id, {:info}})
+      {:succeed, info: info} = GameServer.query(id, {:game_info, player_id, {:info}})
 
-      info = game_info
+      info
       |> to_map
-      |> Map.merge(game)
+      |> Map.merge(game_info)
     else
       game_info
     end

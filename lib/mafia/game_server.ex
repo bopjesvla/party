@@ -46,7 +46,7 @@ defmodule Mafia.GameServer do
     |> load_setup(game.setup)
     |> load_players(game.players)
 
-    # {{:succeed, _}, db} = :erlog.prove(:next_phase, db)
+    {{:succeed, _}, db} = :erlog.prove(:next_phase, db)
 
     {:ok, %{db: db, game: game}}
   end
@@ -58,11 +58,12 @@ defmodule Mafia.GameServer do
   end
 
   def handle_info({:create_channel, channel}, state) do
-    Repo.insert!(%Channel{game_id: state.game.id, id: channel, type: "meet"})
+    Repo.insert!(%Channel{game_id: state.game.id, name: channel, type: "meet"})
     {:noreply, state}
   end
 
-  def handle_info({:join, user, channel}, state) do
+  def handle_info({:join, player, channel}, state) do
+    %{user_id: user} = Repo.get!(Mafia.GamePlayer, player)
     MeetChannel.new_message(channel, "join", user, nil)
     {:noreply, state}
   end
@@ -70,9 +71,8 @@ defmodule Mafia.GameServer do
     Mafia.Endpoint.broadcast!("game:#{id}", "info", %{'phase.next': at})
     {:noreply, state}
   end
-  def handle_info({:leave, who, channel}, state) do
-    message = %{who: who} |> Poison.encode!
-    MeetChannel.new_message channel, "leave", nil, message
+  def handle_info({:leave, channel}, state) do
+    Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: :all}
     {:noreply, state}
   end
   def handle_info(:do_next_phase, state) do
@@ -83,12 +83,14 @@ defmodule Mafia.GameServer do
     Mafia.Endpoint.broadcast!("game:#{id}", "info", %{phase: phase})
     {:noreply, state}
   end
-  def handle_info({:vote, user, channel, act, targets}, state) do
+  def handle_info({:vote, player, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
+    %{user_id: user} = Repo.get!(Mafia.GamePlayer, player)
     MeetChannel.new_message(channel, "vote", user, message)
     {:noreply, state}
-  end
-  def handle_info({:message, user, message}, %{id: id} = state) do
+    end
+  def handle_info({:message, player, message}, %{id: id} = state) do
+    %{user_id: user} = Repo.get!(Mafia.GamePlayer, player)
     GameChannel.new_message(id, "sys", user, message)
     {:noreply, state}
   end

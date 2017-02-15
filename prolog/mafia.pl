@@ -97,7 +97,7 @@ next_phase :-
   forall((
     channel_role(Channel, _),
     \+ join_channel(_, Channel)),
-    send(leave(all, Channel))
+    send(leave(Channel))
   ),
   increase_current_phase,
   start_phase.

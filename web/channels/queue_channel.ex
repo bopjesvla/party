@@ -75,6 +75,8 @@ defmodule Mafia.QueueChannel do
             |> where(id: ^game.id, status: "signups")
             |> Repo.update_all(set: [status: "ongoing"])
 
+            Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
+
             {:ok, _} = GameSupervisor.start_game(game)
           end
         end
