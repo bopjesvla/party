@@ -4,7 +4,7 @@ defmodule Mafia.MeetChannel do
   alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameServer}
 
   def player(meet, socket) do
-    Repo.get_by!(Mafia.GamePlayer, user_id: socket.assigns.user, game_id: meet.game_id)
+    Repo.get_by!(Mafia.GameSlot, user_id: socket.assigns.user, game_id: meet.game_id)
   end
 
   def join("meet:" <> name, _payload, socket) do
@@ -51,7 +51,7 @@ defmodule Mafia.MeetChannel do
 
     targets = Enum.map targets, fn
       t when is_integer(t) ->
-        Repo.get_by!(Mafia.GamePlayer, user_id: t, game_id: player.game_id).id
+        Repo.get_by!(Mafia.GameSlot, user_id: t, game_id: player.game_id).id
       t -> t
     end
 

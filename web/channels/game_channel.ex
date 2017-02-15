@@ -1,7 +1,7 @@
 defmodule Mafia.GameChannel do
   use Phoenix.Channel
 
-  alias Mafia.{Repo, Channel, Message, User, Game, GamePlayer, GameSupervisor, GameServer, Queries}
+  alias Mafia.{Repo, Channel, Message, User, Game, GameSlot, GameSupervisor, GameServer, Queries}
   import Ecto.Query
 
   #def handle_in("room_info", %{id: id}, socket) do
@@ -16,7 +16,7 @@ defmodule Mafia.GameChannel do
 
   def join("game:" <> id, _, %{assigns: %{user: user}} = socket) do
     game = Repo.get!(Game, id)
-    Repo.get_by!(GamePlayer, game_id: game.id, user_id: user, status: "playing")
+    Repo.get_by!(GameSlot, game_id: game.id, user_id: user, status: "playing")
 
     %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, id])
 

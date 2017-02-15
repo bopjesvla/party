@@ -4,7 +4,7 @@ defmodule Mafia.Game do
   schema "games" do
     belongs_to :setup, Mafia.Setup
     has_many :channels, Mafia.Channel
-    has_many :players, Mafia.GamePlayer
+    has_many :players, Mafia.GameSlot
     field :name, :string
     field :status, :string
     field :speed, :integer

@@ -6,10 +6,10 @@ defmodule Mafia.GameChannelTest do
   @game %Mafia.Game{
     setup_id: 0,
     players: [
-      %Mafia.GamePlayer{status: "playing", user_id: 0},
-      %Mafia.GamePlayer{status: "playing", user_id: -1},
-      %Mafia.GamePlayer{status: "playing", user_id: -2},
-      %Mafia.GamePlayer{status: "playing", user_id: -3}
+      %Mafia.GameSlot{status: "playing", user_id: 0},
+      %Mafia.GameSlot{status: "playing", user_id: -1},
+      %Mafia.GameSlot{status: "playing", user_id: -2},
+      %Mafia.GameSlot{status: "playing", user_id: -3}
     ]
   }
 

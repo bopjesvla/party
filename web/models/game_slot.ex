@@ -1,4 +1,4 @@
-defmodule Mafia.GamePlayer do
+defmodule Mafia.GameSlot do
   use Mafia.Web, :model
 
   schema "game_players" do

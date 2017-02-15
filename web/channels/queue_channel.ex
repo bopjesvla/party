@@ -1,7 +1,7 @@
 defmodule Mafia.QueueChannel do
   use Mafia.Web, :channel
 
-  alias Mafia.{Repo, Channel, Game, GamePlayer, GameSupervisor}
+  alias Mafia.{Repo, Channel, Game, GameSlot, GameSupervisor}
   import Ecto.Query
 
   @signups_countdown Application.get_env(:mafia, :signups_countdown)
@@ -20,13 +20,13 @@ defmodule Mafia.QueueChannel do
     {:ok, 1, socket}
   end
 
-  def handle_in("new:game", %{"setup" => setup} = opts, %{assigns: %{user: user}} = socket) do
-    player = GamePlayer.changeset(%GamePlayer{user_id: user}, %{"status" => "playing"})
+  def handle_in("new:game", %{"setup_id" => setup_id} = opts, %{assigns: %{user: user}} = socket) do
+    player = GameSlot.changeset(%GameSlot{user_id: user}, %{"status" => "playing"})
 
     game = %Game{
       channels: [%Channel{user_id: user, type: "game"}, %Channel{user_id: user, type: "talk"}],
       status: "signups",
-      setup_id: setup,
+      setup_id: setup_id,
       players: [player]
     }
     |> Game.changeset(opts)
@@ -42,12 +42,12 @@ defmodule Mafia.QueueChannel do
 
   def handle_in("signup", %{"id" => id}, %{assigns: %{user: user}} = socket) do
     game = Repo.get!(Game, id) |> Repo.preload(:setup)
-    changeset = GamePlayer.changeset(%GamePlayer{user_id: user, game: game}, %{"status" => "playing"})
+    changeset = GameSlot.changeset(%GameSlot{user_id: user, game: game}, %{"status" => "playing"})
 
     {:ok, {res, count}} = Repo.transaction fn ->
       Repo.run! "lock table game_players in exclusive mode"
 
-      count = Repo.one from p in GamePlayer,
+      count = Repo.one from p in GameSlot,
       where: p.game_id == ^id and p.status == "playing",
       select: count(1)
 
@@ -66,12 +66,12 @@ defmodule Mafia.QueueChannel do
           id: id,
           count: new_count
         }
-		Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
-		  game: id,
-		  setup: game.setup.name,
-		  status: game.status,
-		  speed: game.speed
-		}
+        Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
+          game: id,
+          setup: game.setup.name,
+          status: game.status,
+          speed: game.speed
+        }
         if new_count == game.setup.size do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
@@ -92,5 +92,14 @@ defmodule Mafia.QueueChannel do
     end
 
     {:reply, reply, socket}
+  end
+
+  def handle_in("out", %{"id" => id}, socket) do
+    game = Repo.get!(Game, id)
+    case game.status do
+      "signups" ->
+        query  = from p in GameSlot,
+        join: g in assoc(p, :game)
+    end
   end
 end

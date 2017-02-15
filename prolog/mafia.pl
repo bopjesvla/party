@@ -9,7 +9,7 @@ voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
 current_phase(q) :- fail.
-player(q) :- fail. % GamePlayer.id
+player(q) :- fail. % GameSlot.id
 player_alignment(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
