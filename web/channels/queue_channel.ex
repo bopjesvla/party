@@ -107,8 +107,10 @@ defmodule Mafia.QueueChannel do
     game = Repo.get!(Game, id)
     case game.status do
       "signups" ->
-        query  = from p in GameSlot,
-        join: g in assoc(p, :game)
+        Repo.all from p in GamePlayer,
+        join: s in assoc(p, :game_slot),
+        update: [set: [status: "out"]],
+        where: p.user_id == ^socket.assigns.user and s.game_id == ^id
     end
     {:reply, :ok, socket}
   end
