@@ -18,7 +18,7 @@ defmodule Mafia.Game do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :speed])
-    |> validate_required([:name, :speed])
+    |> validate_required([:speed])
     |> validate_number(:speed, less_than: 20000, greater_than: 0.1)
   end
 end

@@ -23,27 +23,27 @@ defmodule Mafia.QueueChannelTest do
     name = "#{Enum.random(0..9000000)}"
     topic = "game:#{name}"
 
-    ref = push socket, "new:game", %{"name" => "game1", "setup" => 0, "speed" => 10}
-    assert_reply ref, :ok, _
+    ref = push socket, "new:game", %{"setup" => 0, "speed" => 10}
+    assert_reply ref, :ok, %{id: id}
 
-    assert_broadcast("game_info", %{name: "game1", count: 1})
+    assert_broadcast("game_info", %{id: ^id, count: 1})
 
     ref = socket("user:-1", %{user: -1})
     |> subscribe_and_join!(QueueChannel, "queue")
-    |> push("signup", %{"name" => "game1"})
+    |> push("signup", %{"id" => id})
 
     assert_reply(ref, :ok, _)
-    assert_broadcast("game_info", %{name: "game1", count: 2})
+    assert_broadcast("game_info", %{id: ^id, count: 2})
 
     ref = socket("user:-2", %{user: -2})
     |> subscribe_and_join!(QueueChannel, "queue")
-    |> push("signup", %{"name" => "game1"})
+    |> push("signup", %{"id" => id})
 
     assert_reply(ref, :ok, _)
 
     ref = socket("user:-3", %{user: -3})
     |> subscribe_and_join!(QueueChannel, "queue")
-    |> push("signup", %{"name" => "game1"})
+    |> push("signup", %{"id" => id})
 
     assert_reply(ref, :ok, _)
 
@@ -51,15 +51,13 @@ defmodule Mafia.QueueChannelTest do
 
     ref = socket("user:-4", %{user: -4})
     |> subscribe_and_join!(QueueChannel, "queue")
-    |> push("signup", %{"name" => "game1"})
-
-    :timer.sleep(100)
+    |> push("signup", %{"id" => id})
 
     assert_reply(ref, :error, %{errors: %{game: ["Already filled"]}})
 
+    :timer.sleep(100)
 
-
-    {:ok, socket: socket, topic: topic, name: name}
+    :ok = Mafia.GameServer.stop(id)
   end
 
   # test "ping replies with status ok", %{socket: socket} do

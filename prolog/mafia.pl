@@ -9,7 +9,7 @@ voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
 current_phase(q) :- fail.
-player(q) :- fail. % user_id. player_id
+player(q) :- fail. % GamePlayer.id
 player_alignment(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
@@ -58,7 +58,8 @@ players(Players) :- findall(P, player(P), Players).
 
 alive(X) :- player(X), \+ dead(X).
 
-game_info([active(Active), players(Players), phase(PhaseInfo)]) :-
+game_info(Player, [active(Active), players(Players), phase(PhaseInfo)]) :-
+  player(Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
       findall(Member, join_channel(Member, C), Members),

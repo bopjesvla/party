@@ -4,32 +4,37 @@ defmodule Mafia.GameServer do
 
   # management
 
-  defp via_tuple(name) do
-    {:via, Registry, {:game_registry, name}}
+  defp to_id(str) when is_binary(str) do
+    String.to_integer str
+  end
+  defp to_id(id), do: id
+
+  defp via_tuple(id) do
+    {:via, Registry, {:game_registry, to_id(id)}}
   end
 
-  def start_link(%{name: name} = game) do
+  def start_link(%{id: id} = game) do
     game = game
     |> Repo.preload([setup: [:teams, :roles], players: []])
 
-    GenServer.start_link(__MODULE__, game, name: via_tuple(name))
+    GenServer.start_link(__MODULE__, game, name: via_tuple(id))
   end
 
   # API
 
-  def query(name, terms) do
-    name
+  def query(id, terms) do
+    id
     |> via_tuple
     |> GenServer.call({:query, terms})
   end
 
-  def query!(name, terms) do
-    {:succeed, res} = query(name, terms)
+  def query!(id, terms) do
+    {:succeed, res} = query(id, terms)
     res
   end
 
-  def stop(name) do
-    name
+  def stop(id) do
+    id
     |> via_tuple
     |> GenServer.stop
   end
@@ -52,9 +57,8 @@ defmodule Mafia.GameServer do
     {:reply, res, %{state | db: db}}
   end
 
-  def handle_info({:create_channel, channel}, %{name: name} = state) do
-    %{id: game_id} = Repo.get_by(Game, name: name)
-    Repo.insert!(%Channel{game_id: game_id, name: channel, type: "meet"})
+  def handle_info({:create_channel, channel}, state) do
+    Repo.insert!(%Channel{game_id: state.game.id, id: channel, type: "meet"})
     {:noreply, state}
   end
 
@@ -62,8 +66,8 @@ defmodule Mafia.GameServer do
     MeetChannel.new_message(channel, "join", user, nil)
     {:noreply, state}
   end
-  def handle_info({:next_phase, at}, %{name: name} = state) do
-    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{'phase.next': at})
+  def handle_info({:next_phase, at}, %{id: id} = state) do
+    Mafia.Endpoint.broadcast!("game:#{id}", "info", %{'phase.next': at})
     {:noreply, state}
   end
   def handle_info({:leave, who, channel}, state) do
@@ -75,8 +79,8 @@ defmodule Mafia.GameServer do
     {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
     {:noreply, %{state | db: db}}
   end
-  def handle_info({:new_phase, phase}, %{name: name} = state) do
-    Mafia.Endpoint.broadcast!("game:#{name}", "info", %{phase: phase})
+  def handle_info({:new_phase, phase}, %{id: id} = state) do
+    Mafia.Endpoint.broadcast!("game:#{id}", "info", %{phase: phase})
     {:noreply, state}
   end
   def handle_info({:vote, user, channel, act, targets}, state) do
@@ -84,8 +88,8 @@ defmodule Mafia.GameServer do
     MeetChannel.new_message(channel, "vote", user, message)
     {:noreply, state}
   end
-  def handle_info({:message, user, message}, %{name: name} = state) do
-    GameChannel.new_message(name, "sys", user, message)
+  def handle_info({:message, user, message}, %{id: id} = state) do
+    GameChannel.new_message(id, "sys", user, message)
     {:noreply, state}
   end
   def handle_info(s, _) do

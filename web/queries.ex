@@ -30,8 +30,8 @@ defmodule Mafia.Queries do
 
   def to_map(x), do: x
 
-  def game_info(name, user) do
-    game = Repo.get_by(Game, name: name)
+  def game_info(id, user) do
+    game = Repo.get_by(Game, id: id)
 
   	setup = setup_info(game.setup_id)
 
@@ -41,12 +41,14 @@ defmodule Mafia.Queries do
   	where: g.id == ^game.id,
   	select: %{id: p.id, user: u.id, name: u.name}
 
-      game_info = game
-  	|> Map.take(~w(name speed status)a)
+    game_info = game
+  	|> Map.take(~w(id speed status)a)
   	|> Map.merge(%{players: players, setup: setup})
 
     if game.status == "ongoing" do
-      {:succeed, info: game_info} = GameServer.query(name, {:game_info, user, {:info}})
+      %{id: player_id} = Enum.find players, &(&1.user == user)
+      # GameServer.query(id, {:player, {:player}}) |> raise
+      {:succeed, info: game_info} = GameServer.query(id, {:game_info, player_id, {:info}})
 
       info = game_info
       |> to_map

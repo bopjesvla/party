@@ -34,7 +34,7 @@ defmodule Mafia.ChannelCase do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Mafia.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Mafia.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Mafia.Repo, :auto)
     end
 
     :ok
