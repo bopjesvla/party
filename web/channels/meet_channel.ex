@@ -3,15 +3,11 @@ defmodule Mafia.MeetChannel do
 
   alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameServer}
 
-  def player(meet, socket) do
-    Repo.get_by!(Mafia.GameSlot, user_id: socket.assigns.user, game_id: meet.game_id)
-  end
-
   def join("meet:" <> name, _payload, socket) do
-    player = Repo.get_by!(Channel, name: name, type: "meet")
-    |> player(socket)
+    meet = Repo.get_by!(Channel, name: name, type: "meet")
+    player = Mafia.Queries.player!(meet.game_id, socket.assigns.user)
 
-    GameServer.query! player.game_id, {:join_channel, player.id, name}
+    GameServer.query! meet.game_id, {:join_channel, player.game_slot_id, name}
 
     {:ok, socket}
   end
@@ -46,16 +42,16 @@ defmodule Mafia.MeetChannel do
   def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
     "meet:" <> name = socket.topic
 
-    player = Repo.get_by!(Channel, name: name, type: "meet")
-    |> player(socket)
+    meet = Repo.get_by!(Channel, name: name, type: "meet")
+    player = Mafia.Queries.player!(meet.game_id, socket.assigns.user)
 
     targets = Enum.map targets, fn
       t when is_integer(t) ->
-        Repo.get_by!(Mafia.GameSlot, user_id: t, game_id: player.game_id).id
+        Mafia.Queries.player!(meet.game_id, t).game_slot_id
       t -> t
     end
 
-    GameServer.query! player.game_id, {:vote, player.id, name, String.to_existing_atom(action), targets}
+    GameServer.query! meet.game_id, {:vote, player.game_slot_id, name, String.to_existing_atom(action), targets}
     {:reply, :ok, socket}
   end
 

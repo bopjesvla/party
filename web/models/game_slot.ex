@@ -2,9 +2,8 @@ defmodule Mafia.GameSlot do
   use Mafia.Web, :model
 
   schema "game_slots" do
-    field :status, :string
     belongs_to :game, Mafia.Game
-    belongs_to :user, Mafia.User
+    has_many :game_players, Mafia.GamePlayer
 
     timestamps()
   end
@@ -14,9 +13,6 @@ defmodule Mafia.GameSlot do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:status])
-    |> validate_required([:status])
-    |> unique_constraint(:user,
-      name: "unique_player", message: "You already played in this game")
+    |> cast(params, [])
   end
 end

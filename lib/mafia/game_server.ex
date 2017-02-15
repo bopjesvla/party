@@ -62,8 +62,8 @@ defmodule Mafia.GameServer do
     {:noreply, state}
   end
 
-  def handle_info({:join, player, channel}, state) do
-    %{user_id: user} = Repo.get!(Mafia.GameSlot, player)
+  def handle_info({:join, slot, channel}, state) do
+    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     MeetChannel.new_message(channel, "join", user, nil)
     {:noreply, state}
   end
@@ -83,14 +83,14 @@ defmodule Mafia.GameServer do
     Mafia.Endpoint.broadcast!("game:#{id}", "info", %{phase: phase})
     {:noreply, state}
   end
-  def handle_info({:vote, player, channel, act, targets}, state) do
+  def handle_info({:vote, slot, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
-    %{user_id: user} = Repo.get!(Mafia.GameSlot, player)
+    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     MeetChannel.new_message(channel, "vote", user, message)
     {:noreply, state}
     end
-  def handle_info({:message, player, message}, %{id: id} = state) do
-    %{user_id: user} = Repo.get!(Mafia.GameSlot, player)
+  def handle_info({:message, slot, message}, %{id: id} = state) do
+    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     GameChannel.new_message(id, "sys", user, message)
     {:noreply, state}
   end
@@ -135,7 +135,7 @@ defmodule Mafia.GameServer do
 
   def load_players(db, players) do
     Enum.reduce players, db, fn (player, db) ->
-      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, player.id}}, db)
+      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, player.game_slot_id}}, db)
       db
     end
   end

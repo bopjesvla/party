@@ -57,4 +57,16 @@ defmodule Mafia.Queries do
       game_info
     end
   end
+
+  def player(game_id, user) do
+    Repo.one from p in Mafia.GamePlayer,
+    join: s in assoc(p, :game_slot),
+    where: s.game_id == ^game_id and p.user_id == ^user and p.status != "out"
+  end
+
+  def player!(game_id, user) do
+    Repo.one! from p in Mafia.GamePlayer,
+    join: s in assoc(p, :game_slot),
+    where: s.game_id == ^game_id and p.user_id == ^user and p.status != "out"
+  end
 end

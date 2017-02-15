@@ -1,7 +1,7 @@
 defmodule Mafia.QueueChannel do
   use Mafia.Web, :channel
 
-  alias Mafia.{Repo, Channel, Game, GameSlot, GameSupervisor}
+  alias Mafia.{Repo, Channel, Game, GameSlot, GamePlayer, GameSupervisor}
   import Ecto.Query
 
   @signups_countdown Application.get_env(:mafia, :signups_countdown)
@@ -10,24 +10,26 @@ defmodule Mafia.QueueChannel do
     games = Repo.all from g in Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
+    where: p.status != "out",
     group_by: [g.id, s.name, s.size],
     select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)}
 
     {:ok, %{games: games}, socket}
   end
 
-  def handle_in("new:setup", %{"setup" => setup}, socket) do
+  def handle_in("new:setup", %{"setup" => _setup}, socket) do
     {:ok, 1, socket}
   end
 
   def handle_in("new:game", %{"setup_id" => setup_id} = opts, %{assigns: %{user: user}} = socket) do
-    player = GameSlot.changeset(%GameSlot{user_id: user}, %{"status" => "playing"})
+    player = %GamePlayer{user_id: user, status: "playing"}
+    slot = %GameSlot{game_players: [player]}
 
     game = %Game{
       channels: [%Channel{user_id: user, type: "game"}, %Channel{user_id: user, type: "talk"}],
       status: "signups",
       setup_id: setup_id,
-      players: [player]
+      slots: [slot]
     }
     |> Game.changeset(opts)
     |> Repo.insert!
@@ -42,13 +44,20 @@ defmodule Mafia.QueueChannel do
 
   def handle_in("signup", %{"id" => id}, %{assigns: %{user: user}} = socket) do
     game = Repo.get!(Game, id) |> Repo.preload(:setup)
-    changeset = GameSlot.changeset(%GameSlot{user_id: user, game: game}, %{"status" => "playing"})
+    "signups" = game.status
+
+    player = %GamePlayer{user_id: user, status: "playing"}
+    changeset = %GameSlot{game_players: [player], game: game}
+    |> GameSlot.changeset
+
+    nil = Mafia.Queries.player(id, user)
 
     {:ok, {res, count}} = Repo.transaction fn ->
       Repo.run! "lock table game_slots in exclusive mode"
 
-      count = Repo.one from p in GameSlot,
-      where: p.game_id == ^id and p.status == "playing",
+      count = Repo.one from p in GamePlayer,
+      join: s in assoc(p, :game_slot),
+      where: s.game_id == ^id and p.status == "playing",
       select: count(1)
 
       res = if count < game.setup.size do
@@ -101,5 +110,6 @@ defmodule Mafia.QueueChannel do
         query  = from p in GameSlot,
         join: g in assoc(p, :game)
     end
+    {:reply, :ok, socket}
   end
 end

@@ -15,8 +15,8 @@ defmodule Mafia.GameChannel do
   end
 
   def join("game:" <> id, _, %{assigns: %{user: user}} = socket) do
-    game = Repo.get!(Game, id)
-    Repo.get_by!(GameSlot, game_id: game.id, user_id: user, status: "playing")
+    id = String.to_integer(id)
+    Queries.player!(id, user)
 
     %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, id])
 
