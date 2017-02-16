@@ -20,6 +20,7 @@ channel_type(q, q) :- fail.
 locked(q, q, q, q) :- fail.
 dead(q) :- fail.
 setup_phases(q) :- fail.
+won(q) :- fail.
 
 :- include(roles).
 :- include(actions).
