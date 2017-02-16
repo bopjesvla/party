@@ -96,6 +96,11 @@ defmodule Mafia.GameServer do
     GameChannel.new_message(id, "sys", user, message)
     {:noreply, state}
   end
+  def handle_info({:end_game, winners}, state) do
+    # %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    # GameChannel.new_message(id, "sys", user, message)
+    {:noreply, state}
+  end
   def handle_info(s, _) do
     raise "shit" ++ s
   end
@@ -104,6 +109,7 @@ defmodule Mafia.GameServer do
   # helpers
 
   defdelegate atom(string), to: String, as: :to_existing_atom
+  defdelegate charlist(string), to: String, as: :to_charlist
 
   def game_db do
     {:ok, db} = :erlog.new
@@ -117,14 +123,14 @@ defmodule Mafia.GameServer do
 
   def load_setup(db, setup) do
     db = Enum.reduce setup.teams, db, fn (t, db) ->
-      fact = {:setup_team, t.player, t.team}
+      fact = {:setup_team, t.player, charlist(t.team)}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
 
     db = Enum.reduce setup.roles, db, fn (r, db) ->
       target = if r.type == "team", do: r.str, else: r.nr
-      role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}
+      role = {:',', Enum.map(r.mods, &charlist/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db

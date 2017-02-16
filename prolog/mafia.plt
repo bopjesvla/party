@@ -55,7 +55,7 @@ test(player_channel) :-
 test(voting) :- channel_type(Channel, global_role),
   vote(1, Channel, lynch, [3]),
   \+ vote(1, Channel, lynch, [1235]),
-  \+ vote(3, Channel, kill, [1]),
+  \+ vote(_, _, kill, [1]),
   vote(3, Channel, lynch, [1]),
   unvote(1, Channel, _),
   vote(5, Channel, lynch, [5]),
@@ -70,20 +70,33 @@ test(voting) :- channel_type(Channel, global_role),
 
 test(lynch) :-
   channel_type(Channel, global_role),
-  vote(5, Channel, lynch, [1]), % if this fails, next_phase probably failed
+  player_team(P, "town"), % :(
+  unvote(3, Channel, _),
+  vote(5, Channel, lynch, [P]),
+  vote(1, Channel, lynch, [P]),
+  vote(7, Channel, lynch, [P]), % if this fails, next_phase probably failed
   flush(X),
-  X = [vote(5, Channel, lynch, [1]), message(1, "has been lynched") | _].
+  member(message(P, "has been lynched"), X).
+
+test(lynch_logged) :-
+  channel_type(Channel, global_role),
+  findall(X, action_history(0, X, success), Y),
+  Y = [action(7, lynch, [_], Channel, [])].
 
 test(night) :-
   current_phase(1),
   current_phase_name(night),
   \+ vote(5, Channel, lynch, [1]),
+  \+ vote(P, _, kill, [P]),
   channel_action(_, investigate, [noone]),
+  ignore(vote(_, _, investigate, [noone])),
   vote(_, _, kill, _).
 
-test(lynch_logged) :-
-  channel_type(Channel, global_role),
-  findall(X, action_history(0, X, success), Y),
-  Y = [action(5, lynch, [1], Channel, [])].
+test(kill_logged) :-
+  channel_type(Channel, team_role),
+  findall(X, action_history(1, X, success), Y),
+  member(action(_, kill, [_], Channel, []), Y).
 
-:- end_tests(end_phase).
+test(end) :-
+  flush(X),
+  member(end_game([_]), X).

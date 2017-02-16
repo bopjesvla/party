@@ -14,4 +14,5 @@ test(kill) :-
   flush(X),
   member(message(M, "has been killed"), X),
   member(flip(F), X),
+  dead(M),
   member(teams(["mafia"]), F).

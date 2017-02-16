@@ -95,6 +95,12 @@ remove_phase_timer.
 
 next_phase :-
   end_phase,
+  end_game_or_next_phase.
+
+end_game_or_next_phase :-
+  soft_end_game, !.
+
+end_game_or_next_phase :-
   forall((
     channel_role(Channel, _),
     \+ join_channel(_, Channel)),
@@ -208,11 +214,15 @@ do_vote(Player, Channel, Action, Targets, ActionMods) :-
   send(vote(Player, Channel, Action, Targets)),
   check_hammer(Channel, Action, Targets, ActionMods).
 
-can_unvote(_Player, Channel, Action) :-
+can_unvote(Player, Channel, Action) :-
+  access(Player, Channel),
+  alive(Player),
   channel_action(Channel, Action, _),
   \+ locked(Channel, Action, _, _).
 
-can_vote(_Player, Channel, Action, Targets, ActionMods) :-
+can_vote(Player, Channel, Action, Targets, ActionMods) :-
+  access(Player, Channel),
+  alive(Player),
   channel_action(Channel, Action, Targets, ActionMods),
   \+ locked(Channel, Action, _, _).
 
@@ -230,7 +240,7 @@ lock(Channel, Action, Targets, ActionMods) :-
     asserta(locked(Channel, Action, Targets, ActionMods)).
 
 maybe_next_phase :-
-  forall(channel_action(Channel, Action, _), locked(Channel, Action, _, _)), !,
+  \+ can_vote(_, _, _, _, _),
   next_phase.
 
 maybe_next_phase.
