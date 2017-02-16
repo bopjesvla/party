@@ -2,6 +2,8 @@ defmodule Mafia.GameServer do
   use GenServer
   alias Mafia.{Repo,Channel,MeetChannel,GameChannel}
 
+  @game_db_files ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl end.pl)c
+
   # management
 
   defp to_id(str) when is_binary(str) do
@@ -105,7 +107,7 @@ defmodule Mafia.GameServer do
 
   def game_db do
     {:ok, db} = :erlog.new
-    Enum.reduce ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl)c, db, fn (file, db) ->
+    Enum.reduce @game_db_files, db, fn (file, db) ->
       case :erlog.consult('prolog/' ++ file, db) do
         {:ok, db} -> db
         {:error, err} -> raise {:error, file, err}

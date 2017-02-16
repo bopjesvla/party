@@ -20,7 +20,7 @@ channel_type(q, q) :- fail.
 locked(q, q, q, q) :- fail.
 dead(q) :- fail.
 setup_phases(q) :- fail.
-won(q) :- fail.
+player_won(q) :- fail.
 
 :- include(roles).
 :- include(actions).
@@ -116,7 +116,8 @@ end_phase :-
   locked_actions(Actions),
   retract_all(locked(_, _, _, _)),
   resolve(Actions, SuccessfulActions),
-  forall(member(A, SuccessfulActions), call(A)).
+  forall(member(A, SuccessfulActions), call(A)),
+  ignore(soft_end_game).
 
 end_phase :- start_game. % ending signups = starting the game
 

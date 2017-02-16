@@ -14,7 +14,7 @@ resolve_action(Action, Rest, blocked) :-
 
 % only make an action fail after it has been established it can't be stopped
 % for example, if a kill target is both protected and rolestopped, the kill should be stopped, not fail
-resolve_action(Action, Rest, failed) :- 
+resolve_action(Action, Rest, failed) :-
     stopped(Action, Rest, failed), !.
 
 resolve_action(Action, _, success).

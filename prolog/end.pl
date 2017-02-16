@@ -1,10 +1,17 @@
+won(P) :- player_won(P), !.
+won(P) :- won_with_team(P).
+
 won_with_team(P) :-
   player_team(P, Team),
-  team_won(Team).
+  won(Team).
+
+soft_end_game :-
+  won_with_team(P),
+  end_game.
 
 end_game :-
-  findall(X, ),
-  findall(P, won(P), Won)
+  findall(P, won(P), Won),
+  send(end_game(1)).
 
 team_won("town") :-
   NotTown \= "town",
