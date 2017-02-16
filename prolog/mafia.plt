@@ -39,9 +39,9 @@ test(role_channel) :-
   access(_, Channel)
   .
 
-test(alignment_channel) :-
+test(team_channel) :-
   channel_role(Channel, ([], killer)),
-  channel_type(Channel, alignment_role),
+  channel_type(Channel, team_role),
   access(_, Channel).
 
 test(player_channel) :-

@@ -2,7 +2,7 @@
 
 %% :- module(mafia, [join/1, vote/4, unvote/3, join_channel/2, access/2, setup_game/1, game_info/2, flush/1, create_channel/3, next_phase/0, call_self/1]).
 
-setup_size(N) :- findall(Id, setup_alignment(Id, _), Ids), length(Ids, N).
+setup_size(N) :- findall(Id, setup_team(Id, _), Ids), length(Ids, N).
 
 % defining dynamic predicates the erlog way
 voting(q, q, q, q, q) :- fail.
@@ -10,10 +10,10 @@ action_history(q, q, q) :- fail.
 access(q, q) :- fail.
 current_phase(q) :- fail.
 player(q) :- fail. % GameSlot.id
-player_alignment(q, q) :- fail.
+player_team(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
-setup_alignment(q, q) :- fail.
+setup_team(q, q) :- fail.
 setup_role(q, q, q) :- fail.
 channel_role(q, q) :- fail.
 channel_type(q, q) :- fail.
@@ -142,12 +142,12 @@ start_game :-
     create_channel(player_role, Role, Channel),
     grant_access(Player, Channel)
    )),
-  forall((setup_alignment(N, Alignment), nth1(N, ShuffledPlayers, Player)), (
-    asserta(player_alignment(Player, Alignment))
+  forall((setup_team(N, Team), nth1(N, ShuffledPlayers, Player)), (
+    asserta(player_team(Player, Team))
   )),
-  forall(setup_role(alignment, Alignment, Role), ( % for every alignment role, add a channel
-    create_channel(alignment_role, Role, Channel),
-    forall(player_alignment(Player, Alignment), grant_access(Player, Channel))
+  forall(setup_role(team, Team, Role), ( % for every team role, add a channel
+    create_channel(team_role, Role, Channel),
+    forall(player_team(Player, Team), grant_access(Player, Channel))
   )),
   forall(setup_role(global, _, Role), (
     create_channel(global_role, Role, Channel),
@@ -238,8 +238,8 @@ status(Player, dead) :- dead(Player), !.
 status(Player, alive).
 
 
-flip(Player, [player(Player), roles(Roles), teams(Alignments)]) :-
-  findall(Alignment, player_alignment(Player, Alignment), Alignments),
+flip(Player, [player(Player), roles(Roles), teams(Teams)]) :-
+  findall(Team, player_team(Player, Team), Teams),
   findall(Role, (
     access(Player, Channel),
     channel_type(Channel, player_role),

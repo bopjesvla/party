@@ -10,7 +10,7 @@ action(_, lynch, [X], _) :- !,
   asserta(dead(X)).
 
 action(_, investigate, [X], Channel) :-
-  player_alignment(X, "mafia"), !,
+  player_team(X, "mafia"), !,
   send(message(Channel, X, "is Mafia")).
 action(_, investigate, [X], Channel) :- !,
   send(message(Channel, X, "is not Mafia")).

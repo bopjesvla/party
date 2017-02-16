@@ -1,6 +1,6 @@
 defmodule Mafia.GameServer do
   use GenServer
-  alias Mafia.{Repo,Game,Channel,MeetChannel,GameChannel}
+  alias Mafia.{Repo,Channel,MeetChannel,GameChannel}
 
   # management
 
@@ -115,13 +115,13 @@ defmodule Mafia.GameServer do
 
   def load_setup(db, setup) do
     db = Enum.reduce setup.teams, db, fn (t, db) ->
-      fact = {:setup_alignment, t.player, t.team}
+      fact = {:setup_team, t.player, t.team}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)
       db
     end
 
     db = Enum.reduce setup.roles, db, fn (r, db) ->
-      target = if r.type == "alignment", do: r.str, else: r.nr
+      target = if r.type == "team", do: r.str, else: r.nr
       role = {:',', Enum.map(r.mods, &atom/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)

@@ -1,19 +1,19 @@
-won_by_alignment(P) :-
-  player_alignment(P, Alignment),
-  alignment_won(Alignment).
+won_with_team(P) :-
+  player_team(P, Team),
+  team_won(Team).
 
 end_game :-
   findall(X, ),
   findall(P, won(P), Won)
 
-alignment_won("town") :-
+team_won("town") :-
   NotTown \= "town",
   alive(LivingPlayer),
-  \+ player_alignment(LivingPlayer, NotTown), % there are no antitown folk alive
-  player_alignment(LivingPlayer, "town"). % there is at least one townie alive
+  \+ player_team(LivingPlayer, NotTown), % there are no antitown folk alive
+  player_team(LivingPlayer, "town"). % there is at least one townie alive
 
-alignment_won(X) :-
+team_won(X) :-
   alive(Alive),
   count(Alive, AliveCount),
-  count(player_alignment(Alive, X), BaddieCount),
+  count(player_team(Alive, X), BaddieCount),
   BaddieCount >= AliveCount / 2.
