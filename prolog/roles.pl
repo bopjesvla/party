@@ -11,7 +11,7 @@ role_action(([], Alias), Action, Targets, Channel, LeftActionMods, RightActionMo
   role_action(Role, Action, Targets, Channel, LeftActionMods, RightActionMods).
 
 role_action((["self" | Mods], Role), Action, [Target], Channel, LeftActionMods, RightActionMods) :-
-  access(Target, Channel),
+  !, (access(Target, Channel); Target = noone),
   role_action((Mods, Role), Action, [Target], Channel, [target | LeftActionMods], RightActionMods).
 
 % limiting modifiers, also ones that alter default behavior such as day

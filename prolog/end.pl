@@ -14,10 +14,8 @@ end_game :-
   send(end_game(Won)).
 
 team_won("town") :- !,
-  NotTown \= "town",
-  alive(LivingPlayer),
-  \+ player_team(LivingPlayer, NotTown), % there are no antitown folk alive
-  player_team(LivingPlayer, "town"). % there is at least one townie alive
+  forall(alive(LivingPlayer), player_team(LivingPlayer, "town")),
+  alive(_).
 
 team_won(Bad) :-
   count(alive(Alive), AliveCount),

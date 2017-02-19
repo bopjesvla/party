@@ -241,12 +241,9 @@ lock(Channel, Action, Targets, ActionMods) :-
 
 lock_deterministic_actions :-
   forall((
-    can_vote(Actor, C, Act, Targets, []),
-    OtherActor \= Actor,
-    \+ can_vote(OtherActor, C, _, _, _),
-    OtherTargets \= Targets,
-    \+ can_vote(_, C, _, OtherTargets, _)
-  ), vote(Actor, C, Act, Targets, [])).
+    channel_role(C, _),
+    count(can_vote(P, C, A, T, _), 1)
+  ), vote(Actor, C, Act, Targets)).
 
 maybe_next_phase :-
   lock_deterministic_actions,

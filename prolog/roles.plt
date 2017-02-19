@@ -13,7 +13,8 @@ test(self) :-
   access(Player, Channel),
   \+ role_action(([], village), lynch, [Player], Channel),
   role_action((["self"], village), lynch, [Player], Channel),
-  role_action((["self"], village), lynch, _, Channel).
+  findall(T, role_action((["self"], village), lynch, T, Channel), TargetLists),
+  TargetLists = [[Player], [noone]].
 
 test(day) :-
   channel_type(Channel, player_role),
@@ -47,5 +48,8 @@ test(automatic) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),
   asserta(channel_role(Channel, (["day"], bulletproof))),
-  channel_action(Channel, protect, _).
+  findall(A, can_vote(P, Channel, A, T, _), X),
+  X = [_],
+  maybe_next_phase,
+  locked(Channel, _, _, _).
 
