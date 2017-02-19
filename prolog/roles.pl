@@ -2,15 +2,19 @@ role_action(R, A, T, C) :- role_action(R, A, T, C, [], _).
 role_action(R, A, T, C, O) :- role_action(R, A, T, C, [], O).
 
 role_action(([], Role), Action, Targets, Channel, ActionMods, ActionMods) :-
-  main_role_action(Role, Action),
+  main_role_action(Role, Action), !,
   (member(phase, ActionMods), !; default_phase_constraint(Role)),
   (member(target, ActionMods), !; default_target_constraint(Role, Channel, Targets)).
 
+role_action(([], Alias), Action, Targets, Channel, LeftActionMods, RightActionMods) :-
+  alias(Alias, Role),
+  role_action(Role, Action, Targets, Channel, LeftActionMods, RightActionMods).
+
 % special limiting modifiers, mostly ones that alter default behavior such as day and self
 role_action(([Mod | Mods], Role), Action, Targets, Channel, LeftActionMods, RightActionMods) :-
-  \+ role_action_filter(Mod, Action, Targets, Channel),
+  \+ mod_excludes(Mod, Action, Targets, Channel),
   action_mods(Mod, LeftActionMods, NewActionMods),
-  role_action(([Mods], Role), Action, Targets, Channel, NewActionMods, RightActionMods).
+  role_action((Mods, Role), Action, Targets, Channel, NewActionMods, RightActionMods).
 
 default_phase_constraint(village) :-
   !, current_phase_name(day).
@@ -33,22 +37,24 @@ main_role_action(killer, kill).
 main_role_action(doctor, protect).
 main_role_action(roleblocker, block).
 
-role_action_filter(XShot, Action, _, Channel) :-
-  append(X, "-shot", XShot),
-  erl('Elixir.String':to_integer(X), N),
+alias(bulletproof, (["strong-willed", "compulsive", "self"], doctor)).
+
+mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
+  X is Xchar - 48,
+  X > 0,
+  X < 10,
   count(action_history(_, action(_, Action, _, Channel), _), Count),
-  Count >= N.
+  Count >= X.
 
-role_action_filter("self", _, Targets, Channel, Ci) :-
+mod_excludes("self", _, Targets, Channel) :-
   member(Target, Targets),
-  other(Target, Channel),
-  Target \= noone.
+  other(Target, Channel).
 
-role_action_filter("day", _, Targets, Channel, Ci, [target | Ci]) :-
-  forall(member(Target, Targets), access(Target, Channel)).
+mod_excludes("day", _, _, _) :-
+  \+ current_phase_name(day).
 
-action_mod("self", N, [target | N]) :- !.
-action_mod("day", N, [phase | N]) :- !.
+action_mods("self", N, [target | N]) :- !.
+action_mods("day", N, [phase | N]) :- !.
 
 % add any remaining role mods as an action mod; will be ignored if useless
-action_mod(Mod, N, [Mod | N]).
+action_mods(Mod, N, [Mod | N]).

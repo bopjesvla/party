@@ -2,8 +2,7 @@ action(Actor, Action, Targets, Channel, []) :-
   action(Actor, Action, Targets, Channel).
 
 action(_, kill, [X], _) :- !,
-  kill(X, "has been killed"),
-  asserta(dead(X)).
+  kill(X, "has been killed").
 
 action(_, lynch, [X], _) :- !,
   kill(X, "has been lynched"),
@@ -16,7 +15,17 @@ action(_, investigate, [X], Channel) :- !,
   send(message(Channel, X, "is not Mafia")).
 
 action(_, visit, _, _).
-action(Actor, Act, T, C, [_ | Mods]) :-
+
+action_mod("weak", Actor, _, Targets, _, _) :-
+  member(T, Targets),
+  player_team(T, Team),
+  Team \= "town",
+  !, kill(Actor).
+
+action_mod(_,_,_,_,_,_).
+
+action(Actor, Act, T, C, [Mod | Mods]) :-
+  action_mod(Mod, Actor, Act, T, C, Mods),
   action(Actor, Act, T, C, Mods).
 
 kill(Player, Message) :-

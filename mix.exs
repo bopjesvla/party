@@ -54,8 +54,12 @@ defmodule Mafia.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": ["ecto.reset", "test"],
-     "plt": "cmd swipl -f game_server.pl -g run_tests -t halt",
+     "test": fn ["prolog" | args] ->
+	   Mix.Task.run "test", ~w(--only prolog)
+     args ->
+	   Mix.Task.run "ecto.reset", []
+	   Mix.Task.run "test", args
+	 end,
      "install": ["cmd swipl -f install.pl -g install -t halt"],
      "game.serve": "cmd swipl game_server.pl"]
   end

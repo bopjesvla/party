@@ -1,6 +1,6 @@
 erl(Code, Result2) :-
   ecall(erlog_demo:efunc(Code), Result),
-  Result = Result2. % ecall doesn't support bindings :(
+  Result = Result2. % ecall doesn't support direct bindings :(
 
 erl(Left, _, Right, ToRight) :-
   \+ var(Left),
