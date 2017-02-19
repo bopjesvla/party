@@ -10,11 +10,15 @@ role_action(([], Alias), Action, Targets, Channel, LeftActionMods, RightActionMo
   alias(Alias, Role),
   role_action(Role, Action, Targets, Channel, LeftActionMods, RightActionMods).
 
-% special limiting modifiers, mostly ones that alter default behavior such as day and self
+role_action((["self" | Mods], Role), Action, [Target], Channel, LeftActionMods, RightActionMods) :-
+  access(Target, Channel),
+  role_action((Mods, Role), Action, [Target], Channel, [target | LeftActionMods], RightActionMods).
+
+% limiting modifiers, also ones that alter default behavior such as day
 role_action(([Mod | Mods], Role), Action, Targets, Channel, LeftActionMods, RightActionMods) :-
-  \+ mod_excludes(Mod, Action, Targets, Channel),
   action_mods(Mod, LeftActionMods, NewActionMods),
-  role_action((Mods, Role), Action, Targets, Channel, NewActionMods, RightActionMods).
+  role_action((Mods, Role), Action, Targets, Channel, NewActionMods, RightActionMods),
+  \+ mod_excludes(Mod, Action, Targets, Channel).
 
 default_phase_constraint(village) :-
   !, current_phase_name(day).
@@ -46,11 +50,7 @@ mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
   count(action_history(_, action(_, Action, _, Channel), _), Count),
   Count >= X.
 
-mod_excludes("self", _, Targets, Channel) :-
-  member(Target, Targets),
-  other(Target, Channel).
-
-mod_excludes("compulsive", _, Targets, Channel) :-
+mod_excludes("compulsive", _, Targets, _) :-
   member(noone, Targets).
 
 even :-
@@ -68,7 +68,6 @@ mod_excludes("even-day", _, _, _) :-
 mod_excludes("day", _, _, _) :-
   \+ current_phase_name(day).
 
-action_mods("self", N, [target | N]) :- !.
 action_mods("day", N, [phase | N]) :- !.
 
 % add any remaining role mods as an action mod; will be ignored if useless

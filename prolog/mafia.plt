@@ -1,20 +1,3 @@
-:- begin_tests(setup_game).
-
-:- end_tests(setup_game).
-:- begin_tests(signups).
-
-% test(game_full) :-
-%   flush(X),
-%   X = [join(3, Channel), next_phase(_)],
-%   phase_timer(_, _),
-%   game_info(1, G),
-%   member(phase(T), G),
-%   member(next(N), T),
-%   \+ N = nil.
-
-:- end_tests(signups).
-:- begin_tests(game_start).
-
 test(start) :-
   next_phase,
   current_phase(0),
