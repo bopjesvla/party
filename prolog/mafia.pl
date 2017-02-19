@@ -107,7 +107,8 @@ end_game_or_next_phase :-
     send(leave(Channel))
   ),
   increase_current_phase,
-  start_phase.
+  start_phase,
+  maybe_next_phase.
 
 locked_actions(Actions) :-
   current_phase(P),
@@ -204,7 +205,6 @@ unvote(Player, Channel, Action) :-
 
 vote(Player, Channel, Action, Targets) :-
   player(Player),
-  current_phase(P),
   can_vote(Player, Channel, Action, Targets, ActionMods),
   do_vote(Player, Channel, Action, Targets, ActionMods).
 
@@ -239,7 +239,17 @@ check_hammer(_, _, _, _).
 lock(Channel, Action, Targets, ActionMods) :-
     asserta(locked(Channel, Action, Targets, ActionMods)).
 
+lock_deterministic_actions :-
+  forall((
+    can_vote(Actor, C, Act, Targets, []),
+    OtherActor \= Actor,
+    \+ can_vote(OtherActor, C, _, _, _),
+    OtherTargets \= Targets,
+    \+ can_vote(_, C, _, OtherTargets, _)
+  ), vote(Actor, C, Act, Targets, [])).
+
 maybe_next_phase :-
+  lock_deterministic_actions,
   \+ can_vote(_, _, _, _, _),
   next_phase.
 

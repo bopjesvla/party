@@ -29,8 +29,11 @@ defmodule Mafia.MeetChannelTest do
   end
 
   test "can vote" do
-    Repo.insert!(%{@game | status: "ongoing", id: -4})
+    game = Repo.insert!(%{@game | status: "ongoing", id: -4})
+	game
     |> Mafia.GameSupervisor.start_game
+
+    [first_slot | _] = game.slots
 
     {:ok, reply, socket} = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join(GameChannel, "game:-4")
@@ -39,7 +42,7 @@ defmodule Mafia.MeetChannelTest do
 
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
 
-    push socket, "new:vote", %{"action" => "lynch", "targets" => [-1]}
+    push socket, "new:vote", %{"action" => "lynch", "targets" => [first_slot.id]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
   end
 

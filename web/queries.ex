@@ -39,7 +39,7 @@ defmodule Mafia.Queries do
   	join: p in assoc(g, :players),
   	join: u in assoc(p, :user),
   	where: g.id == ^game.id,
-  	select: %{id: p.id, user: u.id, name: u.name}
+  	select: %{id: p.id, user: u.id, slot: p.game_slot_id, name: u.name}
 
     game_info = game
   	|> Map.take(~w(id speed status)a)

@@ -45,12 +45,6 @@ defmodule Mafia.MeetChannel do
     meet = Repo.get_by!(Channel, name: name, type: "meet")
     player = Mafia.Queries.player!(meet.game_id, socket.assigns.user)
 
-    targets = Enum.map targets, fn
-      t when is_integer(t) ->
-        Mafia.Queries.player!(meet.game_id, t).game_slot_id
-      t -> t
-    end
-
     GameServer.query! meet.game_id, {:vote, player.game_slot_id, name, String.to_existing_atom(action), targets}
     {:reply, :ok, socket}
   end

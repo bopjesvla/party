@@ -50,6 +50,18 @@ mod_excludes("self", _, Targets, Channel) :-
   member(Target, Targets),
   other(Target, Channel).
 
+even :-
+  current_phase_number(N),
+  N mod 2 is 0.
+
+mod_excludes("odd-day", _, _, _) :-
+  even,
+  \+ current_phase_name(day).
+
+mod_excludes("even-day", _, _, _) :-
+  \+ even,
+  \+ current_phase_name(day).
+
 mod_excludes("day", _, _, _) :-
   \+ current_phase_name(day).
 
