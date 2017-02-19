@@ -28,8 +28,6 @@ defmodule Mafia.QueueChannelTest do
     {:ok, reply, newsocket} = socket("user_socket:-1", %{user: -1})
     |> subscribe_and_join(QueueChannel, "queue")
 
-    IO.inspect Repo
-
     assert %{games: [%{count: 1, size: 4}]} = reply
 
     ref = push(newsocket, "signup", %{"id" => id})

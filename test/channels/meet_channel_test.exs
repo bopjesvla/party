@@ -42,6 +42,8 @@ defmodule Mafia.MeetChannelTest do
 
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
 
+    push socket, "new:vote", %{"action" => "lynch", "targets" => ["noone"]}
+    assert_broadcast "new:msg", %{u: _, type: "vote"}
     push socket, "new:vote", %{"action" => "lynch", "targets" => [first_slot.id]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
   end

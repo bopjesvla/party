@@ -50,6 +50,9 @@ mod_excludes("self", _, Targets, Channel) :-
   member(Target, Targets),
   other(Target, Channel).
 
+mod_excludes("compulsive", _, Targets, Channel) :-
+  member(noone, Targets).
+
 even :-
   current_phase_number(N),
   N mod 2 is 0.
