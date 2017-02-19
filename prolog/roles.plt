@@ -21,5 +21,11 @@ test(day) :-
 
 test(weak) :-
   channel_type(Channel, player_role),
-  role_action((["weak"], village), lynch, _, [], ActionMods),
+  role_action((["weak"], village), lynch, _, Channel, [], ActionMods),
   member("weak", ActionMods).
+
+test(compulsive) :-
+  channel_type(Channel, player_role),
+  role_action(([], village), lynch, [noone], Channel),
+  \+ role_action((["compulsive"], village), lynch, [noone], Channel).
+  
