@@ -66,7 +66,7 @@ defmodule Mafia.GameServer do
 
   def handle_info({:join, slot, channel}, state) do
     %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
-    MeetChannel.new_message(channel, "join", user, nil)
+    MeetChannel.new_message("meet:#{channel}", "join", user, nil)
     {:noreply, state}
   end
   def handle_info({:next_phase, at}, %{id: id} = state) do
@@ -88,7 +88,7 @@ defmodule Mafia.GameServer do
   def handle_info({:vote, slot, channel, act, targets}, state) do
     message = %{act: act, targets: targets} |> Poison.encode!
     %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
-    MeetChannel.new_message(channel, "vote", user, message)
+    MeetChannel.new_message("meet:#{channel}", "vote", user, message)
     {:noreply, state}
     end
   def handle_info({:message, slot, message}, %{id: id} = state) do

@@ -54,7 +54,7 @@ defmodule Mafia.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": fn ["prolog" | args] ->
+     "test": fn ["prolog" | _] ->
 	   Mix.Task.run "test", ~w(--only prolog)
      args ->
 	   Mix.Task.run "ecto.reset", []

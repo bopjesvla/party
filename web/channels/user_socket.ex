@@ -7,6 +7,7 @@ defmodule Mafia.UserSocket do
   channel "game:*", Mafia.GameChannel
   channel "meet:*", Mafia.MeetChannel
   channel "talk:*", Mafia.MeetChannel
+  channel "queue", Mafia.QueueChannel
 
   ## Transports
   transport :websocket, Phoenix.Transports.WebSocket

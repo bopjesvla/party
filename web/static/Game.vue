@@ -1,8 +1,8 @@
 <template>
 	<div class="room">
-		<room-header :name=$route.params.name></room-header>
+		<room-header :name="$route.params.game_id"></room-header>
 		<div class="room-inner">
-			<chat-messages :messages=messages></chat-messages>
+			<chat-messages :messages="messages" :players=players></chat-messages>
 		</div>
 		<form @submit.prevent="send">
 			<input type="text" v-model="input"/>
@@ -20,7 +20,10 @@
 		data() {
 			return {
 				messages: null,
-				input: ""
+				input: "",
+				meets: [],
+				active: [],
+				players: []
 			}
 		},
 		created() {
@@ -31,17 +34,38 @@
 				this.channel = socket.channel(this.topic)
 				this.channel.join()
 					.receive("ok", (d) => {
-						console.log(d.msgs)
+						console.log(d)
 						this.messages = d.msgs
+						this.active = d.active
+						this.players = d.players
+
+            if(d.active) {
+              this.meets = d.active.map(meet => socket.channel("meet:" + meet.channel))
+              console.log(this.meets)
+              this.activeChannel = this.meets[0]
+            }
+						else if(d.status != "ongoing") {
+							this.meets = [socket.channel("talk:" + d.id)]
+              this.activeChannel = this.meets[0]
+						}
+
+	          this.meets.forEach(c => {
+							c.join().receive("error", e => console.log(e))
+							c.on("new:msg", msg => {
+	              msg.topic = c.topic
+		            this.messages.push(msg)
+		          })
+						})
 					})
 					.receive("error", e => console.log(e))
 
 				this.channel.on("new:msg", msg => {
+					console.log(msg)
 					this.messages.push(msg)
 				})
 			},
 			send() {
-				this.channel.push("new:msg", {type: 'm', msg: this.input})
+				this.activeChannel.push("new:msg", {type: 'm', msg: this.input})
 				this.input = ''
 			}
 		},
@@ -51,12 +75,7 @@
 		components: {RoomHeader, ChatMessages, ChatInput},
 		computed: {
 			topic() {
-				return `${this.$route.name}:${this.$route.params.name}`
-			},
-			channels() {
-				return [{
-				    [this.$route.params.name]: this.topic
-				}]
+				return `${this.$route.name}:${this.$route.params.game_id}`
 			}
 		}
 	}

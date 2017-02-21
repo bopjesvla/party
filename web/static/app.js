@@ -15,16 +15,19 @@ import "phoenix_html"
 import socket from "./socket"
 
 import Vue from 'vue'
+import vSelect from 'vue-multiselect'
 import VueRouter from 'vue-router'
 import Home from './Home.vue'
 import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
 import GameSidebar from './GameSidebar.vue'
 import Room from './Room.vue'
+import Game from './Game.vue'
 
 import 'vueify/lib/insert-css'
 
 Vue.use(VueRouter)
+Vue.component('v-select', vSelect)
 
 let router = new VueRouter({
   routes: [{
@@ -48,11 +51,11 @@ let router = new VueRouter({
         }
       },
       {
-        path: 'game/:name',
+        path: 'game/:game_id',
         name: 'game',
         components: {
-          default: Room,
-          sidebar: GameSidebar
+          default: Game,
+          sidebar: LobbySidebar
         }
       }
     ]
@@ -72,4 +75,3 @@ let app = new Vue({
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
-

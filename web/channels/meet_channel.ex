@@ -1,7 +1,7 @@
 defmodule Mafia.MeetChannel do
   use Mafia.Web, :channel
 
-  alias Mafia.{Repo, Channel, Message, User, Pengine, Game, GameServer}
+  alias Mafia.{Repo, Channel, Message, User, Game, GameServer}
 
   def join("meet:" <> name, _payload, socket) do
     meet = Repo.get_by!(Channel, name: name, type: "meet")
@@ -71,10 +71,17 @@ defmodule Mafia.MeetChannel do
   end
 
   def new_message(meet, type, user, message) do
-    channel = Repo.get_by(Channel, name: meet, type: "meet")
+    channel = channel(meet)
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
 
-    Mafia.Endpoint.broadcast! "meet:#{meet}", "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+    Mafia.Endpoint.broadcast! meet, "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+  end
+
+  def leave_message(meet, who) do
+    channel = channel(meet)
+    %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: who, type: "leave", msg: nil})
+
+    Mafia.Endpoint.broadcast! meet, "leave", %{who: who || :all}
   end
 
   # Add authorization logic here as required.

@@ -31,23 +31,8 @@
 				this.channel = socket.channel(this.topic)
 				this.channel.join()
 					.receive("ok", (d) => {
-						console.log(d.msgs)
+						console.log(d)
 						this.messages = d.msgs
-            if(d.active) {
-              this.meets = d.active.map(meet => socket.channel("meet:" + meet.channel))
-              console.log(this.meets)
-              this.meets.forEach(x => x.join().receive("error", e => console.log(e)))
-              this.activeChannel = this.meets[0]
-            }
-            else {
-              this.meets = []
-              this.activeChannel = this.channel
-            }
-
-	          this.meets.forEach(c => c.on("new:msg", msg => {
-              msg.topic = c.topic
-	            this.messages.push(msg)
-	          }))
 					})
 					.receive("error", e => console.log(e))
 
@@ -57,7 +42,7 @@
 				})
 			},
 			send() {
-				this.activeChannel.push("new:msg", {type: 'm', msg: this.input})
+				this.channel.push("new:msg", {type: 'm', msg: this.input})
 				this.input = ''
 			}
 		},
@@ -67,7 +52,7 @@
 		components: {RoomHeader, ChatMessages, ChatInput},
 		computed: {
 			topic() {
-				return `${this.$route.name}:${this.$route.params.name}`
+				return `${this.$route.name}:${this.$route.params.game_id}`
 			}
 		}
 	}

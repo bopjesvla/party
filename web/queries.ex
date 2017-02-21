@@ -1,21 +1,21 @@
 defmodule Mafia.Queries do
-  alias Mafia.{Repo, Message, User, Game, Setup, GameServer}
+  alias Mafia.{Repo, Message, Game, Setup, GameServer}
   import Ecto.Query
 
   def setup_info(id) do
     setup = Repo.get!(Setup, id) |> Repo.preload(:user)
 
     roles = Repo.all from s in Mafia.Setup,
-	join: r in assoc(s, :roles),
-	select: map(r, [:role, :mods, :nr, :str])
+  	join: r in assoc(s, :roles),
+  	select: map(r, [:role, :mods, :type, :nr, :str])
 
     teams = Repo.all from s in Mafia.Setup,
-	join: r in assoc(s, :teams),
-	select: map(r, [:player, :team])
+  	join: r in assoc(s, :teams),
+  	select: map(r, [:player, :team])
 
-	setup
-	|> Map.take(~w(size phases name user)a)
-	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
+  	setup
+  	|> Map.take(~w(size phases name user)a)
+  	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
   end
 
   def to_map([{a, _} | _] = l) when is_atom(a) do
@@ -33,8 +33,6 @@ defmodule Mafia.Queries do
   def game_info(id, user) do
     game = Repo.get_by(Game, id: id)
 
-  	setup = setup_info(game.setup_id)
-
   	players = Repo.all from g in Game,
   	join: p in assoc(g, :players),
   	join: u in assoc(p, :user),
@@ -42,8 +40,8 @@ defmodule Mafia.Queries do
   	select: %{id: p.id, user: u.id, slot: p.game_slot_id, name: u.name}
 
     game_info = game
-  	|> Map.take(~w(id speed status)a)
-  	|> Map.merge(%{players: players, setup: setup})
+  	|> Map.take(~w(id speed status setup_id)a)
+  	|> Map.merge(%{players: players})
 
     if game.status == "ongoing" do
       %{id: player_id} = Enum.find players, &(&1.user == user)

@@ -23,12 +23,15 @@ defmodule Mafia.QueueChannelTest do
     ref = push socket, "new:game", %{"setup_id" => 0, "speed" => 10}
     assert_reply ref, :ok, %{id: id}
 
-    assert_broadcast("game_info", %{id: ^id, count: 1})
+    Repo.get_by! Mafia.Message, %{type: "join", user_id: 0}
 
-    {:ok, reply, newsocket} = socket("user_socket:-1", %{user: -1})
-    |> subscribe_and_join(QueueChannel, "queue")
+    assert_broadcast("new:game", %{id: ^id, size: 4})
 
-    assert %{games: [%{count: 1, size: 4}]} = reply
+    newsocket = socket("user_socket:-1", %{user: -1})
+    |> subscribe_and_join!(QueueChannel, "queue")
+
+    ref = push(newsocket, "list:games", %{"id" => id})
+    assert_reply ref, :ok, %{games: [%{count: 1, size: 4}]}
 
     ref = push(newsocket, "signup", %{"id" => id})
     assert_reply(ref, :ok, _)
@@ -58,6 +61,17 @@ defmodule Mafia.QueueChannelTest do
     :timer.sleep(100)
 
     :ok = Mafia.GameServer.stop(id)
+  end
+
+  test "list setups", %{socket: socket} do
+    ref = push socket, "list:setups", %{"search" => "Imp"}
+    assert_reply ref, :ok, %{setups: ["Simple"]}
+  end
+
+  test "create setup", %{socket: socket} do
+    setup = %{Mafia.Queries.setup_info(0) | name: "OtherName"}
+    ref = push socket, "new:setup", %{"setup" => setup}
+    assert_reply ref, :ok, _
   end
 
   # test "ping replies with status ok", %{socket: socket} do

@@ -18,9 +18,9 @@ defmodule Mafia.Setup do
   def changeset(struct, params \\ %{}) do
     struct
     |> cast(params, [:name, :size, :phases])
-    |> cast_assoc(:roles)
-    |> cast_assoc(:teams)
-    |> validate_required([:name, :size, :phases, :roles, :teams])
+    |> cast_assoc(:roles, required: true)
+    |> cast_assoc(:teams, required: true)
+    |> validate_required([:name, :size, :phases])
     |> unique_constraint(:name)
   end
 end

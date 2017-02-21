@@ -1,6 +1,6 @@
 <template>
 	<div class="messages">
-		<div class="message" v-for="message in messages">
+		<div :class="`message type-${message.ty}`" v-for="message in messages">
 			<div class="message-ts">
 				{{message.ts | time}}
 			</div>
@@ -8,7 +8,7 @@
 				{{message.u}}
 			</div>
 			<div class="msg">
-				{{message.msg}}
+				{{message.msg || message.ty}}
 			</div>
 		</div>
 	</div>
@@ -16,9 +16,10 @@
 
 <script>
 	export default {
-		props: ['messages'],
+		props: ['messages', 'players'],
 		filters: {
-			time: x => x.split(/[T ]/)[1].slice(0,5)
+			time: x => x.split(/[T ]/)[1].slice(0,5),
+			name: u => typeof u == "string" ? u : this.players.filter(x.user == u)[0].name
 		}
 	}
 </script>
@@ -30,12 +31,12 @@
 		padding-left: 2%;
 		.message {
 			display: table-row;
+			color: grey;
 			.message-ts, .message-user, .msg {
 				display: table-cell;
 				padding-top: 2px;
 			}
 			.message-ts {
-				color: grey;
 				font-size: .8em;
 				padding-right: 10px;
 			}
@@ -43,6 +44,11 @@
 				padding-right: 5px;
 				border-right: 1px silver solid;
 				color: brown;
+			}
+			&.type-m {
+				.msg {
+					color: black;
+				}
 			}
 		}
 	}

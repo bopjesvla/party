@@ -6,6 +6,7 @@
 import {Socket} from "phoenix"
 
 let token = document.querySelector('#view').getAttribute('data-token')
+let user = view.getAttribute('data-id')
 let socket = new Socket("/socket", {params: {token}})
 
 // When you connect, you'll often need to authenticate the client.
@@ -55,5 +56,16 @@ let socket = new Socket("/socket", {params: {token}})
 socket.connect()
 
 // Now that you are connected, you can join channels with a topic:
+
+export let queue_channel = socket.channel("queue")
+export let user_channel = socket.channel(`user:${user}`)
+
+queue_channel.join()
+  .receive("ok", resp => { console.log("Joined successfully", resp) })
+  .receive("error", resp => { console.log("Unable to join", resp) })
+
+user_channel.join()
+  .receive("ok", resp => { console.log("Joined successfully", resp) })
+  .receive("error", resp => { console.log("Unable to join", resp) })
 
 export default socket

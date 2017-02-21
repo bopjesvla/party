@@ -72,3 +72,19 @@ action_mods("day", N, [phase | N]) :- !.
 
 % add any remaining role mods as an action mod; will be ignored if useless
 action_mods(Mod, N, [Mod | N]).
+
+is_role(Role) :-
+  clause(main_role_action(Role, _)).
+
+is_role(Role) :-
+  clause(alias(Role, _)).
+
+is_mod(Mod) :-
+  clause(mod_excludes(Mod, _)),
+  \+ var(Mod).
+
+is_mod(Mod) :-
+  clause(action_mod(Mod, _)),
+  \+ var(Mod).
+
+is_mod("X-shot").

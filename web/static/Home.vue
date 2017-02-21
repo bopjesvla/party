@@ -38,6 +38,7 @@
 		}
 		height: 100%;
 		> aside {
+			line-height: normal;
 			min-width: 320px;
 			width: 15%;
 			color: white;
@@ -46,6 +47,7 @@
 			left: 0;
 			height: 100%;
 			z-index: 2;
+			overflow-y: auto;
 			input {
 				width: 110px;
 			}

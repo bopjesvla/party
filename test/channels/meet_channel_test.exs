@@ -30,7 +30,7 @@ defmodule Mafia.MeetChannelTest do
 
   test "can vote" do
     game = Repo.insert!(%{@game | status: "ongoing", id: -4})
-	game
+    {:ok, _} = game
     |> Mafia.GameSupervisor.start_game
 
     [first_slot | _] = game.slots

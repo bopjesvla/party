@@ -6,20 +6,17 @@
 			</h1>
 		</header>
 		<div class="sidebar-actions">
-			<collapse group="sidebar-tabs" label="Join a Game" :active="true">
+			<collapse group="sidebar-tabs" label="Games" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
 			</collapse>
 			<collapse group="sidebar-tabs" label="Rooms" :active="true">
 				<router-link class="room" :to="{name: 'room', params: {name: room.name}}" v-for="room in joinedRooms">{{room.name}}</router-link>
 				<form @submit.prevent="$router.push({name: 'room', params: {name: roomInput}}), roomInput = ''">
-					<input type="search" v-model=roomInput>
+					<input type="search" v-model="roomInput">
 					<button type="submit" class="arrow-before"></button>
 				</form>
 			</collapse>
-			<collapse group="sidebar-tabs" label="Create a Setup">
-				woop
-			</collapse>
-			<collapse group="sidebar-tabs" label="Find">
+			<collapse group="sidebar-tabs" label="Setups">
 				woop
 			</collapse>
 		</div>

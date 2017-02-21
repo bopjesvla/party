@@ -32,4 +32,5 @@ kill(Player, Message) :-
   send(message(Player, Message)),
   flip(Player, Flip),
   send(flip(Flip)),
-  asserta(dead(Player)).
+  asserta(dead(Player)),
+  forall(access(Player, Channel), retract_access(Player, Channel)).

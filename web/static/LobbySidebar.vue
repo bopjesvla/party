@@ -6,7 +6,7 @@
 			</h1>
 		</header>
 		<div class="sidebar-actions">
-			<collapse group="sidebar-tabs" label="Join a Game" :active="true">
+			<collapse group="sidebar-tabs" label="Games" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
 			</collapse>
 			<collapse group="sidebar-tabs" label="Rooms" :active="true">
@@ -16,7 +16,7 @@
 					<button type="submit" class="arrow-before"></button>
 				</form>
 			</collapse>
-			<collapse group="sidebar-tabs" label="Create a Game">
+			<collapse group="sidebar-tabs" label="Setups">
 				<create-game></create-game>
 			</collapse>
 			<collapse group="sidebar-tabs" label="Find">
@@ -30,15 +30,26 @@
 	import Collapse from './components/Collapse'
 	import GameList from './components/GameList'
 	import CreateGame from './components/CreateGame'
+	import {queue_channel} from './socket'
 
 	export default {
 		components: {Collapse, GameList, CreateGame},
 		data() {
 			return {
-				gamesInSignups: [{s: 'Vengeful', p: 7, t: 9}],
+				gamesInSignups: [],
 				joinedRooms: [{name: 'lobby'}, {name: 'test'}],
 				roomInput: ''
 			}
+		},
+		created() {
+			queue_channel.push("list:games", {})
+				.receive("ok", d => this.gamesInSignups = d.games)
+			queue_channel.on("game_info", msg => {
+				this.gamesInSignups.filter(g => g.id == msg.id)[0].count = msg.count
+			})
+			queue_channel.on("new:game", msg => {
+				this.gamesInSignups.push(msg)
+			})
 		}
 	}
 </script>

@@ -1,8 +1,8 @@
 <template>
 	<table class="game-list">
 		<tr v-for="game in games">
-			<td class="setup-name">{{game.s}}</td>
-			<td class="players">{{game.p}}/{{game.t}}</td>
+			<td class="setup-name">{{game.setup}}</td>
+			<td class="players">{{game.count}}/{{game.size}}</td>
 		</tr>
 	</table>
 </template>
