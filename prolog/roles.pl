@@ -91,7 +91,7 @@ is_mod(Mod) :-
   clause(action_mod(Mod, _, _, _, _, _), _),
   string(Mod).
 
-is_mod("X-shot").
+is_mod([X|"-shot"]) :- onetonine(X).
 
 role_info([roles(Roles), mods(Mods)]) :-
   findall(R, is_role(R), Roles),

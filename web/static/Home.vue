@@ -49,7 +49,7 @@
 			z-index: 2;
 			overflow-y: auto;
 			input {
-				width: 110px;
+				width: 90px;
 			}
 			input, button {
 				color: white

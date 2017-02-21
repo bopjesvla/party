@@ -78,6 +78,7 @@ defmodule Mafia.QueueChannelTest do
     ref = push socket, "role_info", %{}
     assert_reply ref, :ok, %{roles: roles, mods: mods}
     assert "weak" in mods
+    assert "1-shot" in mods
     assert "doctor" in roles
   end
 
