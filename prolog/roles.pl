@@ -74,17 +74,25 @@ action_mods("day", N, [phase | N]) :- !.
 action_mods(Mod, N, [Mod | N]).
 
 is_role(Role) :-
-  clause(main_role_action(Role, _)).
+  clause(main_role_action(Role, _), _).
 
 is_role(Role) :-
-  clause(alias(Role, _)).
+  clause(alias(Role, _), _).
 
 is_mod(Mod) :-
-  clause(mod_excludes(Mod, _)),
-  \+ var(Mod).
+  clause(role_action(([Mod | _], _), _, _, _, _, _), _),
+  string(Mod).
 
 is_mod(Mod) :-
-  clause(action_mod(Mod, _)),
-  \+ var(Mod).
+  clause(mod_excludes(Mod, _, _, _), _),
+  string(Mod).
+
+is_mod(Mod) :-
+  clause(action_mod(Mod, _, _, _, _, _), _),
+  string(Mod).
 
 is_mod("X-shot").
+
+role_info([roles(Roles), mods(Mods)]) :-
+  findall(R, is_role(R), Roles),
+  findall(M, is_mod(M), Mods).

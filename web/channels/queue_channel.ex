@@ -136,10 +136,10 @@ defmodule Mafia.QueueChannel do
     {:reply, {:ok, %{setups: names}}, socket}
   end
 
-  def handle_in("list:roles") do
-    [info: info] = :erlog.prove({:role_info, {:info}}, Mafia.GameServer.game_db)
+  def handle_in("role_info", _, socket) do
+    {{:succeed, [info: info]}, _} = :erlog.prove({:role_info, {:info}}, Mafia.GameServer.game_db)
     roles = Enum.map info[:roles], &to_string/1
     mods = Enum.map info[:mods], &to_string/1
-    {:reply, {:ok, %{roles: roles, mods: mods}}}
+    {:reply, {:ok, %{roles: roles, mods: mods}}, socket}
   end
 end

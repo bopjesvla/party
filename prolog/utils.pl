@@ -81,6 +81,12 @@ mock :- fail.
 send(X) :- mock, !, assertz(message(X)).
 flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
 
+string([X|XS]) :-
+  integer(X),
+  string(XS).
+string([]).
+
+
 send(Msg) :-
   erl(erlang:self, Self),
   erl(erlang:send(Self, Msg), _).
