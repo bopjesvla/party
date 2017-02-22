@@ -23,10 +23,15 @@ defmodule Mafia.QueueChannel do
   end
 
   def handle_in("new:setup", %{"setup" => setup}, socket) do
-    %Setup{user_id: socket.assigns.user}
+    reply = %Setup{user_id: socket.assigns.user}
     |> Setup.changeset(setup)
-    |> Repo.insert!
-    {:reply, :ok, socket}
+    |> Repo.insert
+    |> case do
+      {:error, changeset} ->
+        {:error, Mafia.ChangesetView.render("error.json", %{changeset: changeset})}
+      {:ok, g} -> {:ok, %{id: g.id}}
+    end
+    {:reply, reply, socket}
   end
 
   def handle_in("new:game", %{"setup_id" => setup_id} = opts, %{assigns: %{user: user}} = socket) do
@@ -141,5 +146,16 @@ defmodule Mafia.QueueChannel do
     roles = Enum.map info[:roles], &to_string/1
     mods = Enum.map info[:mods], &to_string/1
     {:reply, {:ok, %{roles: roles, mods: mods}}, socket}
+  end
+
+  def handle_in("setup_info", params, socket) do
+    by = case params do
+      %{"name" => name} ->
+        [name: name]
+      %{"game_id" => game_id} ->
+        [id: Repo.get!(Game, game_id).setup_id]
+    end
+    info = Mafia.Queries.setup_info(by)
+    {:reply, {:ok, %{setup: info}}, socket}
   end
 end

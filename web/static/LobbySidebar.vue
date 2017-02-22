@@ -9,18 +9,15 @@
 			<collapse group="sidebar-tabs" label="Games" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
 			</collapse>
+			<collapse group="sidebar-tabs" label="Create and Find">
+				<create-game></create-game>
+			</collapse>
 			<collapse group="sidebar-tabs" label="Rooms" :active="true">
 				<router-link class="room" :to="{name: 'room', params: {name: room.name}}" v-for="room in joinedRooms">{{room.name}}</router-link>
 				<form @submit.prevent="$router.push({name: 'room', params: {name: roomInput}}), roomInput = ''">
 					<input type="search" v-model=roomInput>
 					<button type="submit" class="arrow-before"></button>
 				</form>
-			</collapse>
-			<collapse group="sidebar-tabs" label="Setups">
-				<create-game></create-game>
-			</collapse>
-			<collapse group="sidebar-tabs" label="Find">
-				woop
 			</collapse>
 		</div>
 	</div>

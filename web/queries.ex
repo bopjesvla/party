@@ -1,20 +1,22 @@
 defmodule Mafia.Queries do
-  alias Mafia.{Repo, Message, Game, Setup, GameServer}
+  alias Mafia.{Repo, Game, Setup, GameServer}
   import Ecto.Query
 
-  def setup_info(id) do
-    setup = Repo.get!(Setup, id) |> Repo.preload(:user)
+  def setup_info(by) do
+    setup = Repo.get_by!(Setup, by) |> Repo.preload(:user)
 
-    roles = Repo.all from s in Mafia.Setup,
-  	join: r in assoc(s, :roles),
-  	select: map(r, [:role, :mods, :type, :nr, :str])
+    roles = Repo.all from r in Mafia.SetupRole,
+  	select: map(r, [:role, :mods, :type, :nr, :str]),
+    where: r.setup_id == ^setup.id,
+    order_by: r.nr
 
-    teams = Repo.all from s in Mafia.Setup,
-  	join: r in assoc(s, :teams),
-  	select: map(r, [:player, :team])
+    teams = Repo.all from t in Mafia.SetupTeam,
+  	select: map(t, [:player, :team]),
+    where: t.setup_id == ^setup.id,
+    order_by: t.player
 
   	setup
-  	|> Map.take(~w(size phases name user)a)
+  	|> Map.take(~w(size phases name user id)a)
   	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
   end
 

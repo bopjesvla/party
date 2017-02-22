@@ -1,13 +1,13 @@
 <template>
-	<div>
+	<div v-if="setup">
 		<v-select
 			@search-change="search = $event"
 			@input="searchSetup"
 			placeholder="Name"
 			v-model="setup.name"
-			:close-on-select="false"
 			:options="[search].concat(nameOptions)">
 		</v-select>
+		<span v-if="error">{{error}}</span>
 		Size: <input type="number" v-model.number="setup.size" min=1 max=25>
 
 		<div class="roles">
@@ -18,7 +18,7 @@
 					v-model="r.type"
 					:options="typeOptions">
 				</v-select>
-				<input type="text" v-if="r.type == 'team'" placeholder="team" v-model="r.str">
+				<team-input v-if="r.type == 'team'" v-model="r.str"></team-input>
 				<v-select v-if="r.type == 'player'"
 					placeholder="Player"
 					v-model="r.nr"
@@ -43,35 +43,43 @@
 		<div class="teams">
 			<h3>Teams</h3>
 			<div class="team" v-for="r in setup.teams">
-				{{r.player}}
-				<input type="text" v-model="r.team" placeholder="team">
+				Player {{r.player}}
+				<team-input v-model="r.team"></team-input>
 			</div>
 		</div>
 
-		<button @click="createGame">New Game</button>
+		<button @click="createSetup">Create Setup</button> <button @click="createGame">Create Game</button>
 	</div>
 </template>
 <script>
 	import {queue_channel} from '../socket'
+	import TeamInput from './TeamInput.vue'
 
 	export default {
 		data() {
 			return {
-				gameSetup: {},
-				mySetup: {
-					id: 0,
-					size: 4,
-					name: "Simple",
-					roles: [],
-					phases: ["day", "night"],
-					teams: [{player: 1, team: "mafia"}, {player: 2, team: "town"}, {player: 3, team: "town"}, {player: 4, team: "town"}]
-				},
-				showMySetup: true,
+				setup: null,
+				alteredSetup: false,
 				nameOptions: [],
 				roleOptions: [],
 				modOptions: [],
 				typeOptions: ["player", "team", "global"],
-				search: ''
+				search: '',
+				error: null
+			}
+		},
+		created() {
+			if (this.$route.params.game_id) {
+				queue_channel.push("setup_info", {game_id: this.$route.params.game_id})
+					.receive("ok", res => {
+						this.setSetup(res.setup)
+					})
+			}
+			else {
+				queue_channel.push("setup_info", {name: "Simple"})
+					.receive("ok", res => {
+						this.setSetup(res.setup)
+					})
 			}
 		},
 		watch: {
@@ -79,10 +87,12 @@
 				if (this.$route.params.game_id) {
 					queue_channel.push("setup_info", {game_id: this.$route.params.game_id})
 					  .receive("ok", res => {
-							this.gameSetup = res.setup
-							this.showMySetup = false
+							this.setSetup(res.setup)
 						})
 				}
+			},
+			setup() {
+				this.alteredSetup = true
 			},
 			"setup.size": function() {
 				let {size, teams} = this.setup
@@ -108,11 +118,19 @@
 				queue_channel.push("new:game", {setup_id: 0, speed: 1})
 				  .receive("ok", res => this.$router.push(`/game/${res.id}`))
 			},
+			createSetup() {
+				queue_channel.push("new:setup", {setup: this.setup})
+				  .receive("ok", res => {
+						this.setup.id = res.id
+						this.alteredSetup = false
+					})
+					.receive("error", e => this.error = e.errors)
+			},
 			revert() {
 				if (this.$route.params.game_id) {
 					queue_channel.push("setup_info", {game_id: 0})
 					  .receive("ok", res => {
-							this.gameSetup = res.setup
+							this.setup = res.setup
 						})
 				}
 			},
@@ -126,23 +144,31 @@
 				}
 			},
 			searchSetup() {
-				queue_channel.push("setup_info", {name: setup.name})
-					.receive("ok", res => this.mySetup = res.setup)
+				queue_channel.push("setup_info", {name: this.setup.name})
+					.receive("ok", res => this.setup = res.setup)
+			},
+			setSetup(s) {
+				this.setup = s
+				this.alteredSetup = false
 			}
 		},
 		computed: {
-			setup() {
-				return this.showMySetup ? this.mySetup : this.gameSetup
-			},
 			players() {
 				return Array.apply(null, {length: this.setup.size + 1})
 					.map(Number.call, Number)
 			}
-		}
+		},
+		components: {TeamInput}
 	}
 </script>
 <style>
 	.roles {
 		margin-top: 10px;
+		input, .multiselect__option , .multiselect__tag {
+			text-transform: capitalize !important;
+		}
+		.role {
+			margin-bottom: 10px
+		}
 	}
 </style>

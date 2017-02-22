@@ -69,7 +69,7 @@ defmodule Mafia.QueueChannelTest do
   end
 
   test "create setup", %{socket: socket} do
-    setup = %{Mafia.Queries.setup_info(0) | name: "OtherName"}
+    setup = %{Mafia.Queries.setup_info(id: 0) | name: "OtherName"}
     ref = push socket, "new:setup", %{"setup" => setup}
     assert_reply ref, :ok, _
   end

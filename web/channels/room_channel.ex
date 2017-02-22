@@ -30,7 +30,7 @@ defmodule Mafia.RoomChannel do
         messages = Repo.all from m in Message,
         join: u in assoc(m, :user),
         where: m.channel_id == ^id,
-        select: %{msg: m.msg, u: u.name, ts: m.inserted_at},
+        select: %{msg: m.msg, u: u.name, ts: m.inserted_at, ty: m.type},
         order_by: m.inserted_at
 
         #channels = Repo.get_by(Channel, room_id: id)
@@ -45,7 +45,7 @@ defmodule Mafia.RoomChannel do
 
       username = Repo.one! from u in User, where: u.id == ^socket.assigns.user, select: u.name
       %{inserted_at: inserted_at} = Repo.insert! %Message{type: "m", msg: msg, channel_id: id, user_id: socket.assigns.user}
-      broadcast! socket, "new:msg", %{msg: msg, u: username, ts: inserted_at}
+      broadcast! socket, "new:msg", %{msg: msg, u: username, ts: inserted_at, ty: "m"}
       {:noreply, socket}
     else
       {:error, "invalid message"}
