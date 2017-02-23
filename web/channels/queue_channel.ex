@@ -106,9 +106,23 @@ defmodule Mafia.QueueChannel do
             Registry.register(:timer_registry, game.id, @signups_countdown)
             Process.sleep(@signups_countdown)
 
+            game = Repo.preload(game, :slots)
+
             {1, _} = Game
             |> where(id: ^game.id, status: "signups")
             |> Repo.update_all(set: [status: "ongoing"])
+
+            # assign a player number to each game slot
+            slots = 1..game.setup.size
+            |> Enum.shuffle
+            |> Enum.zip(game.slots)
+            |> Enum.map(fn {setup_player, slot} ->
+              slot
+              |> GameSlot.changeset(%{player: setup_player})
+              |> Repo.update!
+            end)
+
+            game = %{game | slots: slots}
 
             Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
 

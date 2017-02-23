@@ -17,14 +17,14 @@ defmodule Mafia.GameServer do
 
   def start_link(%{id: id} = game) do
     game = game
-    |> Repo.preload([setup: [:teams, :roles], players: []])
+    |> Repo.preload([setup: [:teams, :roles], slots: []])
 
     GenServer.start_link(__MODULE__, game, name: via_tuple(id))
   end
 
   def start(%{id: id} = game) do
     game = game
-    |> Repo.preload([setup: [:teams, :roles], players: []])
+    |> Repo.preload([setup: [:teams, :roles], slots: []])
 
     GenServer.start(__MODULE__, game, name: via_tuple(id))
   end
@@ -53,7 +53,7 @@ defmodule Mafia.GameServer do
   def init(game) do
     db = game_db()
     |> load_setup(game.setup)
-    |> load_players(game.players)
+    |> load_slots(game.slots)
 
     {{:succeed, _}, db} = :erlog.prove(:next_phase, db)
 
@@ -162,9 +162,9 @@ defmodule Mafia.GameServer do
     db
   end
 
-  def load_players(db, players) do
-    Enum.reduce players, db, fn (player, db) ->
-      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, player.game_slot_id}}, db)
+  def load_slots(db, slots) do
+    Enum.reduce slots, db, fn (slot, db) ->
+      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, slot.id, slot.player}}, db)
       db
     end
   end

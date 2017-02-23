@@ -8,7 +8,7 @@ setup_role(team, "mafia", ([], killer)).
 setup_role(player, 1, ([], cop)).
 setup_phases([day, night]).
 
-player(1).
-player(3).
-player(5).
-player(7).
+player(1, 1).
+player(3, 2).
+player(5, 3).
+player(7, 4).

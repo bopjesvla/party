@@ -9,7 +9,7 @@ voting(q, q, q, q, q) :- fail.
 action_history(q, q, q) :- fail.
 access(q, q) :- fail.
 current_phase(q) :- fail.
-player(q) :- fail. % GameSlot.id
+player(q, q) :- fail. % GameSlot.id, GameSlot.player
 player_team(q, q) :- fail.
 phase_timer(q, q) :- fail.
 speed(q) :- fail.
@@ -30,6 +30,7 @@ player_won(q) :- fail.
 signups :- \+ current_phase(_).
 
 state(X) :- asserta(X), send(X).
+player(P) :- player(P, _).
 
 phase_name(Phase, Name) :-
   setup_phases(Phases),
