@@ -118,7 +118,7 @@ defmodule Mafia.QueueChannel do
             |> Enum.zip(game.slots)
             |> Enum.map(fn {setup_player, slot} ->
               slot
-              |> GameSlot.changeset(%{player: setup_player})
+              |> GameSlot.changeset(%{setup_player: setup_player})
               |> Repo.update!
             end)
 

@@ -52,7 +52,7 @@ defmodule Mafia.QueueChannelTest do
 
     :timer.sleep(100)
 
-    assert [%{game_id: ^id, player: player}|_] = Repo.all Mafia.GameSlot
+    assert [%{game_id: ^id, setup_player: player}|_] = Repo.all Mafia.GameSlot
     assert is_integer(player)
 
     :ok = Mafia.GameServer.stop(id)

@@ -164,7 +164,7 @@ defmodule Mafia.GameServer do
 
   def load_slots(db, slots) do
     Enum.reduce slots, db, fn (slot, db) ->
-      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, slot.id, slot.player}}, db)
+      {{:succeed, _}, db} = :erlog.prove({:asserta, {:player, slot.id, slot.setup_player}}, db)
       db
     end
   end
