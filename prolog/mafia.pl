@@ -142,17 +142,16 @@ start_phase :-
 
 start_game :-
   players(Players),
-  random_permutation(Players, ShuffledPlayers),
   forall(player(Player), (
     create_channel(player, nil, Channel),
     grant_access(Player, Channel)
   )),
   forall(setup_role(player, N, Role), (
-    nth1(N, ShuffledPlayers, Player),
+    player(Player, N),
     create_channel(player_role, Role, Channel),
     grant_access(Player, Channel)
    )),
-  forall((setup_team(N, Team), nth1(N, ShuffledPlayers, Player)), (
+  forall((setup_team(N, Team), player(Player, N)), (
     asserta(player_team(Player, Team))
   )),
   forall(setup_role(team, Team, Role), ( % for every team role, add a channel
