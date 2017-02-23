@@ -6,10 +6,12 @@ defmodule Mafia.GameChannelTest do
   @game %Mafia.Game{
     setup_id: 0,
     slots: [
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: 0}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -1}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -2}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -3}]}
+      # mafia
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: 0}], setup_player: 1},
+      # town
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -1}], setup_player: 2},
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -2}], setup_player: 3},
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -3}], setup_player: 4}
     ]
   }
 
@@ -31,6 +33,6 @@ defmodule Mafia.GameChannelTest do
     |> subscribe_and_join!(GameChannel, "game:-2")
 
     ref = push socket, "info", %{}
-    assert_reply ref, :ok, %{id: -2}
+    assert_reply ref, :ok, %{id: -2, teams: ["mafia"]}
   end
 end

@@ -52,6 +52,7 @@ defmodule Mafia.Queries do
 
       info
       |> to_map
+      |> Map.update!(:teams, &Enum.map(&1, fn x -> to_string(x) end))
       |> Map.merge(game_info)
     else
       game_info

@@ -53,13 +53,10 @@ test(voting) :- channel_type(Channel, global_role),
 
 test(lynch) :-
   channel_type(Channel, global_role),
-  player_team(P, "town"), % :(
-  unvote(3, Channel, _),
-  vote(5, Channel, lynch, [P]),
-  vote(1, Channel, lynch, [P]),
-  vote(7, Channel, lynch, [P]), % if this fails, next_phase probably failed
+  vote(1, Channel, lynch, [5]),
+  vote(7, Channel, lynch, [5]), % if this fails, next_phase probably failed
   flush(X),
-  member(message(P, "has been lynched"), X).
+  member(message(5, "has been lynched"), X).
 
 test(lynch_logged) :-
   channel_type(Channel, global_role),
@@ -68,7 +65,8 @@ test(lynch_logged) :-
 
 test(night) :-
   current_phase(1),
-  current_phase_name(night),
+  channel_type(Channel, global_role),
+  \+ join_channel(1, Channel),
   \+ vote(5, Channel, lynch, [1]),
   \+ vote(P, _, kill, [P]),
   channel_action(_, investigate, [noone]),

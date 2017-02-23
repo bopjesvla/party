@@ -6,10 +6,12 @@ defmodule Mafia.MeetChannelTest do
   @game %Mafia.Game{
     setup_id: 0,
     slots: [
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: 0}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -1}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -2}]},
-      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -3}]}
+      # mafia
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: 0}], setup_player: 1},
+      # town
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -1}], setup_player: 2},
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -2}], setup_player: 3},
+      %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -3}], setup_player: 4}
     ],
     channels: [
       %Mafia.Channel{user_id: 0, type: "game"},
@@ -32,7 +34,7 @@ defmodule Mafia.MeetChannelTest do
     game = Repo.insert!(%{@game | status: "ongoing", id: -4})
     {:ok, _} = game |> Mafia.GameSupervisor.start_game
 
-    [first_slot | _] = game.slots
+    [_, second_slot | _] = game.slots
 
     {:ok, reply, socket} = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join(GameChannel, "game:-4")
@@ -43,16 +45,16 @@ defmodule Mafia.MeetChannelTest do
 
     push socket, "new:vote", %{"action" => "lynch", "targets" => ["noone"]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
-    push socket, "new:vote", %{"action" => "lynch", "targets" => [first_slot.id]}
+    push socket, "new:vote", %{"action" => "lynch", "targets" => [second_slot.id]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
 
     socket("user_socket:-1", %{user: -1})
     |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
-    |> push("new:vote", %{"action" => "lynch", "targets" => [first_slot.id]})
+    |> push("new:vote", %{"action" => "lynch", "targets" => [second_slot.id]})
 
     socket("user_socket:-2", %{user: -2})
     |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
-    |> push("new:vote", %{"action" => "lynch", "targets" => [first_slot.id]})
+    |> push("new:vote", %{"action" => "lynch", "targets" => [second_slot.id]})
 
     assert_broadcast "new:msg", %{msg: "has been lynched"}
 
