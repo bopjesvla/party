@@ -44,9 +44,7 @@ main_role_action(roleblocker, block).
 alias(bulletproof, (["strong-willed", "compulsive", "self"], doctor)).
 
 mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
-  X is Xchar - 48,
-  X > 0,
-  X < 10,
+  char_nr(Xchar, X),
   count(action_history(_, action(_, Action, _, Channel), _), Count),
   Count >= X.
 
@@ -91,7 +89,7 @@ is_mod(Mod) :-
   clause(action_mod(Mod, _, _, _, _, _), _),
   string(Mod).
 
-is_mod([X|"-shot"]) :- onetonine(X).
+is_mod([X|"-shot"]) :- char_nr(X, _).
 
 role_info([roles(Roles), mods(Mods)]) :-
   findall(R, is_role(R), Roles),

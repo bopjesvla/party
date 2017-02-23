@@ -59,7 +59,7 @@ players(Players) :- findall(P, player(P), Players).
 
 alive(X) :- player(X), \+ dead(X).
 
-game_info(Player, [active(Active), players(Players), phase(PhaseInfo)]) :-
+game_info(Player, [active(Active), players(Players), phase(PhaseInfo), teams(Teams)]) :-
   player(Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(User, C),
@@ -73,7 +73,8 @@ game_info(Player, [active(Active), players(Players), phase(PhaseInfo)]) :-
   current_phase_info(PhaseInfo),
   findall([player(P), status(Status)], (
       player(P), status(P, Status)
-  ), Players).
+  ), Players),
+  findall(T, player_team(Player, T), Teams).
 
 set_phase_timer(After) :-
   remove_phase_timer,
@@ -256,10 +257,11 @@ status(Player, dead) :- dead(Player), !.
 status(Player, alive).
 
 
-flip(Player, [roles(Roles), teams(Teams)]) :-
+flip(Player) :-
   findall(Team, player_team(Player, Team), Teams),
   findall(Role, (
     access(Player, Channel),
     channel_type(Channel, player_role),
     channel_role(Channel, Role)
-  ), Roles).
+  ), Roles),
+  send(flip(Player, [roles(Roles), teams(Teams)])).

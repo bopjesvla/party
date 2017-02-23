@@ -11,6 +11,7 @@ soft_end_game :-
 
 end_game :-
   findall(P, won(P), Won),
+  forall(alive(P), flip(P)),
   send(end_game(Won)).
 
 team_won("town") :- !,

@@ -3,6 +3,7 @@ defmodule Mafia.GameSlot do
 
   schema "game_slots" do
     belongs_to :game, Mafia.Game
+    field :player, :integer
     has_many :game_players, Mafia.GamePlayer
 
     timestamps()
@@ -13,6 +14,6 @@ defmodule Mafia.GameSlot do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [])
+    |> cast(params, [:player])
   end
 end

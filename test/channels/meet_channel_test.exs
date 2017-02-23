@@ -55,6 +55,9 @@ defmodule Mafia.MeetChannelTest do
     |> push("new:vote", %{"action" => "lynch", "targets" => [first_slot.id]})
 
     assert_broadcast "new:msg", %{msg: "has been lynched"}
+
+    socket("user_socket:-2", %{user: -2})
+    |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
   end
 
 end

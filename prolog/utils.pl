@@ -86,15 +86,15 @@ string([X|XS]) :-
   string(XS).
 string([]).
 
-onetonine(49).
-onetonine(50).
-onetonine(51).
-onetonine(52).
-onetonine(53).
-onetonine(54).
-onetonine(55).
-onetonine(56).
-onetonine(57).
+char_nr(49, 1).
+char_nr(50, 2).
+char_nr(51, 3).
+char_nr(52, 4).
+char_nr(53, 5).
+char_nr(54, 6).
+char_nr(55, 7).
+char_nr(56, 8).
+char_nr(57, 9).
 
 send(Msg) :-
   erl(erlang:self, Self),
