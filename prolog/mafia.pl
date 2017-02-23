@@ -116,6 +116,7 @@ locked_actions(Actions) :-
   current_phase(P),
   findall(action(Actor, Action, Targets, Channel, ActionMods), (
     locked(Channel, Action, Targets, ActionMods),
+    % since votes are added using asserta, this is the last vote
     once(voting(P, Actor, Channel, Action, Targets)),
     \+ member(noone, Targets)
     ), Actions).
@@ -125,7 +126,9 @@ end_phase :-
   locked_actions(Actions),
   retract_all(locked(_, _, _, _)),
   resolve(Actions, SuccessfulActions),
-  forall(member(A, SuccessfulActions), call(A)),
+  % shuffle to prevent reading into result order
+  random_permutation(SuccessfulActions, Shuffled),
+  forall(member(A, Shuffled), call(A)),
   ignore(soft_end_game).
 
 end_phase :- start_game. % ending signups = starting the game
