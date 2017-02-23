@@ -32,7 +32,7 @@ defmodule Mafia.MeetChannel do
       %{id: id} = channel(socket.topic)
 
       %{inserted_at: inserted_at} = Repo.insert! Message.changeset(%Message{channel_id: id, user_id: socket.assigns.user}, %{type: "m", msg: msg})
-      broadcast! socket, "new:msg", %{msg: msg, u: socket.assigns.user, ts: inserted_at, type: "m"}
+      broadcast! socket, "new:msg", %{msg: msg, u: socket.assigns.user, ts: inserted_at, ty: "m"}
       {:noreply, socket}
     else
       {:error, "invalid message"}
@@ -55,18 +55,16 @@ defmodule Mafia.MeetChannel do
   end
 
   intercept ["leave"]
-  def handle_out("leave", %{who: who}, socket) do
+  def handle_out("leave", %{who: who}, %{assigns: %{user: u}} = socket) do
     push socket, "new:msg", %{type: "leave"}
 
     case who do
       :all ->
         {:stop, :normal, socket}
-      who ->
-        if socket.assigns.user in who do
-          {:stop, :normal, socket}
-        else
-          {:noreply, socket}
-        end
+      ^u ->
+        {:stop, :normal, socket}
+      _ ->
+        {:noreply, socket}
     end
   end
 

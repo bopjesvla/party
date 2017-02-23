@@ -11,14 +11,6 @@ defmodule Mafia.QueueChannelTest do
     {:ok, socket: socket}
   end
 
-  defp empty_mailbox do
-    receive do
-      _ -> empty_mailbox()
-    after
-      0 -> :ok
-    end
-  end
-
   test "create game, signups", %{socket: socket} do
     ref = push socket, "new:game", %{"setup_id" => 0, "speed" => 10}
     assert_reply ref, :ok, %{id: id}

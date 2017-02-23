@@ -115,7 +115,7 @@
 		},
 		methods: {
 			createGame() {
-				queue_channel.push("new:game", {setup_id: 0, speed: 1})
+				queue_channel.push("new:game", {setup_id: this.setup.id, speed: 1})
 				  .receive("ok", res => this.$router.push(`/game/${res.id}`))
 			},
 			createSetup() {

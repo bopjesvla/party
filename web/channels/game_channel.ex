@@ -10,17 +10,12 @@ defmodule Mafia.GameChannel do
     #end
   #end
 
-  def render_message([msg, u, ts, type, ch]) do
-    %{msg: msg, u: u, ts: ts, ty: type, ch: ch}
-  end
-
   def join("game:" <> id, _, %{assigns: %{user: user}} = socket) do
     id = String.to_integer(id)
     Queries.player!(id, user)
 
-    %{rows: rows} = Ecto.Adapters.SQL.query!(Repo, "select * from messages_between_joins_and_kicks($1, $2)", [user, id])
-
-    messages = Enum.map rows, &render_message/1
+    messages = Repo.run! :game_messages_for_user, [user, id]
+    IO.inspect messages
 
     info = Queries.game_info(id, user)
     |> Map.put(:msgs, messages)

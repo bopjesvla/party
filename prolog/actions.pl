@@ -31,6 +31,6 @@ action(Actor, Act, T, C, [Mod | Mods]) :-
 kill(Player, Message) :-
   send(message(Player, Message)),
   flip(Player, Flip),
-  send(flip(Flip)),
+  send(flip(Player, Flip)),
   asserta(dead(Player)),
   forall(access(Player, Channel), retract_access(Player, Channel)).

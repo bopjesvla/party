@@ -25,6 +25,14 @@ defmodule Mafia.ChannelCase do
       import Ecto.Changeset
       import Ecto.Query
 
+      def empty_mailbox do
+        receive do
+          _ -> empty_mailbox()
+        after
+          0 -> :ok
+        end
+      end
+
       # The default endpoint for testing
       @endpoint Mafia.Endpoint
     end

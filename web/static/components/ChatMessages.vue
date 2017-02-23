@@ -2,10 +2,10 @@
 	<div class="messages">
 		<div :class="`message type-${message.ty}`" v-for="message in messages">
 			<div class="message-ts">
-				{{message.ts | time}}
+				{{time(message.ts)}}
 			</div>
 			<div class="message-user">
-				{{message.u}}
+				{{name(message.u)}}
 			</div>
 			<div class="msg">
 				{{message.msg || message.ty}}
@@ -17,9 +17,11 @@
 <script>
 	export default {
 		props: ['messages', 'players'],
-		filters: {
+		methods: {
 			time: x => x.split(/[T ]/)[1].slice(0,5),
-			name: u => typeof u == "string" ? u : this.players.filter(x.user == u)[0].name
+			name(u) {
+				return typeof u == "string" ? u : this.players.filter(x => x.user == u)[0].name
+			}
 		}
 	}
 </script>

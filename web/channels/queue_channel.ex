@@ -16,6 +16,7 @@ defmodule Mafia.QueueChannel do
     join: s in assoc(g, :setup),
     where: p.status != "out",
     group_by: [g.id, s.name, s.size],
+    order_by: [desc: g.inserted_at],
     select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)},
     limit: 10
 

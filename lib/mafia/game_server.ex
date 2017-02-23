@@ -22,6 +22,13 @@ defmodule Mafia.GameServer do
     GenServer.start_link(__MODULE__, game, name: via_tuple(id))
   end
 
+  def start(%{id: id} = game) do
+    game = game
+    |> Repo.preload([setup: [:teams, :roles], players: []])
+
+    GenServer.start(__MODULE__, game, name: via_tuple(id))
+  end
+
   # API
 
   def query(id, terms) do
@@ -69,7 +76,7 @@ defmodule Mafia.GameServer do
     MeetChannel.new_message("meet:#{channel}", "join", user, nil)
     {:noreply, state}
   end
-  def handle_info({:next_phase, at}, %{id: id} = state) do
+  def handle_info({:next_phase, at}, %{game: %{id: id}} = state) do
     Mafia.Endpoint.broadcast!("game:#{id}", "info", %{'phase.next': at})
     {:noreply, state}
   end
@@ -77,11 +84,15 @@ defmodule Mafia.GameServer do
     Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: :all}
     {:noreply, state}
   end
+  def handle_info({:leave, who, channel}, state) do
+    Mafia.Endpoint.broadcast! "meet:#{channel}", "leave", %{who: who}
+    {:noreply, state}
+  end
   def handle_info(:do_next_phase, state) do
     {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
     {:noreply, %{state | db: db}}
   end
-  def handle_info({:new_phase, phase}, %{id: id} = state) do
+  def handle_info({:new_phase, phase}, %{game: %{id: id}} = state) do
     Mafia.Endpoint.broadcast!("game:#{id}", "info", %{phase: phase})
     {:noreply, state}
   end
@@ -90,19 +101,29 @@ defmodule Mafia.GameServer do
     %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     MeetChannel.new_message("meet:#{channel}", "vote", user, message)
     {:noreply, state}
-    end
-  def handle_info({:message, slot, message}, %{id: id} = state) do
+  end
+  def handle_info({:message, slot, message}, %{game: %{id: id}} = state) do
     %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
-    GameChannel.new_message(id, "sys", user, message)
+    GameChannel.new_message(id, "sys", user, to_string(message))
+    {:noreply, state}
+  end
+  def handle_info({:flip, slot, flip}, %{game: %{id: id}} = state) do
+    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    teams = Enum.map flip[:teams], &to_string/1
+    roles = Enum.map flip[:roles], fn {:',', mods, role} ->
+      %{role: role, mods: Enum.map(mods, &to_string/1)}
+    end
+    message = Poison.encode! %{roles: roles, teams: teams}
+    GameChannel.new_message(id, "flip", user, message)
     {:noreply, state}
   end
   def handle_info({:end_game, winners}, state) do
     # %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     # GameChannel.new_message(id, "sys", user, message)
-    {:noreply, state}
+    {:stop, :normal, state}
   end
   def handle_info(s, _) do
-    raise "shit" ++ s
+    raise "unknown message:" ++ s
   end
 
 
