@@ -11,7 +11,7 @@ defmodule Mafia.GameSupervisor do
 
   def init(_) do
     children = [
-      worker(Mafia.GameServer, [])
+      worker(Mafia.GameServer, [], restart: :temporary)
     ]
 
     supervise(children, strategy: :simple_one_for_one)
