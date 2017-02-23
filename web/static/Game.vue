@@ -2,7 +2,7 @@
 	<div class="room">
 		<room-header :name="$route.params.game_id"></room-header>
 		<div class="room-inner">
-			<chat-messages :messages="messages" :players=players></chat-messages>
+			<chat-messages :messages="messages" :players="players"></chat-messages>
 		</div>
 		<form @submit.prevent="send">
 			<input type="text" v-model="input"/>
@@ -60,7 +60,6 @@
 					.receive("error", e => console.log(e))
 
 				this.channel.on("new:msg", msg => {
-					console.log(msg)
 					this.messages.push(msg)
 				})
 			},

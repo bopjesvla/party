@@ -9,7 +9,7 @@
 			<collapse group="sidebar-tabs" label="Games" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
 			</collapse>
-			<collapse group="sidebar-tabs" label="Create and Find">
+			<collapse group="sidebar-tabs" label="New">
 				<create-game></create-game>
 			</collapse>
 			<collapse group="sidebar-tabs" label="Rooms" :active="true">

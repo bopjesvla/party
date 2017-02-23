@@ -36,6 +36,7 @@ defmodule Mafia.Mixfile do
      {:postgrex, ">= 0.0.0"},
      {:phoenix_html, "~> 2.6"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
+     {:wallaby, "~> 0.14", only: :test},
      {:gettext, "~> 0.11"},
      {:coherence, "~> 0.3"},
      {:cowboy, "~> 1.0"},
@@ -54,12 +55,15 @@ defmodule Mafia.Mixfile do
   defp aliases do
     ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
      "ecto.reset": ["ecto.drop", "ecto.setup"],
-     "test": fn ["prolog" | _] ->
-	   Mix.Task.run "test", ~w(--only prolog)
-     args ->
-	   Mix.Task.run "ecto.reset", []
-	   Mix.Task.run "test", args
-	 end,
+     "test": fn
+       ["prolog" | _] ->
+  	      Mix.Task.run "test", ~w(--only prolog)
+       ["browser" | _] ->
+         Mix.Task.run "test", ~w(--only browser)
+       args ->
+    	   Mix.Task.run "ecto.reset", []
+    	   Mix.Task.run "test", ["--exclude", "browser" | args]
+  	   end,
      "install": ["cmd swipl -f install.pl -g install -t halt"],
      "game.serve": "cmd swipl game_server.pl"]
   end

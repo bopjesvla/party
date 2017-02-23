@@ -34,6 +34,7 @@ defmodule Mafia.Queries do
 
   def game_info(id, user) do
     game = Repo.get_by(Game, id: id)
+    |> Repo.preload(:setup)
 
   	players = Repo.all from g in Game,
   	join: p in assoc(g, :players),
@@ -43,11 +44,10 @@ defmodule Mafia.Queries do
 
     game_info = game
   	|> Map.take(~w(id speed status setup_id)a)
-  	|> Map.merge(%{players: players})
+  	|> Map.merge(%{players: players, setup_name: game.setup.name})
 
     if game.status == "ongoing" do
       %{id: player_id} = Enum.find players, &(&1.user == user)
-      # GameServer.query(id, {:player, {:player}}) |> raise
       {:succeed, info: info} = GameServer.query(id, {:game_info, player_id, {:info}})
 
       info
