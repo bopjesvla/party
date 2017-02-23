@@ -15,7 +15,6 @@ defmodule Mafia.GameChannel do
     Queries.player!(id, user)
 
     messages = Repo.run! :game_messages_for_user, [user, id]
-    IO.inspect messages
 
     info = Queries.game_info(id, user)
     |> Map.put(:msgs, messages)

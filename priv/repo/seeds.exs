@@ -24,6 +24,6 @@ Repo.insert!(%Setup{
   name: "Simple",
   size: 4,
   teams: [%{player: 1, team: "mafia"}, %{player: 2, team: "town"}, %{player: 3, team: "town"}, %{player: 4, team: "town"}],
-  roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}],
+  roles: [%{type: "global", nr: nil, str: nil, mods: [], role: "village"}, %{type: "team", nr: nil, str: "mafia", mods: [], role: "killer"}],
   phases: ["day", "night"]
 })

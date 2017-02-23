@@ -30,6 +30,7 @@ defmodule Mafia.MeetChannelTest do
     assert_broadcast "new:msg", %{msg: "there", u: 0, ts: _}
   end
 
+  @tag :major
   test "can vote, lynch" do
     game = Repo.insert!(%{@game | status: "ongoing", id: -4})
     {:ok, _} = game |> Mafia.GameSupervisor.start_game
@@ -39,7 +40,8 @@ defmodule Mafia.MeetChannelTest do
     {:ok, reply, socket} = socket("user_socket:0", %{user: 0})
     |> subscribe_and_join(GameChannel, "game:-4")
 
-    assert %{active: [%{channel: global_channel, type: :global_role} | _]} = reply
+    assert %{active: active} = reply
+    assert [%{channel: global_channel, type: :global_role} | _] = active
 
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
 
@@ -57,9 +59,7 @@ defmodule Mafia.MeetChannelTest do
     |> push("new:vote", %{"action" => "lynch", "targets" => [second_slot.id]})
 
     assert_broadcast "new:msg", %{msg: "has been lynched"}
-
-    socket("user_socket:-2", %{user: -2})
-    |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
+    assert_broadcast("leave", %{who: :all})
   end
 
 end

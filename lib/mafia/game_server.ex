@@ -150,7 +150,7 @@ defmodule Mafia.GameServer do
     end
 
     db = Enum.reduce setup.roles, db, fn (r, db) ->
-      target = if r.type == "team", do: r.str, else: r.nr
+      target = if r.type == "team", do: charlist(r.str), else: r.nr
       role = {:',', Enum.map(r.mods, &charlist/1), atom(r.role)}
       fact = {:setup_role, atom(r.type), target, role}
       {{:succeed, _}, db} = :erlog.prove({:asserta, fact}, db)

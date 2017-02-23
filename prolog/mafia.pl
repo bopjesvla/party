@@ -60,19 +60,26 @@ players(Players) :- findall(P, player(P), Players).
 
 alive(X) :- player(X), \+ dead(X).
 
-game_info(Player, [active(Active), players(Players), phase(PhaseInfo), teams(Teams)]) :-
+game_info(Player, [active(Active), inactive(Inactive), player_status(Players), phase(PhaseInfo), teams(Teams)]) :-
   player(Player),
   findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
-      join_channel(User, C),
+      join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),
       nil_fallback(Role, channel_role(C, Role)),
       channel_type(C, Type),
       findall([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
-      ignore(current_phase(P)),
+      current_phase(P),
       findall([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
   ), Active),
+  findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
+      access(Player, C),
+      \+ join_channel(Player, C),
+      findall(Member, join_channel(Member, C), Members),
+      nil_fallback(Role, channel_role(C, Role)),
+      channel_type(C, Type)
+  ), Inactive),
   current_phase_info(PhaseInfo),
-  findall([player(P), status(Status)], (
+  findall([slot(P), status(Status)], (
       player(P), status(P, Status)
   ), Players),
   findall(T, player_team(Player, T), Teams).
@@ -103,13 +110,13 @@ end_game_or_next_phase :-
   soft_end_game, !.
 
 end_game_or_next_phase :-
+  increase_current_phase,
+  start_phase,
   forall((
     channel_role(Channel, _),
     \+ join_channel(_, Channel)),
     send(leave(Channel))
   ),
-  increase_current_phase,
-  start_phase,
   maybe_next_phase.
 
 locked_actions(Actions) :-
@@ -136,12 +143,7 @@ end_phase :- start_game. % ending signups = starting the game
 increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
 increase_current_phase :- asserta(current_phase(0)).
 
-start_phase :- !, true.
-start_phase :-
-  forall(player(Player), (
-    game_info(Player, GameInfo),
-    send(game_info(Player, GameInfo))
-  )).
+start_phase :- !.
 
 start_game :-
   players(Players),
@@ -159,7 +161,7 @@ start_game :-
   )),
   forall(setup_role(team, Team, Role), ( % for every team role, add a channel
     create_channel(team_role, Role, Channel),
-    forall(player_team(Player, Team), grant_access(Player, Channel))
+    forall(player_team(P, Team), grant_access(P, Channel))
   )),
   forall(setup_role(global, _, Role), (
     create_channel(global_role, Role, Channel),
