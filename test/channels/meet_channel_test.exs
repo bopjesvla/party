@@ -60,6 +60,8 @@ defmodule Mafia.MeetChannelTest do
 
     assert_broadcast "new:msg", %{msg: "has been lynched"}
     assert_broadcast("leave", %{who: :all})
+
+    assert_broadcast("new:msg", %{type: "phase"})
   end
 
 end

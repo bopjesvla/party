@@ -117,6 +117,8 @@ end_game_or_next_phase :-
     \+ join_channel(_, Channel)),
     send(leave(Channel))
   ),
+  current_phase_info(Info),
+  send(new_phase(Info)),
   maybe_next_phase.
 
 locked_actions(Actions) :-
@@ -140,7 +142,11 @@ end_phase :-
 
 end_phase :- start_game. % ending signups = starting the game
 
-increase_current_phase :- retract(current_phase(P)), Next is P + 1, asserta(current_phase(Next)), !.
+increase_current_phase :-
+  retract(current_phase(P)),
+  Next is P + 1,
+  asserta(current_phase(Next)),
+   !.
 increase_current_phase :- asserta(current_phase(0)).
 
 start_phase :- !.

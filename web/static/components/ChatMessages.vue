@@ -20,7 +20,7 @@
 		methods: {
 			time: x => x.split(/[T ]/)[1].slice(0,5),
 			name(u) {
-				return typeof u == "string" ? u : this.players.filter(x => x.user == u)[0].name
+				return typeof u == "number" ? this.players.filter(x => x.user == u)[0].name : u
 			}
 		}
 	}

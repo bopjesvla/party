@@ -52,7 +52,7 @@
 		components: {RoomHeader, ChatMessages, ChatInput},
 		computed: {
 			topic() {
-				return `${this.$route.name}:${this.$route.params.game_id}`
+				return `${this.$route.name}:${this.$route.params.name}`
 			}
 		}
 	}

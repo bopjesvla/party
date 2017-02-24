@@ -12,6 +12,10 @@ defmodule Mafia.GameChannelTest do
       %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -1}], setup_player: 2},
       %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -2}], setup_player: 3},
       %Mafia.GameSlot{game_players: [%Mafia.GamePlayer{status: "playing", user_id: -3}], setup_player: 4}
+    ],
+    channels: [
+      %Mafia.Channel{user_id: 0, type: "game"},
+      %Mafia.Channel{user_id: 0, type: "talk"}
     ]
   }
 

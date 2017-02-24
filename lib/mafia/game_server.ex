@@ -1,6 +1,7 @@
 defmodule Mafia.GameServer do
   use GenServer
   alias Mafia.{Repo,Channel,MeetChannel,GameChannel}
+  import Ecto.Query
 
   @game_db_files ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl end.pl)c
 
@@ -92,8 +93,8 @@ defmodule Mafia.GameServer do
     {{:succeed, _}, db} = :erlog.prove(:next_phase, state.db)
     {:noreply, %{state | db: db}}
   end
-  def handle_info({:new_phase, phase}, %{game: %{id: id}} = state) do
-    Mafia.Endpoint.broadcast!("game:#{id}", "info", %{phase: phase})
+  def handle_info({:new_phase, info}, %{game: %{id: id}} = state) do
+    GameChannel.new_message(id, "phase", nil, "#{info[:name]} #{info[:number]}")
     {:noreply, state}
   end
   def handle_info({:vote, slot, channel, act, targets}, state) do
@@ -117,9 +118,15 @@ defmodule Mafia.GameServer do
     GameChannel.new_message(id, "flip", user, message)
     {:noreply, state}
   end
-  def handle_info({:end_game, winners}, state) do
+  def handle_info({:end_game, winners}, %{game: game} = state) do
     # %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
     # GameChannel.new_message(id, "sys", user, message)
+    {1, _} = Mafia.Game
+    |> where(id: ^game.id, status: "ongoing")
+    |> Repo.update_all(set: [status: "finished"])
+
+    GameChannel.new_message(game.id, "end", nil, Poison.encode! %{winners: winners})
+
     {:stop, :normal, state}
   end
   def handle_info(s, _) do
