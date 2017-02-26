@@ -62,16 +62,16 @@ alive(X) :- player(X), \+ dead(X).
 
 game_info(Player, [active(Active), inactive(Inactive), player_status(Players), phase(PhaseInfo), teams(Teams)]) :-
   player(Player),
-  findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
+  find_dicts([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),
-      nil_fallback(Role, channel_role(C, Role)),
+      nil_fallback(Role, channel_role(C, (Mods, Role))),
       channel_type(C, Type),
-      findall([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
+      find_dicts([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
       current_phase(P),
-      findall([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
+      find_dicts([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
   ), Active),
-  findall([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
+  find_dicts([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
       access(Player, C),
       \+ join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),
@@ -79,7 +79,7 @@ game_info(Player, [active(Active), inactive(Inactive), player_status(Players), p
       channel_type(C, Type)
   ), Inactive),
   current_phase_info(PhaseInfo),
-  findall([slot(P), status(Status)], (
+  find_dicts([slot(P), status(Status)], (
       player(P), status(P, Status)
   ), Players),
   findall(T, player_team(Player, T), Teams).

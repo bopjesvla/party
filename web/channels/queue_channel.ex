@@ -58,11 +58,11 @@ defmodule Mafia.QueueChannel do
 
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
-    # if Mix.env == :dev do
-    #   Enum.each 1..game.setup.size, fn n ->
-    #     handle_in("signup", %{"id" => game.id}, %{assigns: %{user: -n}})
-    #   end
-    # end
+    if Mix.env == :dev do
+      Enum.each 1..game.setup.size, fn n ->
+        handle_in("signup", %{"id" => game.id}, assign(socket, :user, -n))
+      end
+    end
 
     {:reply, {:ok, %{id: game.id}}, socket}
   end
@@ -96,7 +96,7 @@ defmodule Mafia.QueueChannel do
     reply = case res do
       {:ok, _} ->
         new_count = count + 1
-        broadcast! socket, "game_info", %{
+        broadcast! socket, "count", %{
           id: id,
           count: new_count
         }

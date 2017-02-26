@@ -21,11 +21,14 @@
 				.receive("ok", d => this.gamesInSignups = d.games)
 			// user_channel.push("list:games", {})
 			// 	.receive("ok", d => this.gamesInSignups = d.games)
-			queue_channel.on("game_info", msg => {
-				this.gamesInSignups.filter(g => g.id == msg.id)[0].count = msg.count
+			queue_channel.on("count", msg => {
+				let game = this.gamesInSignups.filter(g => g.id == msg.id)[0]
+				if (game) {
+				  game.count = msg.count
+				}
 			})
 			queue_channel.on("new:game", msg => {
-				this.gamesInSignups.push(msg)
+				this.gamesInSignups.unshift(msg)
 			})
 		},
 		methods: {
