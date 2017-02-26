@@ -33,25 +33,17 @@
 		components: {Collapse, GameList, CreateGame},
 		data() {
 			return {
-				gamesInSignups: [],
 				joinedRooms: [{name: 'lobby'}, {name: 'test'}],
 				roomInput: ''
 			}
 		},
 		created() {
-			queue_channel.push("list:games", {})
-				.receive("ok", d => this.gamesInSignups = d.games)
-			queue_channel.on("game_info", msg => {
-				this.gamesInSignups.filter(g => g.id == msg.id)[0].count = msg.count
-			})
-			queue_channel.on("new:game", msg => {
-				this.gamesInSignups.push(msg)
-			})
+			
 		}
 	}
 </script>
 
-<style type="text/css" media="screen">
+<style>
 	$icon-width: 70px;
 	$bg: brown;
 	$active-color: black;

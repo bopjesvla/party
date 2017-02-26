@@ -10,7 +10,7 @@
     "phoenix_html": "file:deps/phoenix_html",
     "stylus-brunch": "^2.8.0",
     "vue": "^2.0.1",
-    "vue-multiselect": "^2.0.0-beta.13",
+    "vue-multiselect": "2.0.0-beta.13",
     "vue-router": "^2.0.0"
   },
   "devDependencies": {

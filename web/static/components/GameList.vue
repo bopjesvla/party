@@ -1,6 +1,6 @@
 <template>
 	<table class="game-list">
-		<tr v-for="game in games" @click="signup(game.id)">
+		<tr v-for="game in gamesInSignups" @click="signup(game.id)">
 			<td class="setup-name">{{game.setup}}</td>
 			<td class="players">{{game.count}}/{{game.size}}</td>
 		</tr>
@@ -8,11 +8,25 @@
 </template>
 
 <script>
-	import {queue_channel} from "../socket"
+	import {queue_channel, user_channel} from "../socket"
 
 	export default {
-		props: {
-			games: Array
+		data() {
+			return {
+				gamesInSignups: []
+			}
+		},
+		created() {
+			queue_channel.push("list:games", {})
+				.receive("ok", d => this.gamesInSignups = d.games)
+			// user_channel.push("list:games", {})
+			// 	.receive("ok", d => this.gamesInSignups = d.games)
+			queue_channel.on("game_info", msg => {
+				this.gamesInSignups.filter(g => g.id == msg.id)[0].count = msg.count
+			})
+			queue_channel.on("new:game", msg => {
+				this.gamesInSignups.push(msg)
+			})
 		},
 		methods: {
 			signup(id) {
