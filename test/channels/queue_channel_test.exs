@@ -15,7 +15,7 @@ defmodule Mafia.QueueChannelTest do
     ref = push socket, "new:game", %{"setup_id" => 0, "speed" => 10}
     assert_reply ref, :ok, %{id: id}
 
-    Repo.get_by! Mafia.Message, %{type: "join", user_id: 0}
+    # Repo.get_by! Mafia.Message, %{type: "join", user_id: 0}
 
     assert_broadcast("new:game", %{id: ^id, size: 4})
 

@@ -14,7 +14,7 @@ defmodule Mafia.QueueChannel do
     games = Repo.all from g in Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
-    where: p.status != "out",
+    where: p.status != "out" and g.status == "signups",
     group_by: [g.id, s.name, s.size],
     order_by: [desc: g.inserted_at],
     select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)},

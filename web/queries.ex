@@ -51,7 +51,6 @@ defmodule Mafia.Queries do
       {:succeed, info: info} = GameServer.query(id, {:game_info, player_id, {:info}})
 
       info
-      |> to_map
       |> Map.update!(:teams, &Enum.map(&1, fn x -> to_string(x) end))
       |> Map.merge(game_info)
     else

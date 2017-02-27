@@ -51,38 +51,50 @@ current_phase_number(Number) :-
   current_phase(P),
   phase_number(P, Number).
 
-current_phase_info([name(Name), number(Number), next(End)]) :-
+current_phase_info(PhaseMap) :-
   nil_fallback(End, phase_timer(_, End)),
   nil_fallback(Name, current_phase_name(Name)),
-  nil_fallback(Number, current_phase_number(Number)).
+  nil_fallback(Number, current_phase_number(Number)),
+  dict([name(Name), number(Number), next(End)], PhaseMap).
 
 players(Players) :- findall(P, player(P), Players).
 
 alive(X) :- player(X), \+ dead(X).
 
-game_info(Player, [active(Active), inactive(Inactive), player_status(Players), phase(PhaseInfo), teams(Teams)]) :-
+encode_role((Mods, Role), Json) :-
+  findall(StringMod, (member(Mod, Mods), list_binary(Mod, StringMod)), StringMods),
+  dict([mods(StringMods), role(Role)], Json).
+
+game_info(Player, Info) :-
   player(Player),
-  find_dicts([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
+  find_dicts([channel(C), members(Members), actions(Actions), votes(Votes), role(JsonRole), type(Type)], (
       join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),
-      nil_fallback(Role, channel_role(C, (Mods, Role))),
+      nil_fallback(JsonRole, (
+        channel_role(C, Role),
+        encode_role(Role, JsonRole)
+      )),
       channel_type(C, Type),
       find_dicts([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
       current_phase(P),
       find_dicts([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
   ), Active),
-  find_dicts([channel(C), members(Members), actions(Actions), votes(Votes), role(Role), type(Type)], (
+  find_dicts([channel(C), members(Members), role(Role), type(Type)], (
       access(Player, C),
       \+ join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),
-      nil_fallback(Role, channel_role(C, Role)),
+      nil_fallback(JsonRole, (
+        channel_role(C, Role),
+        encode_role(Role, JsonRole)
+      )),
       channel_type(C, Type)
   ), Inactive),
   current_phase_info(PhaseInfo),
   find_dicts([slot(P), status(Status)], (
       player(P), status(P, Status)
   ), Players),
-  findall(T, player_team(Player, T), Teams).
+  findall(T, player_team(Player, T), Teams),
+  dict([active(Active), inactive(Inactive), player_status(Players), phase(PhaseInfo), teams(Teams)], Info).
 
 set_phase_timer(After) :-
   remove_phase_timer,

@@ -56,8 +56,6 @@ defmodule Mafia.MeetChannel do
 
   intercept ["leave"]
   def handle_out("leave", %{who: who}, %{assigns: %{user: u}} = socket) do
-    push socket, "new:msg", %{type: "leave"}
-
     case who do
       :all ->
         {:stop, :normal, socket}

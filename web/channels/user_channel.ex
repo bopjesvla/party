@@ -8,19 +8,19 @@ defmodule Mafia.UserChannel do
       {:error, %{reason: "unauthorized"}}
     end
   end
-  
+
   def handle_in("list:games", _, socket) do
     games = Repo.all from g in Mafia.Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
     join: u in assoc(p, :user),
-    where: u.id == ^socket.assigns.user and g.status == "ongoing",
+    where: u.id == ^socket.assigns.user and (g.status == "ongoing" or g.status == "signups"),
     select: %{
       id: g.id,
       setup: s.name,
       speed: g.speed,
       status: g.status
     }
-    {:reply, %{games: games}, socket}
+    {:reply, {:ok, %{games: games}}, socket}
   end
 end

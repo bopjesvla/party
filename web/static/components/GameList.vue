@@ -1,5 +1,9 @@
 <template>
 	<table class="game-list">
+		<tr v-for="game in myGames" @click="signup(game.id)">
+			<td class="setup-name">{{game.setup}}</td>
+			<td class="status">{{game.status}}</td>
+		</tr>
 		<tr v-for="game in gamesInSignups" @click="signup(game.id)">
 			<td class="setup-name">{{game.setup}}</td>
 			<td class="players">{{game.count}}/{{game.size}}</td>
@@ -13,10 +17,13 @@
 	export default {
 		data() {
 			return {
-				gamesInSignups: []
+				gamesInSignups: [],
+				myGames: []
 			}
 		},
 		created() {
+			user_channel.push("list:games", {})
+				.receive("ok", d => this.myGames = d.games)
 			queue_channel.push("list:games", {})
 				.receive("ok", d => this.gamesInSignups = d.games)
 			// user_channel.push("list:games", {})
@@ -33,6 +40,10 @@
 		},
 		methods: {
 			signup(id) {
+				if (this.myGames.filter(g => g.id == id)[0]) {
+					this.$router.push({name: 'game', params: {game_id: id}})
+					return
+				}
 				queue_channel.push("signup", {id})
 					.receive("ok", _ => {
 						this.$router.push({name: 'game', params: {game_id: id}})
@@ -49,6 +60,9 @@
 	.game-list {
 		border: 0;
 		width: 100%;
+		tr {
+			cursor: pointer;
+		}
 		td {
 			padding: 2px
 		}

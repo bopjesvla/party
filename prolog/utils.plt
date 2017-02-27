@@ -22,4 +22,3 @@ test(dict) :-
 test(find_dicts) :-
   find_dicts([value(X)], member(X, [1]), Out),
   log(Out).
-  
