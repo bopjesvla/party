@@ -15,3 +15,11 @@ test(nil_fallback) :-
   nil_fallback(Y, (Y = 1, Y = 2)),
   \+ Y = 1,
   Y = nil.
+
+test(dict) :-
+  dict(X).
+
+test(find_dicts) :-
+  find_dicts([value(X)], member(X, [1]), Out),
+  log(Out).
+  
