@@ -48,16 +48,22 @@ defmodule Mafia.Queries do
 
     if game.status == "ongoing" do
       %{id: player_id} = Enum.find players, &(&1.user == user and &1.status == "playing")
-      case GameServer.query(id, {:game_info, player_id, {:info}}) do
-        {:succeed, info: info} ->
-          info
-          |> Map.update!(:teams, &Enum.map(&1, fn x -> to_string(x) end))
-          |> Map.merge(game_info)
-        _ ->
+      try do
+        case GameServer.query(id, {:game_info, player_id, {:info}}) do
+          {:succeed, info: info} ->
+            info
+            |> Map.update!(:teams, &Enum.map(&1, fn x -> to_string(x) end))
+            |> Map.merge(game_info)
+          _ ->
+            game_info
+        end
+      catch
+        :exit, reason ->
           Game.changeset(game, %{status: "crashed"})
           |> Repo.update!
 
           Map.put(game_info, :status, "crashed")
+          exit(reason)
       end
     else
       game_info

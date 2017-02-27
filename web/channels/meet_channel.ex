@@ -70,7 +70,7 @@ defmodule Mafia.MeetChannel do
     channel = channel(meet)
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
 
-    Mafia.Endpoint.broadcast! meet, "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+    Mafia.Endpoint.broadcast! meet, "new:msg", %{msg: message, u: user, ts: inserted_at, ty: type}
   end
 
   def leave_message(meet, who) do

@@ -5,22 +5,31 @@
 			<chat-messages :messages="messages" :players="this.info.players"></chat-messages>
 			<div class="game-ui">
 				<div class="active" v-if="info.active">
-					<div class="channel" v-for="channel in info.active">
-						{{channel}}
+					<div class="channel" v-for="channel in roleChannels(info.active)">
 						<div class="role" v-if="channel.role">
 							<b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
 						</div>
 						<div class="players" v-if="channel.members">
 							<div class="player" v-for="slot in channel.members">
-								{{slotName(slot)}}<br />
-								votes
+								{{slotName(slot, info.players)}}<br />
+								<div class="vote" v-if="isVoting(channel, slot)">
+									votes to {{
+										renderVote(isVoting(channel, slot), info.players)
+									}}
+								</div>
+								<div class="vote">
+									voted by {{
+										renderVotedBy(channel, slot) || "no one"
+									}}
+								</div>
 							</div>
 						</div>
 						<div class="act" v-if="channel.actions && channel.actions.length">
 							<v-select
 							  placeholder="Vote"
-								:options="channel.actions"
-								:custom-label="renderVote.bind(players)"
+								:options="voteOptions(channel)"
+								track-by="vote"
+								label="label"
 								:value="isVoting(channel, me.slot)"
 								@input="vote(channel, $event)">
 							</v-select>
@@ -99,12 +108,30 @@
 			},
 			renderVote,
 			slotName,
+			voteOptions(channel) {
+				return channel.actions.map(x => ({
+					vote: x,
+					label: renderVote(x, this.info.players)
+				}))
+			},
 			isVoting(channel, slot) {
 				return channel.votes.filter(x => x.player == slot)[0]
 			},
-			vote(channel, vote) {
+			renderVotedBy(channel, slot) {
+				return channel.votes
+				  .filter(x => ~x.opt.indexOf(slot))
+					.map(x => slotName(x.player, this.info.players))
+					.join(", ")
+			},
+			actor(vote) {
+				return vote.player
+			},
+			roleChannels(channels) {
+				return channels.filter(c => c.type != "player")
+			},
+			vote(channel, v) {
 				this.meets.filter(x => x.topic == "meet:" + channel.channel)[0]
-					.push("new:vote", vote)
+					.push("new:vote", v.vote)
 			}
 		},
 		watch: {
