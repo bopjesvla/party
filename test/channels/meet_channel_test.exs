@@ -45,18 +45,18 @@ defmodule Mafia.MeetChannelTest do
 
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
 
-    push socket, "new:vote", %{"action" => "lynch", "targets" => ["noone"]}
+    push socket, "new:vote", %{"act" => "lynch", "opt" => ["noone"]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
-    push socket, "new:vote", %{"action" => "lynch", "targets" => [second_slot.id]}
+    push socket, "new:vote", %{"act" => "lynch", "opt" => [second_slot.id]}
     assert_broadcast "new:msg", %{u: _, type: "vote"}
 
     socket("user_socket:-1", %{user: -1})
     |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
-    |> push("new:vote", %{"action" => "lynch", "targets" => [second_slot.id]})
+    |> push("new:vote", %{"act" => "lynch", "opt" => [second_slot.id]})
 
     socket("user_socket:-2", %{user: -2})
     |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
-    |> push("new:vote", %{"action" => "lynch", "targets" => [second_slot.id]})
+    |> push("new:vote", %{"act" => "lynch", "opt" => [second_slot.id]})
 
     assert_broadcast "new:msg", %{msg: "has been lynched"}
     assert_broadcast("leave", %{who: :all})

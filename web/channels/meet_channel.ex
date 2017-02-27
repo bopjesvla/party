@@ -39,7 +39,7 @@ defmodule Mafia.MeetChannel do
     end
   end
 
-  def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
+  def handle_in("new:vote", %{"act" => action, "opt" => targets}, socket) do
     "meet:" <> name = socket.topic
 
     meet = Repo.get_by!(Channel, name: name, type: "meet")

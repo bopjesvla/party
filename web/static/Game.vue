@@ -18,11 +18,12 @@
 						</div>
 						<div class="act" v-if="channel.actions && channel.actions.length">
 							<v-select
-							  placeholder="Not Voting"
+							  placeholder="Vote"
 								:options="channel.actions"
-								:custom-label="voteLabel"
-								:value="isVoting(me.slot)"
-								@input="vote($event)">
+								:custom-label="renderVote.bind(players)"
+								:value="isVoting(channel, me.slot)"
+								@input="vote(channel, $event)">
+							</v-select>
 						</div>
 					</div>
 				</div>
@@ -39,6 +40,8 @@
 	import RoomHeader from './components/RoomHeader'
 	import ChatMessages from './components/ChatMessages'
 	import ChatInput from './components/ChatInput'
+	import {renderVote, slotName} from './textviews'
+	import Vote from './components/Vote'
 
 	export default {
 		data() {
@@ -94,34 +97,26 @@
 					})
 				})
 			},
-			voteLabel(v) {
-				let targets = v.opt.map(t => {
-					if (typeof t == "number") {
-						return this.slotName(t)
-					}
-					else {
-						return t
-					}
-				})
-				return `${v.act} ${targets.join(" ")}`
+			renderVote,
+			slotName,
+			isVoting(channel, slot) {
+				return channel.votes.filter(x => x.player == slot)[0]
 			},
-			isVoting(slot) {
-				// return this.votes.filter()
-			},
-			slotName(slot) {
-				return this.info.players.filter(x => x.slot == slot)[0].name
+			vote(channel, vote) {
+				this.meets.filter(x => x.topic == "meet:" + channel.channel)[0]
+					.push("new:vote", vote)
 			}
 		},
 		watch: {
 			$route: 'load'
 		},
-		components: {RoomHeader, ChatMessages, ChatInput},
+		components: {RoomHeader, ChatMessages, ChatInput, Vote},
 		computed: {
 			topic() {
 				return `${this.$route.name}:${this.$route.params.game_id}`
 			},
 			me() {
-				return this.info.players.filter(x => x.user == window.user)[0].name
+				return this.info.players.filter(x => x.user == window.user)[0]
 			}
 		}
 	}

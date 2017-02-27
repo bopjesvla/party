@@ -77,9 +77,9 @@ game_info(Player, Info) :-
       channel_type(C, Type),
       find_dicts([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
       current_phase(P),
-      find_dicts([player(Player), action(Action), targets(T)], voting(P, Player, C, Action, T), Votes)
+      find_dicts([player(Player), act(Action), opt(Targets)], voting(P, Player, C, Action, Targets), Votes)
   ), Active),
-  find_dicts([channel(C), members(Members), role(Role), type(Type)], (
+  find_dicts([channel(C), members(Members), role(JsonRole), type(Type)], (
       access(Player, C),
       \+ join_channel(Player, C),
       findall(Member, join_channel(Member, C), Members),

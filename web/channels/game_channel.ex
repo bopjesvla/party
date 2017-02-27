@@ -14,13 +14,11 @@ defmodule Mafia.GameChannel do
     id = String.to_integer(id)
     Queries.player!(id, user)
 
-    IO.inspect "aaaaa"
-
     messages = Repo.run! :game_messages_for_user, [user, id]
 
     info = Queries.game_info(id, user)
     |> Map.put(:msgs, messages)
-    IO.inspect info
+
     {:ok, info, socket}
   end
 
