@@ -56,6 +56,13 @@ defmodule Mafia.QueueChannel do
       size: game.setup.size
     }
 
+    Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
+      game: game.id,
+      setup: game.setup.name,
+      status: game.status,
+      speed: game.speed
+    }
+
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
     if Mix.env == :dev do
