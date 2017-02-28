@@ -36,30 +36,34 @@ defmodule Mafia.QueueChannel do
   end
 
   def handle_in("new:game", %{"setup_id" => setup_id} = opts, %{assigns: %{user: user}} = socket) do
+    setup = Repo.get!(Mafia.Setup, setup_id)
+    [first_setup_player | rest] = Enum.shuffle(1..setup.size)
+    
     player = %GamePlayer{user_id: user, status: "playing"}
-    slot = %GameSlot{game_players: [player]}
+    
+    player_slot = %GameSlot{game_players: [player], setup_player: first_setup_player}
+    other_slots = Enum.map(rest, &%GameSlot{setup_player: &1})
 
     game = %Game{
       channels: [%Channel{user_id: user, type: "game"}, %Channel{user_id: user, type: "talk"}],
       status: "signups",
       setup_id: setup_id,
-      slots: [slot]
+      slots: [player_slot | other_slots]
     }
     |> Game.changeset(opts)
     |> Repo.insert!
-    |> Repo.preload(:setup)
 
     broadcast! socket, "new:game", %{
       id: game.id,
       count: 1,
-      setup: game.setup.name,
-      size: game.setup.size
+      setup: setup.name,
+      size: setup.size
     }
 
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
     if Mix.env == :dev do
-      Enum.each 1..game.setup.size, fn n ->
+      Enum.each 1..setup.size, fn n ->
         handle_in("signup", %{"id" => game.id}, assign(socket, :user, -n))
       end
     end
@@ -72,30 +76,18 @@ defmodule Mafia.QueueChannel do
     "signups" = game.status
 
     player = %GamePlayer{user_id: user, status: "playing"}
-    changeset = %GameSlot{game_players: [player], game: game}
-    |> GameSlot.changeset
 
     nil = Mafia.Queries.player(id, user)
 
-    {:ok, {res, count}} = Repo.transaction fn ->
-      Repo.run! "lock table game_slots in exclusive mode"
-
-      count = Repo.one from p in GamePlayer,
-      join: s in assoc(p, :game_slot),
-      where: s.game_id == ^id and p.status == "playing",
-      select: count(1)
-
-      res = if count < game.setup.size do
-        Repo.insert changeset
-      else
-        {:error, Ecto.Changeset.add_error(changeset, :game, "Already filled")}
-      end
-      {res, count}
-    end
+    res = Repo.run :signup, [id, user]
 
     reply = case res do
       {:ok, _} ->
-        new_count = count + 1
+        new_count = Repo.one from p in GamePlayer,
+        join: s in assoc(p, :game_slot),
+        where: s.game_id == ^id and p.status == "playing",
+        select: count(1)
+        
         broadcast! socket, "count", %{
           id: id,
           count: new_count

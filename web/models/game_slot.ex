@@ -5,8 +5,6 @@ defmodule Mafia.GameSlot do
     belongs_to :game, Mafia.Game
     field :setup_player, :integer
     has_many :game_players, Mafia.GamePlayer
-
-    timestamps()
   end
 
   @doc """

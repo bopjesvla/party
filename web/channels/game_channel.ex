@@ -12,7 +12,7 @@ defmodule Mafia.GameChannel do
 
   def join("game:" <> id, _, %{assigns: %{user: user}} = socket) do
     id = String.to_integer(id)
-    Queries.player!(id, user)
+    %{status: "playing"} = Queries.player!(id, user)
 
     messages = Repo.run! :game_messages_for_user, [user, id]
 
