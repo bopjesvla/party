@@ -13,10 +13,13 @@ erl(Left, ToLeft, Right, _) :-
 string_number(String, Number) :-
   erl(Number, 'Elixir.String':to_integer(String), String, erlang:integer_to_list(Number)).
 
+list_binary(List, Binary) :-
+  erl(Binary, unicode:characters_to_binary(List), List, unicode:characters_to_list(Binary)).
+
 dict(X) :- erl(maps:new, X).
 dict(List, X) :-
-  dict(X),
-  erl(maps:new, X).
+  dict(NewMap),
+  erl('Elixir.Enum':into(List, NewMap), X).
 
 random_permutation(List, Shuffled) :-
   erl('Elixir.Enum':shuffle(List), Shuffled).
@@ -117,13 +120,9 @@ q_sort([H|T],Acc,Sorted):-
   pivoting(H,T,L1,L2),
   q_sort(L1,Acc,Sorted1),q_sort(L2,[H|Sorted1],Sorted).
 
-map(ListIn, In, Out, ListOut) :-
-  findall((member(In, List), Out), ListIn, ListOut).
-
 find_dicts(KeywordListTemplate, Query, MapResults) :-
   findall(KeywordListTemplate, Query, Results),
   findall(MapResult, (
-    member(R, Results), 
-    dict(Map),
-    erl('Elixir.Enum':into(R, Map), MapResult)
+    member(R, Results),
+    dict(R, MapResult)
   ), MapResults).

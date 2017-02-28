@@ -12,6 +12,6 @@ defmodule Mafia.Repo.Migrations.CreateGamePlayer do
     create index(:game_players, [:user_id])
     create index(:game_players, [:game_slot_id])
 
-    create unique_index(:game_players, [:game_slot_id], where: "status = 'playing'")
+    create unique_index(:game_players, [:game_slot_id], where: "status = 'playing'", name: "unique_playing_player")
   end
 end

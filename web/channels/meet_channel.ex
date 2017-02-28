@@ -39,7 +39,7 @@ defmodule Mafia.MeetChannel do
     end
   end
 
-  def handle_in("new:vote", %{"action" => action, "targets" => targets}, socket) do
+  def handle_in("new:vote", %{"act" => action, "opt" => targets}, socket) do
     "meet:" <> name = socket.topic
 
     meet = Repo.get_by!(Channel, name: name, type: "meet")
@@ -56,8 +56,6 @@ defmodule Mafia.MeetChannel do
 
   intercept ["leave"]
   def handle_out("leave", %{who: who}, %{assigns: %{user: u}} = socket) do
-    push socket, "new:msg", %{type: "leave"}
-
     case who do
       :all ->
         {:stop, :normal, socket}
@@ -72,7 +70,7 @@ defmodule Mafia.MeetChannel do
     channel = channel(meet)
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
 
-    Mafia.Endpoint.broadcast! meet, "new:msg", %{msg: message, u: user, ts: inserted_at, type: type}
+    Mafia.Endpoint.broadcast! meet, "new:msg", %{msg: message, u: user, ts: inserted_at, ty: type}
   end
 
   def leave_message(meet, who) do

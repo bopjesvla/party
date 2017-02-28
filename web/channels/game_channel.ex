@@ -18,6 +18,7 @@ defmodule Mafia.GameChannel do
 
     info = Queries.game_info(id, user)
     |> Map.put(:msgs, messages)
+
     {:ok, info, socket}
   end
 
@@ -26,7 +27,7 @@ defmodule Mafia.GameChannel do
     %{inserted_at: inserted_at} = Repo.insert!(%Message{channel: channel, user_id: user, type: type, msg: message})
 
     Mafia.Endpoint.broadcast! "game:#{game_id}", "new:msg",
-      %{msg: message, u: user, ts: inserted_at, type: type}
+      %{msg: message, u: user, ts: inserted_at, ty: type}
   end
 
   def handle_in("info", _, socket) do

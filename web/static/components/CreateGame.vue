@@ -38,7 +38,7 @@
 					:options="roleOptions">
 				</v-select>
 			</div>
-			<button style="display : inline;" @click="setup.roles.push({role: null, mods: null, type: 'player', nr: 1, str: null})">+</button>
+			<button style="display : inline;" @click="setup.roles.push({role: null, mods: [], type: 'player', nr: 1, str: null})">+</button>
 		</div>
 		<div class="teams">
 			<h3>Teams</h3>
@@ -119,6 +119,7 @@
 				  .receive("ok", res => {
 				  	this.$router.push(`/game/${res.id}`)
 				  })
+					.receive("error", e => this.error = e)
 			},
 			createSetup() {
 				queue_channel.push("new:setup", {setup: this.setup})

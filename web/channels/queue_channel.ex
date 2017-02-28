@@ -14,7 +14,7 @@ defmodule Mafia.QueueChannel do
     games = Repo.all from g in Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
-    where: p.status != "out",
+    where: p.status != "out" and g.status == "signups",
     group_by: [g.id, s.name, s.size],
     order_by: [desc: g.inserted_at],
     select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)},
@@ -60,9 +60,16 @@ defmodule Mafia.QueueChannel do
       size: setup.size
     }
 
+    Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
+      game: game.id,
+      setup: setup.name,
+      status: game.status,
+      speed: game.speed
+    }
+
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
-    if Mix.env == :dev do
+    if Mix.env == :dev and user == 0 do
       Enum.each 1..setup.size, fn n ->
         handle_in("signup", %{"id" => game.id}, assign(socket, :user, -n))
       end
@@ -79,7 +86,7 @@ defmodule Mafia.QueueChannel do
 
     nil = Mafia.Queries.player(id, user)
 
-    res = Repo.run :signup, [id, user]
+    res = Repo.run :signup, [id, user, Ecto.DateTime.utc]
 
     reply = case res do
       {:ok, _} ->
@@ -100,32 +107,15 @@ defmodule Mafia.QueueChannel do
           speed: game.speed
         }
         if new_count == game.setup.size do
-          spawn fn ->
-            Registry.register(:timer_registry, game.id, @signups_countdown)
-            Process.sleep(@signups_countdown)
+          game = Repo.preload(game, :slots)
 
-            game = Repo.preload(game, :slots)
+          {1, _} = Game
+          |> where(id: ^game.id, status: "signups")
+          |> Repo.update_all(set: [status: "ongoing"])
 
-            {1, _} = Game
-            |> where(id: ^game.id, status: "signups")
-            |> Repo.update_all(set: [status: "ongoing"])
+          Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
 
-            # assign a player number to each game slot
-            slots = 1..game.setup.size
-            |> Enum.shuffle
-            |> Enum.zip(game.slots)
-            |> Enum.map(fn {setup_player, slot} ->
-              slot
-              |> GameSlot.changeset(%{setup_player: setup_player})
-              |> Repo.update!
-            end)
-
-            game = %{game | slots: slots}
-
-            Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
-
-            {:ok, _} = GameSupervisor.start_game(game)
-          end
+          {:ok, _} = GameSupervisor.start_game(game)
         end
         :ok
       {:error, changeset} ->

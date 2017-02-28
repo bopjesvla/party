@@ -8,19 +8,30 @@
 				{{name(message.u)}}
 			</div>
 			<div class="msg">
-				{{message.msg || message.ty}}
+				{{renderMessage(message)}}
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
+	import {renderVote} from '../textviews'
 	export default {
 		props: ['messages', 'players'],
 		methods: {
 			time: x => x.split(/[T ]/)[1].slice(0,5),
 			name(u) {
 				return typeof u == "number" ? this.players.filter(x => x.user == u)[0].name : u
+			},
+			renderMessage(message) {
+				if (message.ty == "m") {
+					return message.msg
+				}
+				if (message.ty == "vote") {
+					return "votes to " + renderVote(JSON.parse(message.msg), this.players)
+				}
+
+				return message.msg || message.ty
 			}
 		}
 	}
@@ -50,6 +61,19 @@
 			&.type-m {
 				.msg {
 					color: black;
+				}
+			}
+			&.type-vote {
+				.msg {
+					color: black;
+					font-style: italic;
+				}
+			}
+			&.type-phase {
+				.msg {
+					color: black;
+					font-size: 2em;
+					text-transform: capitalize;
 				}
 			}
 		}
