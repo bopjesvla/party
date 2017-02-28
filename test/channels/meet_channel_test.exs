@@ -46,9 +46,9 @@ defmodule Mafia.MeetChannelTest do
     socket = socket |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
 
     push socket, "new:vote", %{"act" => "lynch", "opt" => ["noone"]}
-    assert_broadcast "new:msg", %{u: _, type: "vote"}
+    assert_broadcast "new:msg", %{u: _, ty: "vote"}
     push socket, "new:vote", %{"act" => "lynch", "opt" => [second_slot.id]}
-    assert_broadcast "new:msg", %{u: _, type: "vote"}
+    assert_broadcast "new:msg", %{u: _, ty: "vote"}
 
     socket("user_socket:-1", %{user: -1})
     |> subscribe_and_join!(MeetChannel, "meet:" <> global_channel)
@@ -61,7 +61,7 @@ defmodule Mafia.MeetChannelTest do
     assert_broadcast "new:msg", %{msg: "has been lynched"}
     assert_broadcast("leave", %{who: :all})
 
-    assert_broadcast("new:msg", %{type: "phase"})
+    assert_broadcast("new:msg", %{ty: "phase"})
   end
 
 end

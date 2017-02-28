@@ -65,7 +65,7 @@ defmodule Mafia.QueueChannel do
 
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
-    if Mix.env == :dev do
+    if Mix.env == :dev and user == 0 do
       Enum.each 1..game.setup.size, fn n ->
         handle_in("signup", %{"id" => game.id}, assign(socket, :user, -n))
       end
@@ -115,32 +115,27 @@ defmodule Mafia.QueueChannel do
           speed: game.speed
         }
         if new_count == game.setup.size do
-          spawn fn ->
-            Registry.register(:timer_registry, game.id, @signups_countdown)
-            Process.sleep(@signups_countdown)
+          game = Repo.preload(game, :slots)
 
-            game = Repo.preload(game, :slots)
+          {1, _} = Game
+          |> where(id: ^game.id, status: "signups")
+          |> Repo.update_all(set: [status: "ongoing"])
 
-            {1, _} = Game
-            |> where(id: ^game.id, status: "signups")
-            |> Repo.update_all(set: [status: "ongoing"])
+          # assign a player number to each game slot
+          slots = 1..game.setup.size
+          |> Enum.shuffle
+          |> Enum.zip(game.slots)
+          |> Enum.map(fn {setup_player, slot} ->
+            slot
+            |> GameSlot.changeset(%{setup_player: setup_player})
+            |> Repo.update!
+          end)
 
-            # assign a player number to each game slot
-            slots = 1..game.setup.size
-            |> Enum.shuffle
-            |> Enum.zip(game.slots)
-            |> Enum.map(fn {setup_player, slot} ->
-              slot
-              |> GameSlot.changeset(%{setup_player: setup_player})
-              |> Repo.update!
-            end)
+          game = %{game | slots: slots}
 
-            game = %{game | slots: slots}
+          Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
 
-            Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
-
-            {:ok, _} = GameSupervisor.start_game(game)
-          end
+          {:ok, _} = GameSupervisor.start_game(game)
         end
         :ok
       {:error, changeset} ->

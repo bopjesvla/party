@@ -1,7 +1,7 @@
 <template>
 	<table class="game-list">
 		<tr v-for="game in myGames" @click="signup(game.id)">
-			<td class="setup-name">{{game.setup}}</td>
+			<td class="setup-name">{{game.id}}: {{game.setup}}</td>
 			<td class="status">{{game.status}}</td>
 		</tr>
 		<tr v-for="game in gamesInSignups" @click="signup(game.id)">

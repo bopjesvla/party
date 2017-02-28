@@ -75,14 +75,14 @@ game_info(Player, Info) :-
         encode_role(Role, JsonRole)
       )),
       channel_type(C, Type),
-      find_dicts([act(Action), opt(Targets)], channel_action(C, Action, Targets), Actions),
+      find_dicts([act(Action), opt(Targets)], can_vote(Player, C, Action, Targets, _), Actions),
       current_phase(P),
       find_dicts([player(Player), act(Action), opt(Targets)], voting(P, Player, C, Action, Targets), Votes)
   ), Active),
   find_dicts([channel(C), members(Members), role(JsonRole), type(Type)], (
       access(Player, C),
       \+ join_channel(Player, C),
-      findall(Member, join_channel(Member, C), Members),
+      findall(Member, access(Member, C), Members),
       nil_fallback(JsonRole, (
         channel_role(C, Role),
         encode_role(Role, JsonRole)

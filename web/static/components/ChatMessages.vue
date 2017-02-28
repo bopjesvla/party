@@ -72,7 +72,7 @@
 			&.type-phase {
 				.msg {
 					color: black;
-					font-size: 3em;
+					font-size: 2em;
 					text-transform: capitalize;
 				}
 			}
