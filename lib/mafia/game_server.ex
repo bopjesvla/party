@@ -49,6 +49,12 @@ defmodule Mafia.GameServer do
     |> GenServer.stop
   end
 
+  def crash(id) do
+    id
+    |> via_tuple
+    |> GenServer.stop
+  end
+
   # callbacks
 
   def init(game) do

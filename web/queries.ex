@@ -47,9 +47,9 @@ defmodule Mafia.Queries do
   	|> Map.merge(%{players: players, setup_name: game.setup.name})
 
     if game.status == "ongoing" do
-      %{id: player_id} = Enum.find players, &(&1.user == user and &1.status == "playing")
+      %{slot: slot_id} = Enum.find players, &(&1.user == user and &1.status == "playing")
       try do
-        case GameServer.query(id, {:game_info, player_id, {:info}}) do
+        case GameServer.query(id, {:game_info, slot_id, {:info}}) do
           {:succeed, info: info} ->
             info
             |> Map.update!(:teams, &Enum.map(&1, fn x -> to_string(x) end))
