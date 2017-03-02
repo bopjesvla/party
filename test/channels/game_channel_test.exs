@@ -39,6 +39,5 @@ defmodule Mafia.GameChannelTest do
     ref = push socket, "info", %{}
     assert_reply ref, :ok, %{id: -2, teams: ["mafia"], active: active}
     g = assert Enum.find(active, &(&1.type == :global_role))
-    IO.inspect g
   end
 end

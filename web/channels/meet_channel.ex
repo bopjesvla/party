@@ -45,9 +45,9 @@ defmodule Mafia.MeetChannel do
     meet = Repo.get_by!(Channel, name: name, type: "meet")
     player = Mafia.Queries.player!(meet.game_id, socket.assigns.user)
 
-	targets = Enum.map targets, fn
-	  t when is_binary(t) -> String.to_existing_atom(t)
-	  t -> t
+    targets = Enum.map targets, fn
+      t when is_binary(t) -> String.to_existing_atom(t)
+      t -> t
     end
 
     GameServer.query! meet.game_id, {:vote, player.game_slot_id, name, String.to_existing_atom(action), targets}

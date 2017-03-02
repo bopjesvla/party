@@ -38,9 +38,9 @@ defmodule Mafia.QueueChannel do
   def handle_in("new:game", %{"setup_id" => setup_id} = opts, %{assigns: %{user: user}} = socket) do
     setup = Repo.get!(Mafia.Setup, setup_id)
     [first_setup_player | rest] = Enum.shuffle(1..setup.size)
-    
+
     player = %GamePlayer{user_id: user, status: "playing"}
-    
+
     player_slot = %GameSlot{game_players: [player], setup_player: first_setup_player}
     other_slots = Enum.map(rest, &%GameSlot{setup_player: &1})
 
@@ -70,7 +70,7 @@ defmodule Mafia.QueueChannel do
     Mafia.MeetChannel.new_message("talk:#{game.id}", "join", user, nil)
 
     if Mix.env == :dev and user == 0 do
-      Enum.each 1..setup.size, fn n ->
+      Enum.each 2..setup.size, fn n ->
         handle_in("signup", %{"id" => game.id}, assign(socket, :user, -n))
       end
     end
@@ -94,7 +94,7 @@ defmodule Mafia.QueueChannel do
         join: s in assoc(p, :game_slot),
         where: s.game_id == ^id and p.status == "playing",
         select: count(1)
-        
+
         broadcast! socket, "count", %{
           id: id,
           count: new_count
@@ -107,15 +107,23 @@ defmodule Mafia.QueueChannel do
           speed: game.speed
         }
         if new_count == game.setup.size do
-          game = Repo.preload(game, :slots)
+          spawn fn ->
+            Registry.register(:timer_registry, game.id, @signups_countdown)
+            Process.sleep(@signups_countdown)
 
-          {1, _} = Game
-          |> where(id: ^game.id, status: "signups")
-          |> Repo.update_all(set: [status: "ongoing"])
+            [{pid, _}] = Registry.lookup(:timer_registry, game.id)
+            if pid == self() do
+              game = Repo.preload(game, :slots)
 
-          Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
+              {1, _} = Game
+              |> where(id: ^game.id, status: "signups")
+              |> Repo.update_all(set: [status: "ongoing"])
 
-          {:ok, _} = GameSupervisor.start_game(game)
+              Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
+
+              {:ok, _} = GameSupervisor.start_game(game)
+            end
+          end
         end
         :ok
       {:error, changeset} ->

@@ -44,13 +44,13 @@ defmodule Mafia.QueueChannelTest do
 
     empty_mailbox()
 
-    # ref = socket("user_socket:-4", %{user: -4})
-    # |> subscribe_and_join!(QueueChannel, "queue")
-    # |> push("signup", %{"id" => id})
+    ref = socket("user_socket:-4", %{user: -4})
+    |> subscribe_and_join!(QueueChannel, "queue")
+    |> push("signup", %{"id" => id})
 
-    # assert_reply(ref, :error, %{errors: %{game: ["Already filled"]}})
+    assert_reply(ref, :error, %{errors: %{game: ["Already filled"]}})
 
-    # :timer.sleep(100)
+    :timer.sleep(100)
 
     assert [%{game_id: ^id, setup_player: player}|_] = Repo.all Mafia.GameSlot
     assert is_integer(player)

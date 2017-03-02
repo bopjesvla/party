@@ -75,7 +75,7 @@
 	</div>
 </template>
 <script>
-	import socket from './socket'
+	import {default as socket, queue_channel} from './socket'
 	import RoomHeader from './components/RoomHeader'
 	import ChatMessages from './components/ChatMessages'
 	import ChatInput from './components/ChatInput'
@@ -193,6 +193,9 @@
 			},
 			player_status(slot) {
 				return this.info.player_status.filter(x => x.slot == slot)[0].status
+			},
+			leaveGame() {
+				
 			}
 		},
 		watch: {
