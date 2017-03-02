@@ -255,13 +255,20 @@ check_hammer(Channel, Action, Targets, ActionMods) :-
   current_phase(P),
   count(voting(P, _, Channel, Action, Targets), VoteCount),
   VoteCount > ChannelMemberCount / 2, !,
-  lock(Channel, Action, Targets, ActionMods),
+  handle_hammer(Channel, Action, Targets, ActionMods),
   maybe_next_phase.
 
 check_hammer(_, _, _, _).
 
-lock(Channel, Action, Targets, ActionMods) :-
-    asserta(locked(Channel, Action, Targets, ActionMods)).
+handle_hammer(Channel, Action, Targets, ActionMods) :-
+  member("instant", ActionMods), !,
+  current_phase(P),
+  % hammering player is the first result
+  once(voting(P, Player, Channel, Action, Targets)),
+  action(Player, Channel, Action, Targets, ActionMods).
+
+handle_hammer(Channel, Action, Targets, ActionMods) :-
+  asserta(locked(Channel, Action, Targets, ActionMods)).
 
 lock_deterministic_actions :-
   forall((

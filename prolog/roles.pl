@@ -90,6 +90,7 @@ is_mod(Mod) :-
   string(Mod).
 
 is_mod([X|"-shot"]) :- char_nr(X, _).
+is_mod("instant").
 
 role_info([roles(Roles), mods(Mods)]) :-
   findall(R, is_role(R), Roles),

@@ -59,11 +59,12 @@ defmodule Mafia.Queries do
         end
       catch
         :exit, reason ->
-          Game.changeset(game, %{status: "crashed"})
-          |> Repo.update!
+          {1, _} = Game
+          |> where(id: ^game.id)
+          |> Repo.update_all(set: [status: "crashed"])
 
           Map.put(game_info, :status, "crashed")
-          exit(reason)
+          # exit(reason)
       end
     else
       game_info

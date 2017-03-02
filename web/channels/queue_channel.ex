@@ -133,9 +133,10 @@ defmodule Mafia.QueueChannel do
     {:reply, reply, socket}
   end
 
-  def handle_in("out", %{"id" => id}, socket) do
-    game = Repo.get!(Game, id)
-    case game.status do
+  def handle_in("out", %{"id" => id, "status" => game_status}, socket) do
+    # make sure the game didn't start while leaving
+    %{status: ^game_status} = Repo.get!(Game, id)
+    case game_status do
       "signups" ->
         Repo.all from p in GamePlayer,
         join: s in assoc(p, :game_slot),
