@@ -80,9 +80,10 @@ defmodule Mafia.QueueChannel do
 
   def handle_in("signup", %{"id" => id}, %{assigns: %{user: user}} = socket) do
     game = Repo.get!(Game, id) |> Repo.preload(:setup)
-    "signups" = game.status
 
-    player = %GamePlayer{user_id: user, status: "playing"}
+    unless game.status in ~w(signups ongoing) do
+      raise "can't sign up to inactive games"
+    end
 
     nil = Mafia.Queries.player(id, user)
 
@@ -106,7 +107,7 @@ defmodule Mafia.QueueChannel do
           status: game.status,
           speed: game.speed
         }
-        if new_count == game.setup.size do
+        if new_count == game.setup.size and game.status == "signups" do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
             Process.sleep(@signups_countdown)
@@ -120,6 +121,7 @@ defmodule Mafia.QueueChannel do
               |> Repo.update_all(set: [status: "ongoing"])
 
               Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
+              broadcast! socket, "starting", %{id: game.id}
 
               {:ok, _} = GameSupervisor.start_game(game)
             end
@@ -133,16 +135,22 @@ defmodule Mafia.QueueChannel do
     {:reply, reply, socket}
   end
 
-  def handle_in("out", %{"id" => id, "status" => game_status}, socket) do
+  def handle_in("out", %{"id" => id}, socket) do
     # make sure the game didn't start while leaving
-    %{status: ^game_status} = Repo.get!(Game, id)
-    case game_status do
-      "signups" ->
-        Repo.all from p in GamePlayer,
-        join: s in assoc(p, :game_slot),
-        update: [set: [status: "out"]],
-        where: p.user_id == ^socket.assigns.user and s.game_id == ^id
+    game = Repo.get!(Game, id)
+
+    unless game.status in ~w(signups ongoing) do
+      raise "can't leave inactive games"
     end
+
+    new_player_status = if game.status == "ongoing", do: "replaced", else: "out"
+
+    query = from p in GamePlayer,
+    join: s in assoc(p, :game_slot),
+    where: p.user_id == ^socket.assigns.user and s.game_id == ^id
+
+    Repo.update_all(query, set: [status: new_player_status])
+
     {:reply, :ok, socket}
   end
 

@@ -20,18 +20,6 @@ defmodule Mafia.Queries do
   	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
   end
 
-  def to_map([{a, _} | _] = l) when is_atom(a) do
-    for {a, x} <- l, into: %{} do
-      {a, to_map x}
-    end
-  end
-
-  def to_map(l) when is_list(l) do
-    Enum.map l, &to_map/1
-  end
-
-  def to_map(x), do: x
-
   def game_info(id, user) do
     game = Repo.get_by(Game, id: id)
     |> Repo.preload(:setup)
@@ -81,5 +69,12 @@ defmodule Mafia.Queries do
     Repo.one! from p in Mafia.GamePlayer,
     join: s in assoc(p, :game_slot),
     where: s.game_id == ^game_id and p.user_id == ^user and p.status != "out"
+  end
+
+  def player_for_slot(slot_id) do
+    Repo.one! from p in Mafia.GamePlayer,
+    where: p.game_slot_id == ^slot_id,
+    order_by: [desc: p.inserted_at],
+    limit: 1
   end
 end

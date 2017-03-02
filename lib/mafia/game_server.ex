@@ -79,7 +79,7 @@ defmodule Mafia.GameServer do
   end
 
   def handle_info({:join, slot, channel}, state) do
-    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     MeetChannel.new_message("meet:#{channel}", "join", user, nil)
     {:noreply, state}
   end
@@ -107,17 +107,17 @@ defmodule Mafia.GameServer do
   end
   def handle_info({:vote, slot, channel, act, targets}, state) do
     message = %{act: act, opt: targets} |> Poison.encode!
-    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     MeetChannel.new_message("meet:#{channel}", "vote", user, message)
     {:noreply, state}
   end
   def handle_info({:message, slot, message}, %{game: %{id: id}} = state) do
-    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     GameChannel.new_message(id, "sys", user, to_string(message))
     {:noreply, state}
   end
   def handle_info({:flip, slot, flip}, %{game: %{id: id}} = state) do
-    %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     teams = Enum.map flip[:teams], &to_string/1
     roles = Enum.map flip[:roles], fn {:',', mods, role} ->
       %{role: role, mods: Enum.map(mods, &to_string/1)}
@@ -127,7 +127,7 @@ defmodule Mafia.GameServer do
     {:noreply, state}
   end
   def handle_info({:end_game, winners}, %{game: game} = state) do
-    # %{user_id: user} = Repo.get_by!(Mafia.GamePlayer, game_slot_id: slot)
+    # %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     # GameChannel.new_message(id, "sys", user, message)
     {1, _} = Mafia.Game
     |> where(id: ^game.id, status: "ongoing")

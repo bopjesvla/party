@@ -42,6 +42,16 @@ defmodule Mafia.QueueChannelTest do
 
     assert_reply(ref, :ok, _)
 
+    ref = newsocket
+    |> push("out", %{"id" => id})
+
+    assert_reply(ref, :ok, _)
+
+    ref = newsocket
+    |> push("signup", %{"id" => id})
+
+    assert_reply(ref, :ok, _)
+
     empty_mailbox()
 
     ref = socket("user_socket:-4", %{user: -4})
