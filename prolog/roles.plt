@@ -37,13 +37,13 @@ test(alias) :-
   access(Player, Channel),
   role_action((["day", "self", "compulsive"], doctor), protect, _, Channel),
   role_action((["day"], bulletproof), protect, _, Channel).
-   
+
 test(crole) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),
   asserta(channel_role(Channel, (["day"], doctor))),
   channel_action(Channel, protect, _).
- 
+
 test(automatic) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),
@@ -52,4 +52,3 @@ test(automatic) :-
   X = [_],
   maybe_next_phase,
   locked(Channel, _, _, _).
-

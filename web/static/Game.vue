@@ -4,8 +4,11 @@
 		<div class="room-inner">
 			<chat-messages :messages="messages" :players="this.info.players"></chat-messages>
 			<div class="game-ui">
-				<button type="button" @click="leaveGame" class="leave-button">
+				<button v-if="joined" type="button" @click="leaveGame" class="leave-button">
 					Leave the game
+				</button>
+				<button v-else type="button" @click="joinGame" class="leave-button">
+					Attempt to join this game
 				</button>
 				Phase: {{phase}}
 				<div class="team" v-if="info.teams && info.teams.length">
@@ -88,7 +91,8 @@
 				messages: null,
 				input: "",
 				meets: [],
-				info: {}
+				info: {},
+				joined: true
 			}
 		},
 		created() {
@@ -105,8 +109,12 @@
 						console.log(d)
 						this.messages = d.msgs
 						this.handleGameInfo(d)
+						this.joined = true
 					})
-					.receive("error", e => console.log(e))
+					.receive("error", e => {
+						console.log(e)
+						this.joined = false
+					})
 
 				this.channel.on("new:msg", msg => {
 					console.log(msg)
@@ -195,7 +203,14 @@
 				return this.info.player_status.filter(x => x.slot == slot)[0].status
 			},
 			leaveGame() {
-				
+				queue_channel.push("out", {id: this.$route.params.game_id})
+					.receive("ok", _ => this.$router.push("/"))
+					.receive("error", _ => console.log(_))
+			},
+			joinGame() {
+				queue_channel.push("signup", {id: this.$route.params.game_id})
+					.receive("ok", _ => this.load())
+					.receive("error", _ => console.log(_))
 			}
 		},
 		watch: {

@@ -116,6 +116,11 @@ defmodule Mafia.GameServer do
     GameChannel.new_message(id, "sys", user, to_string(message))
     {:noreply, state}
   end
+  def handle_info({:message, channel, slot, message}, %{game: %{id: id}} = state) do
+    %{user_id: user} = Mafia.Queries.player_for_slot(slot)
+    MeetChannel.new_message("meet:#{channel}", "sys", user, to_string(message))
+    {:noreply, state}
+  end
   def handle_info({:flip, slot, flip}, %{game: %{id: id}} = state) do
     %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     teams = Enum.map flip[:teams], &to_string/1

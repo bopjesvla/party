@@ -36,11 +36,7 @@ let router = new VueRouter({
     children: [
       {
         path: '',
-        name: 'lobby',
-        components: {
-          sidebar: LobbySidebar,
-          default: Lobby
-        }
+        redirect: 'room/lobby'
       },
       {
         path: 'room/:name',

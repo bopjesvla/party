@@ -22,10 +22,10 @@ dead(q) :- fail.
 setup_phases(q) :- fail.
 player_won(q) :- fail.
 
-:- include(roles).
-:- include(actions).
-:- include(resolve).
-:- include(utils).
+% :- include(roles).
+% :- include(actions).
+% :- include(resolve).
+% :- include(utils).
 
 signups :- \+ current_phase(_).
 
@@ -142,15 +142,17 @@ locked_actions(Actions) :-
     \+ member(noone, Targets)
     ), Actions).
 
+resolve_and_process_actions(Actions) :-
+  resolve(Actions, SuccessfulActions),
+  random_permutation(SuccessfulActions, Shuffled),
+  forall(member(A, Shuffled), call(A)),
+  ignore(soft_end_game).
+
 end_phase :-
   current_phase(_), !, % game has already started
   locked_actions(Actions),
   retract_all(locked(_, _, _, _)),
-  resolve(Actions, SuccessfulActions),
-  % shuffle to prevent reading into result order
-  random_permutation(SuccessfulActions, Shuffled),
-  forall(member(A, Shuffled), call(A)),
-  ignore(soft_end_game).
+  resolve_and_process_actions(Actions).
 
 end_phase :- start_game. % ending signups = starting the game
 
@@ -263,9 +265,14 @@ check_hammer(_, _, _, _).
 handle_hammer(Channel, Action, Targets, ActionMods) :-
   member("instant", ActionMods), !,
   current_phase(P),
-  % hammering player is the first result
+  % hammerer is the first result
   once(voting(P, Player, Channel, Action, Targets)),
-  action(Player, Channel, Action, Targets, ActionMods).
+  (
+    member(noone, Targets), !;
+    resolve_and_process_actions([
+      action(Player, Action, Targets, Channel, ActionMods)
+    ])
+  ).
 
 handle_hammer(Channel, Action, Targets, ActionMods) :-
   asserta(locked(Channel, Action, Targets, ActionMods)).
