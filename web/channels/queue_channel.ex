@@ -86,10 +86,10 @@ defmodule Mafia.QueueChannel do
 
     nil = Mafia.Queries.player(id, user)
 
-    res = Repo.run :signup, [id, user, Ecto.DateTime.utc]
+    res = Repo.run! :signup, [id, user, Ecto.DateTime.utc]
 
     reply = case res do
-      {:ok, _} ->
+      %{num_rows: 1} ->
         new_count = Repo.one from p in GamePlayer,
         join: s in assoc(p, :game_slot),
         where: s.game_id == ^id and p.status == "playing",
@@ -126,8 +126,8 @@ defmodule Mafia.QueueChannel do
           end
         end
         :ok
-      {:error, changeset} ->
-        {:error, Mafia.ChangesetView.render("error.json", %{changeset: changeset})}
+      %{num_rows: 0} ->
+        {:error, %{errors: %{"game": ["Already filled"]}}}
     end
 
     {:reply, reply, socket}

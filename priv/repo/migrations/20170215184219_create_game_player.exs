@@ -5,7 +5,7 @@ defmodule Mafia.Repo.Migrations.CreateGamePlayer do
     create table(:game_players) do
       add :status, :string
       add :user_id, references(:users, on_delete: :nothing)
-      add :game_slot_id, references(:game_slots, on_delete: :nothing)
+      add :game_slot_id, references(:game_slots, on_delete: :nothing), null: false
 
       timestamps()
     end
