@@ -8,6 +8,5 @@ defmodule Mafia.Repo.Migrations.MessageChannelNotNull do
     alter table(:setups) do
       modify :user_id, :integer, null: false
     end
-    create index(:messages, :channel_id)
   end
 end

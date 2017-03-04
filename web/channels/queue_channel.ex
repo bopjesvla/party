@@ -10,17 +10,25 @@ defmodule Mafia.QueueChannel do
     {:ok, socket}
   end
 
-  def handle_in("list:games", _, socket) do
-    games = Repo.all from g in Game,
-    join: p in assoc(g, :players),
+  def broadcast_queue do
+    signups = Repo.all from e in Mafia.Queries.empty_slots,
+    join: g in assoc(e, :game),
     join: s in assoc(g, :setup),
-    where: p.status != "out" and g.status == "signups",
     group_by: [g.id, s.name, s.size],
     order_by: [desc: g.inserted_at],
-    select: %{id: g.id, setup: s.name, size: s.size, count: count(p.id)},
+    where: g.status == "signups",
+    select: %{id: g.id, setup: s.name, size: s.size, empty: count(e.id)},
+    limit: 10
+    
+    replacements = Repo.all from e in Mafia.Queries.empty_slots,
+    join: g in assoc(e, :game),
+    join: s in assoc(g, :setup),
+    order_by: [desc: g.inserted_at],
+    where: g.status == "ongoing",
+    select: %{id: g.id, setup: s.name},
     limit: 10
 
-    {:reply, {:ok, %{games: games}}, socket}
+    Mafia.Endpoint.broadcast! "queue", "games", %{signups: signups, replacements: replacements}
   end
 
   def handle_in("new:setup", %{"setup" => setup}, socket) do
@@ -91,15 +99,11 @@ defmodule Mafia.QueueChannel do
 
     reply = case res do
       %{num_rows: 1} ->
-        new_count = Repo.one from p in GamePlayer,
-        join: s in assoc(p, :game_slot),
-        where: s.game_id == ^id and p.status == "playing",
-        select: count(1)
+        empty_slot = Repo.one from e in Mafia.Queries.empty_slots,
+        where: e.game_id == ^id,
+        limit: 1,
+        select: true
 
-        broadcast! socket, "count", %{
-          id: id,
-          count: new_count
-        }
         Mafia.MeetChannel.new_message("talk:#{id}", "join", user, nil)
         Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
           game: id,
@@ -107,7 +111,7 @@ defmodule Mafia.QueueChannel do
           status: game.status,
           speed: game.speed
         }
-        if new_count == game.setup.size and game.status == "signups" do
+        if game.status == "signups" and empty_slot == nil do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
             Process.sleep(@signups_countdown)
@@ -136,7 +140,6 @@ defmodule Mafia.QueueChannel do
   end
 
   def handle_in("out", %{"id" => id}, socket) do
-    # make sure the game didn't start while leaving
     game = Repo.get!(Game, id)
 
     unless game.status in ~w(signups ongoing) do
@@ -150,6 +153,10 @@ defmodule Mafia.QueueChannel do
     where: p.user_id == ^socket.assigns.user and s.game_id == ^id
 
     Repo.update_all(query, set: [status: new_player_status])
+    
+    Mafia.Endpoint.broadcast! "user:#{socket.assigns.user}", "leave:game", %{
+      game: id
+    }
 
     {:reply, :ok, socket}
   end

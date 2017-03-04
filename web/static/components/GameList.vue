@@ -5,7 +5,7 @@
 			<td class="status">{{game.status}}</td>
 		</tr>
 		<tr v-for="game in gamesInSignups" @click="signup(game.id)">
-			<td class="setup-name">{{game.setup}}</td>
+			<td class="setup-name">{{game.id}}: {{game.setup}}</td>
 			<td class="players">{{game.count}}/{{game.size}}</td>
 		</tr>
 	</table>
@@ -36,6 +36,9 @@
 			})
 			queue_channel.on("new:game", msg => {
 				this.gamesInSignups.unshift(msg)
+			})
+			user_channel.on("new:game", msg => {
+				this.myGames.unshift(msg)
 			})
 		},
 		methods: {

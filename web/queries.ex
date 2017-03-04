@@ -77,4 +77,11 @@ defmodule Mafia.Queries do
     order_by: [desc: p.inserted_at],
     limit: 1
   end
+  
+  def empty_slots do
+    from s in Mafia.GameSlot,
+    left_join: p in assoc(s, :game_players),
+      on: p.game_slot_id == s.id and p.status == "playing",
+    where: is_nil p.id
+  end
 end

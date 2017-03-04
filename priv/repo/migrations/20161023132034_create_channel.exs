@@ -3,7 +3,7 @@ defmodule Mafia.Repo.Migrations.CreateChannel do
 
   def change do
     create table(:channels) do
-      add :name, :text
+      add :name, :citext
       add :type, :text
       add :user_id, references(:users, on_delete: :nothing)
 
