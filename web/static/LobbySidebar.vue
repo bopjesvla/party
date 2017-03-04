@@ -6,7 +6,7 @@
 			</h1>
 		</header>
 		<div class="sidebar-actions">
-			<collapse group="sidebar-tabs" label="Games" :active="true">
+			<collapse group="sidebar-tabs" label="Queue" :active="true">
 				<game-list :games="gamesInSignups"></game-list>
 			</collapse>
 			<collapse group="sidebar-tabs" label="New">

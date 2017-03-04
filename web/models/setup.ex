@@ -22,6 +22,7 @@ defmodule Mafia.Setup do
     |> cast_assoc(:teams, required: true)
     |> validate_required([:name, :size, :phases])
     |> validate_number(:size, greater_than: 1, less_than: 33)
+    |> validate_length(:name, min: 3, max: 20)
     |> unique_constraint(:name)
   end
 end

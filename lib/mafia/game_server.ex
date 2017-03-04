@@ -135,9 +135,10 @@ defmodule Mafia.GameServer do
     # %{user_id: user} = Mafia.Queries.player_for_slot(slot)
     # GameChannel.new_message(id, "sys", user, message)
     {1, _} = Mafia.Game
-    |> where(id: ^game.id, status: "ongoing")
-    |> Repo.update_all(set: [status: "finished"])
+    |> where(id: ^game.id)
+    |> Repo.update_all(set: [status: "ended"])
 
+    Mafia.Endpoint.broadcast! "queue", "status", %{id: game.id, status: "ended"}
     GameChannel.new_message(game.id, "end", nil, Poison.encode! %{winners: winners})
 
     {:stop, :normal, state}

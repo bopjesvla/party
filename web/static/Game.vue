@@ -31,15 +31,16 @@
 						</div>
 						<div class="players" v-if="channel.members">
 							<div class="player" v-for="slot in channel.members">
-								{{slotName(slot, info.players)}}<br />
+								{{slotName(slot, info.players)}}
+								<span class="vote" v-if="voteCount(channel, slot)">
+									({{voteCount(channel, slot)}}):
+									{{
+										renderVotedBy(channel, slot) || "no one"
+									}}
+								</span>
 								<div class="vote" v-if="isVoting(channel, slot)">
 									votes to {{
 										renderVote(isVoting(channel, slot), info.players)
-									}}
-								</div>
-								<div class="vote">
-									voted by {{
-										renderVotedBy(channel, slot) || "no one"
 									}}
 								</div>
 							</div>
@@ -188,6 +189,11 @@
 				  .filter(x => ~x.opt.indexOf(slot))
 					.map(x => slotName(x.player, this.info.players))
 					.join(", ")
+			},
+			voteCount(channel, slot) {
+				return channel.votes
+				  .filter(x => ~x.opt.indexOf(slot))
+				  .length
 			},
 			actor(vote) {
 				return vote.player

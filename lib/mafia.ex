@@ -18,7 +18,8 @@ defmodule Mafia do
       # worker(Mafia.Worker, [arg1, arg2, arg3]),
       supervisor(Mafia.GameSupervisor, []),
       supervisor(Registry, [:unique, :game_registry]),
-      supervisor(Registry, [:unique, :timer_registry], id: :timer_registry)
+      supervisor(Registry, [:unique, :timer_registry], id: :timer_registry),
+      worker(Mafia.QueueBroadcaster, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

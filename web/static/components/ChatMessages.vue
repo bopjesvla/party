@@ -7,7 +7,12 @@
 			<div class="message-user">
 				{{name(message.u)}}
 			</div>
-			<div class="msg">
+			<div class="msg" v-if="message.ty == 'flip'">
+				flipped
+				<team :team="t" v-for="t in JSON.parse(message.msg).teams"></team>
+				<role :role="r" v-for="r in JSON.parse(message.msg).roles"></role>
+			</div>
+			<div class="msg" v-else>
 				{{renderMessage(message)}}
 			</div>
 		</div>
@@ -15,7 +20,10 @@
 </template>
 
 <script>
-	import {renderVote} from '../textviews'
+	import {renderVote, renderEnd} from '../textviews'
+	import Role from './Role.vue'
+	import Team from './Team.vue'
+	
 	export default {
 		props: ['messages', 'players'],
 		methods: {
@@ -30,10 +38,14 @@
 				if (message.ty == "vote") {
 					return "votes to " + renderVote(JSON.parse(message.msg), this.players)
 				}
+				if (message.ty == "end") {
+					return renderEnd(JSON.parse(message.msg).winners, this.players)
+				}
 
 				return message.msg || message.ty
 			}
-		}
+		},
+		components: {Role, Team}
 	}
 </script>
 
@@ -69,11 +81,26 @@
 					font-style: italic;
 				}
 			}
-			&.type-phase {
+			&.type-phase, &.type-end {
 				.msg {
+					padding-top: 19px;
 					color: black;
 					font-size: 2em;
+				}
+			}
+			&.type-phase {
+				.msg {
 					text-transform: capitalize;
+				}
+			}
+			&.type-sys {
+				.msg {
+					color: red;
+				}
+			}
+			&.type-flip {
+				.msg {
+					color: purple;
 				}
 			}
 		}

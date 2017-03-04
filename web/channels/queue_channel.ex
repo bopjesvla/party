@@ -69,7 +69,7 @@ defmodule Mafia.QueueChannel do
     }
 
     Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
-      game: game.id,
+      id: game.id,
       setup: setup.name,
       status: game.status,
       speed: game.speed
@@ -106,11 +106,12 @@ defmodule Mafia.QueueChannel do
 
         Mafia.MeetChannel.new_message("talk:#{id}", "join", user, nil)
         Mafia.Endpoint.broadcast! "user:#{user}", "new:game", %{
-          game: id,
+          id: id,
           setup: game.setup.name,
           status: game.status,
           speed: game.speed
         }
+        
         if game.status == "signups" and empty_slot == nil do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
@@ -125,7 +126,7 @@ defmodule Mafia.QueueChannel do
               |> Repo.update_all(set: [status: "ongoing"])
 
               Mafia.Endpoint.broadcast! "talk:#{id}", "leave", %{who: :all}
-              broadcast! socket, "starting", %{id: game.id}
+              broadcast! socket, "status", %{id: game.id, status: "ongoing"}
 
               {:ok, _} = GameSupervisor.start_game(game)
             end
@@ -155,7 +156,7 @@ defmodule Mafia.QueueChannel do
     Repo.update_all(query, set: [status: new_player_status])
     
     Mafia.Endpoint.broadcast! "user:#{socket.assigns.user}", "leave:game", %{
-      game: id
+      id: id
     }
 
     {:reply, :ok, socket}

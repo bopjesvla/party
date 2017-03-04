@@ -13,8 +13,8 @@ defmodule Mafia.UserChannel do
     games = Repo.all from g in Mafia.Game,
     join: p in assoc(g, :players),
     join: s in assoc(g, :setup),
-    join: u in assoc(p, :user),
-    where: u.id == ^socket.assigns.user and (g.status == "ongoing" or g.status == "signups"),
+    where: p.user_id == ^socket.assigns.user and p.status == "playing"
+    and (g.status == "ongoing" or g.status == "signups"),
     select: %{
       id: g.id,
       setup: s.name,

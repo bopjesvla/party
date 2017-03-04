@@ -8,58 +8,83 @@
 			:options="[search].concat(nameOptions)">
 		</v-select>
 		<span v-if="error">{{error}}</span>
-		Size: <input type="number" v-model.number="setup.size" min=1 max=25>
-
-		<div class="roles">
-			<h3>Roles</h3>
-			<div class="role" v-for="r in setup.roles">
-				<v-select
-					placeholder="Type"
-					v-model="r.type"
-					:options="typeOptions">
-				</v-select>
-				<team-input v-if="r.type == 'team'" v-model="r.str"></team-input>
-				<v-select v-if="r.type == 'player'"
-					placeholder="Player"
-					v-model="r.nr"
-					:options="players">
-				</v-select>
-				<v-select
-					@search-change="getRoles"
-					placeholder="Mods"
-					v-model="r.mods"
-					:multiple="true"
-					:options="modOptions">
-				</v-select>
-				<v-select
-					@search-change="getRoles"
-					placeholder="Role"
-					v-model="r.role"
-					:options="roleOptions">
-				</v-select>
+		
+		<div v-if="newSetup">
+			Size: <input type="number" v-model.number="setup.size" min=1 max=25>
+			<div class="roles">
+				<h3>Roles</h3>
+				<div class="role" v-for="r in setup.roles">
+					<v-select
+						placeholder="Type"
+						v-model="r.type"
+						:options="typeOptions">
+					</v-select>
+					<team-input v-if="r.type == 'team'" v-model="r.str"></team-input>
+					<v-select v-if="r.type == 'player'"
+						placeholder="Player"
+						v-model="r.nr"
+						:options="players">
+					</v-select>
+					<v-select
+						@search-change="getRoles"
+						placeholder="Mods"
+						v-model="r.mods"
+						:multiple="true"
+						:options="modOptions">
+					</v-select>
+					<v-select
+						@search-change="getRoles"
+						placeholder="Role"
+						v-model="r.role"
+						:options="roleOptions">
+					</v-select>
+				</div>
+				<button style="display : inline;" @click="setup.roles.push({role: null, mods: [], type: 'player', nr: 1, str: null})">+</button>
 			</div>
-			<button style="display : inline;" @click="setup.roles.push({role: null, mods: [], type: 'player', nr: 1, str: null})">+</button>
+			<div class="teams">
+				<h3>Teams</h3>
+				<div class="team" v-for="r in setup.teams">
+					Player {{r.player}}
+					<team-input v-model="r.team"></team-input>
+				</div>
+			</div>
 		</div>
-		<div class="teams">
-			<h3>Teams</h3>
-			<div class="team" v-for="r in setup.teams">
-				Player {{r.player}}
-				<team-input v-model="r.team"></team-input>
+		
+		<div v-else>
+			{{setup.size}} players
+			<div class="roles">
+				<div class="role" v-for="r in rolesByType('global')">
+					<b>Global</b><br /> <role :role="r"></role>
+				</div>
+				<div class="role" v-for="r in rolesByType('team')">
+					<b><team :team="r.str"></team></b><br />
+					<role :role="r"></role>
+				</div>
+			</div>
+			<div class="teams">
+				<b>Players</b><br />
+				<div class="role" v-for="p in setupPlayers()">
+					{{p.player}}. <team :team="t" v-for="t in p.teams"></team>
+					<role :role="r" v-for="r in p.roles"></role>
+				</div>
 			</div>
 		</div>
 
-		<button @click="createSetup">Create Setup</button> <button @click="createGame">Create Game</button>
+		<button v-if="newSetup" @click="createSetup">Create Setup</button>
+		<button v-else @click="createGame">Create Game</button>
 	</div>
 </template>
 <script>
 	import {queue_channel} from '../socket'
 	import TeamInput from './TeamInput.vue'
+	import Role from './Role.vue'
+	import Team from './Team.vue'
 
 	export default {
 		data() {
 			return {
 				setup: null,
-				alteredSetup: false,
+				newSetup: false,
 				nameOptions: [],
 				roleOptions: [],
 				modOptions: [],
@@ -76,10 +101,7 @@
 					})
 			}
 			else {
-				queue_channel.push("setup_info", {name: "Simple"})
-					.receive("ok", res => {
-						this.setSetup(res.setup)
-					})
+				this.searchSetup("Simple")
 			}
 		},
 		watch: {
@@ -90,9 +112,6 @@
 							this.setSetup(res.setup)
 						})
 				}
-			},
-			setup() {
-				this.alteredSetup = true
 			},
 			"setup.size": function() {
 				let {size, teams} = this.setup
@@ -125,7 +144,7 @@
 				queue_channel.push("new:setup", {setup: this.setup})
 				  .receive("ok", res => {
 						this.setup.id = res.id
-						this.alteredSetup = false
+						this.newSetup = false
 					})
 					.receive("error", e => this.error = e.errors)
 			},
@@ -133,7 +152,7 @@
 				if (this.$route.params.game_id) {
 					queue_channel.push("setup_info", {game_id: 0})
 					  .receive("ok", res => {
-							this.setup = res.setup
+							this.setSetup(res.setup)
 						})
 				}
 			},
@@ -146,13 +165,28 @@
 						})
 				}
 			},
-			searchSetup() {
-				queue_channel.push("setup_info", {name: this.setup.name})
-					.receive("ok", res => this.setup = res.setup)
+			searchSetup(name) {
+				this.newSetup = true
+				queue_channel.push("setup_info", {name: name})
+					.receive("ok", res => this.setSetup(res.setup))
 			},
 			setSetup(s) {
 				this.setup = s
-				this.alteredSetup = false
+				this.newSetup = false
+			},
+			rolesByType(type) {
+				return this.setup.roles.filter(x => x.type == type)
+			},
+			setupPlayers() {
+				let {setup} = this, players = []
+				for (let i = 1; i <= setup.size; i++) {
+					players.push({
+						player: i,
+						teams: setup.teams.filter(x => x.player == i).map(x => x.team),
+						roles: setup.roles.filter(x => x.nr == i && x.type == "player")
+					})
+				}
+				return players
 			}
 		},
 		computed: {
@@ -161,7 +195,7 @@
 					.map(Number.call, Number)
 			}
 		},
-		components: {TeamInput}
+		components: {TeamInput, Role, Team}
 	}
 </script>
 <style>

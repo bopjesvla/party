@@ -48,7 +48,7 @@ defmodule Mafia.Queries do
       catch
         :exit, reason ->
           {1, _} = Game
-          |> where(id: ^game.id)
+          |> where(id: ^game.id, status: "ongoing")
           |> Repo.update_all(set: [status: "crashed"])
 
           Map.put(game_info, :status, "crashed")

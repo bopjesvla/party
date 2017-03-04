@@ -4,7 +4,7 @@
 			<router-view name="sidebar"></router-view>
 		</aside>
 		<main :class="{push: sidebarVisible}">
-			<a class="arrow" :class="sidebarVisible ? 'icon-close' : 'icon-menu'" @click="sidebarVisible = !sidebarVisible"></a>
+			<a class="arrow" @click="sidebarVisible = !sidebarVisible"></a>
 			<!--<h1>party party party party party party party party</h1>-->
 			<router-view></router-view>
 		</main>
@@ -40,7 +40,6 @@
 		> aside {
 			line-height: normal;
 			min-width: 320px;
-			width: 15%;
 			color: white;
 			position: absolute;
 			top: 0;
@@ -83,7 +82,7 @@
 				.arrow {
 					color: #fff;
 					position: absolute;
-					left: -1em;
+					left: -2em;
 					border-color: white;
 					transform: rotate(-135deg);
 				}
