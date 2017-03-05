@@ -40,6 +40,8 @@ main_role_action(cop, investigate).
 main_role_action(killer, kill).
 main_role_action(doctor, protect).
 main_role_action(roleblocker, block).
+main_role_action(tracker, track).
+main_role_action(visitor, visit).
 
 alias(bulletproof, (["strong-willed", "compulsive", "self"], doctor)).
 

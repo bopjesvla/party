@@ -86,9 +86,6 @@ locate_failure(FailureStatement, FailureStatement) :- \+ FailureStatement.
 message(q) :- fail.
 mock :- fail.
 
-send(X) :- mock, !, assertz(message(X)).
-flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
-
 string([X|XS]) :-
   integer(X),
   string(XS).
@@ -103,6 +100,9 @@ char_nr(54, 6).
 char_nr(55, 7).
 char_nr(56, 8).
 char_nr(57, 9).
+
+send(X) :- mock, !, assertz(message(X)).
+flush(Res) :- findall(Msg, message(Msg), Res), retract_all(message(_)).
 
 send(Msg) :-
   erl(erlang:self, Self),

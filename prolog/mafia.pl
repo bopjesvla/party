@@ -198,7 +198,7 @@ channel_action(Channel, Action, Targets, ActionMods) :-
   channel_role(Channel, Role),
   role_action(Role, Action, Targets, Channel, [], ActionMods),
   current_phase(P),
-  \+ action_history(P, action(_, Action, _, Channel), _).
+  \+ action_history(P, action(_, Action, _, Channel, _), _).
 
 create_channel(Type, Role, Channel) :-
   uid(Channel),

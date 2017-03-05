@@ -20,5 +20,4 @@ test(dict) :-
   dict(X).
 
 test(find_dicts) :-
-  find_dicts([value(X)], member(X, [1]), Out),
-  log(Out).
+  find_dicts([value(X)], member(X, [1]), Out).
