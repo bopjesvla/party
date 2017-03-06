@@ -8,18 +8,50 @@ defmodule Mafia.Coherence.ViewHelpers do
   @seperator {:safe, "&nbsp; | &nbsp;"}
   @helpers Module.concat(Application.get_env(:coherence, :module), Router.Helpers)
 
-  @recover_link  "I forgot my password"
+  @recover_link  "Forgot your password?"
   @unlock_link   "Send an unlock email"
-  @register_link "I'm new here"
+  @register_link "Need An Account?"
   @invite_link   "Invite Someone"
   @confirm_link  "Resend confirmation email"
-  @signin_link   "Sign in"
-  @signout_link  "Sign out"
+  @signin_link   "Sign In"
+  @signout_link  "Sign Out"
 
   @doc """
   Create coherence template links.
 
-  Generates links if the appropriate option is installed.
+  Generates links if the appropriate option is installed. This function
+  can be used to:
+
+  * create links for the new session page `:new_session`
+  * create links for your layout template `:layout`
+
+
+  Defaults are provided based on the options configured for Coherence.
+  However, the defaults can be overridden by passing the following options.
+
+  ## Customize the links
+
+  ### :new_session Options
+
+  * :recover - customize the recover link (#{@recover_link})
+  * :unlock - customize the unlock link (#{@unlock_link})
+  * :register - customize the register link (#{@register_link})
+  * :confirm - customize the confirm link (#{@confirm_link})
+
+  ### :layout Options
+
+  * :list_tag - customize the list tag (:li)
+  * :signout_class - customize the class on the signout link ("navbar-form")
+  * :signin - customize the signin link text (#{@signin_link})
+  * :signout - customize the signout link text (#{@signout_link})
+  * :register - customize the register link text (#{@register_link})
+
+  ### Disable links
+
+  If you set an option to false, the link will not be shown. For example, to
+  disable the register link on the layout, use the following in your layout template:
+
+      coherence_links(conn, :layout, register: false)
 
   ## Examples
 
@@ -45,9 +77,9 @@ defmodule Mafia.Coherence.ViewHelpers do
 
     user_schema = Coherence.Config.user_schema
     [
-      register_link(conn, user_schema, register_link),
       recover_link(conn, user_schema, recover_link),
       unlock_link(conn, user_schema, unlock_link),
+      register_link(conn, user_schema, register_link),
       confirmation_link(conn, user_schema, confirm_link)
     ]
     |> List.flatten
@@ -65,21 +97,16 @@ defmodule Mafia.Coherence.ViewHelpers do
       current_user = Coherence.current_user(conn)
       [
         content_tag(list_tag, profile_link(current_user, conn)),
-        content_tag(list_tag,
-          link(signout, to: coherence_path(@helpers, :session_path, conn, :delete), method: :delete, class: signout_class))
+        content_tag(list_tag, signout_link(conn, signout, signout_class))
       ]
     else
-      signin_link = content_tag(list_tag, signin_link(conn, signin))
+      signin_link = content_tag(list_tag, link(signin, to: coherence_path(@helpers, :session_path, conn, :new)))
       if Config.has_option(:registerable) && register do
         [content_tag(list_tag, link(register, to: coherence_path(@helpers, :registration_path, conn, :new))), signin_link]
       else
         signin_link
       end
     end
-  end
-
-  def signin_link(conn, label) do
-    link(label, to: coherence_path(@helpers, :session_path, conn, :new))   
   end
 
   @doc """
@@ -121,6 +148,10 @@ defmodule Mafia.Coherence.ViewHelpers do
     link text, to: coherence_path(@helpers, :invitation_path, conn, :new)
   end
 
+  def signout_link(conn, text \\ @signout_link, signout_class \\ "") do
+    link(text, to: coherence_path(@helpers, :session_path, conn, :delete), method: :delete, class: signout_class)
+  end
+
   def confirmation_link(_conn, _user_schema, false), do: []
   def confirmation_link(conn, user_schema, text) do
     if user_schema.confirmable?, do: [confirmation_link(conn, text)], else: []
@@ -131,13 +162,16 @@ defmodule Mafia.Coherence.ViewHelpers do
 
   def required_label(f, name, opts \\ []) do
     label f, name, opts do
-      "#{humanize(name)}\n"
+      [
+        "#{humanize(name)}\n",
+        content_tag(:abbr, "*", class: "required", title: "required")
+      ]
     end
   end
 
   defp profile_link(current_user, conn) do
     if Config.user_schema.registerable? do
-      link current_user.name, to: coherence_path(@helpers, :registration_path, conn, :show, current_user.id)
+      link current_user.name, to: coherence_path(@helpers, :registration_path, conn, :show)
     else
       current_user.name
     end

@@ -6,14 +6,14 @@
   <div class="form-group">
     <%= required_label f, login_field, class: "control-label" %>
     <%= text_input f, login_field, class: "form-control", required: "" %>
+    <%= error_tag f, login_field %>
   </div>
-  <%= error_tag f, login_field %>
 
   <div class="form-group">
     <%= required_label f, :password, class: "control-label" %>
     <%= password_input f, :password, class: "form-control", required: "" %>
+    <%= error_tag f, :password %>
   </div>
-  <%= error_tag f, :password %>
 
   <%= if @remember do %>
     <div class="form-group">
@@ -24,9 +24,10 @@
 
   <div class="form-group">
     <%= submit "Sign In", class: "btn btn-primary" %>
+    <%= link "Cancel", to: Coherence.Config.logged_out_url("/"), class: "btn" %>
   </div>
 
-  <div class="auth-links">
+  <div class="form-group">
     <%= coherence_links(@conn, :new_session) %>
   </div>
 
