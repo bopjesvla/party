@@ -44,7 +44,7 @@ defmodule Mafia.Coherence.SessionController do
     conn
     |> put_layout({Coherence.LayoutView, "app.html"})
     |> put_view(Coherence.SessionView)
-    |> render(:new, [{login_field, ""}, remember: rememberable_enabled?])
+    |> render(:new, [{login_field, ""}, remember: rememberable_enabled?()])
   end
 
   @doc """
@@ -87,19 +87,19 @@ defmodule Mafia.Coherence.SessionController do
           conn
           |> put_flash(:error, "Too many failed login attempts. Account has been locked.")
           |> assign(:locked, true)
-          |> render("new.html", [{login_field, ""}, remember: rememberable_enabled?])
+          |> render("new.html", [{login_field, ""}, remember: rememberable_enabled?()])
         end
       else
         conn
         |> put_flash(:error, "You must confirm your account before you can login.")
-        |> render("new.html", [{login_field, login}, remember: rememberable_enabled?])
+        |> render("new.html", [{login_field, login}, remember: rememberable_enabled?()])
       end
     else
       conn
       |> failed_login(user, lockable?)
       |> put_layout({Coherence.LayoutView, "app.html"})
       |> put_view(Coherence.SessionView)
-      |> render(:new, [{login_field, login}, remember: rememberable_enabled?])
+      |> render(:new, [{login_field, login}, remember: rememberable_enabled?()])
     end
   end
 
@@ -121,36 +121,6 @@ defmodule Mafia.Coherence.SessionController do
     apply(Config.auth_module, Config.delete_login, [conn])
     |> track_logout(user, user.__struct__.trackable?)
     |> delete_rememberable(user)
-  end
-
-  defp track_login(conn, _, false), do: conn
-  defp track_login(conn, user, true) do
-    ip = conn.peer |> elem(0) |> inspect
-    now = Ecto.DateTime.utc
-    {last_at, last_ip} = cond do
-      is_nil(user.last_sign_in_at) and is_nil(user.current_sign_in_at) ->
-        {now, ip}
-      !!user.current_sign_in_at ->
-        {user.current_sign_in_at, user.current_sign_in_ip}
-      true ->
-        {user.last_sign_in_at, user.last_sign_in_ip}
-    end
-
-    Helpers.changeset(:session, user.__struct__, user,
-      %{
-        sign_in_count: user.sign_in_count + 1,
-        current_sign_in_at: Ecto.DateTime.utc,
-        current_sign_in_ip: ip,
-        last_sign_in_at: last_at,
-        last_sign_in_ip: last_ip
-      })
-    |> Config.repo.update
-    |> case do
-      {:ok, _} -> nil
-      {:error, _changeset} ->
-        Logger.error ("Failed to update tracking!")
-    end
-    conn
   end
 
   defp track_logout(conn, _, false), do: conn

@@ -6,6 +6,8 @@ defmodule Mafia do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    pg_config = Application.get_env(:mafia, Mafia.Repo)
+
     # Define workers and child supervisors to be supervised
     children = [
       # Start the Ecto repository
@@ -14,6 +16,10 @@ defmodule Mafia do
       supervisor(Mafia.Endpoint, []),
       # Start your own worker by calling: Mafia.Worker.start_link(arg1, arg2, arg3)
       # worker(Mafia.Worker, [arg1, arg2, arg3]),
+      supervisor(Mafia.GameSupervisor, []),
+      supervisor(Registry, [:unique, :game_registry]),
+      supervisor(Registry, [:unique, :timer_registry], id: :timer_registry),
+      worker(Mafia.QueueBroadcaster, [])
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

@@ -25,6 +25,13 @@ defmodule Mafia.ChannelCase do
       import Ecto.Changeset
       import Ecto.Query
 
+      def empty_mailbox do
+        receive do
+          _ -> empty_mailbox()
+        after
+          0 -> :ok
+        end
+      end
 
       # The default endpoint for testing
       @endpoint Mafia.Endpoint
@@ -35,7 +42,7 @@ defmodule Mafia.ChannelCase do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Mafia.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Mafia.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Mafia.Repo, :auto)
     end
 
     :ok

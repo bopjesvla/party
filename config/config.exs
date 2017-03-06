@@ -7,7 +7,8 @@ use Mix.Config
 
 # General application configuration
 config :mafia,
-  ecto_repos: [Mafia.Repo]
+  ecto_repos: [Mafia.Repo],
+  signups_countdown: 10000
 
 # Configures the endpoint
 config :mafia, Mafia.Endpoint,
@@ -29,10 +30,11 @@ import_config "#{Mix.env}.exs"
 # %% Coherence Configuration %%   Don't remove this line
 config :coherence,
   user_schema: Mafia.User,
+  login_field: :name,
   repo: Mafia.Repo,
   module: Mafia,
-  logged_out_url: "/app",
-  email_from: {"Your Name", "yourname@example.com"},
+  logged_out_url: "/home",
+  email_from: {"Bob", "negenentwintig@hotmail.com"},
   opts: [:authenticatable, :recoverable, :lockable, :trackable, :unlockable_with_token, :registerable]
 
 config :coherence, Mafia.Coherence.Mailer,

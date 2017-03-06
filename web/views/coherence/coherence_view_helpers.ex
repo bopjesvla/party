@@ -4,6 +4,7 @@ defmodule Mafia.Coherence.ViewHelpers do
   """
   use Phoenix.HTML
   alias Coherence.Config
+  import Coherence.ViewHelpers, only: [signin_link: 2]
 
   @seperator {:safe, "&nbsp; | &nbsp;"}
   @helpers Module.concat(Application.get_env(:coherence, :module), Router.Helpers)
@@ -83,11 +84,9 @@ defmodule Mafia.Coherence.ViewHelpers do
       confirmation_link(conn, user_schema, confirm_link)
     ]
     |> List.flatten
-    |> concat([])
   end
 
   def coherence_links(conn, :layout, opts) do
-    list_tag      = Keyword.get opts, :list_tag, :li
     signout_class = Keyword.get opts, :signout_class, "navbar-form"
     signin        = Keyword.get opts, :signin, @signin_link
     signout       = Keyword.get opts, :signout, @signout_link
@@ -96,15 +95,14 @@ defmodule Mafia.Coherence.ViewHelpers do
     if Coherence.logged_in?(conn) do
       current_user = Coherence.current_user(conn)
       [
-        content_tag(list_tag, profile_link(current_user, conn)),
-        content_tag(list_tag, signout_link(conn, signout, signout_class))
+        profile_link(current_user, conn),
+        link(signout, to: coherence_path(@helpers, :session_path, conn, :delete), method: :delete, class: signout_class)
       ]
     else
-      signin_link = content_tag(list_tag, link(signin, to: coherence_path(@helpers, :session_path, conn, :new)))
       if Config.has_option(:registerable) && register do
-        [content_tag(list_tag, link(register, to: coherence_path(@helpers, :registration_path, conn, :new))), signin_link]
+        [link(register, to: coherence_path(@helpers, :registration_path, conn, :new)), signin_link(conn, signin)]
       else
-        signin_link
+        signin_link(conn, signin)
       end
     end
   end
@@ -162,10 +160,7 @@ defmodule Mafia.Coherence.ViewHelpers do
 
   def required_label(f, name, opts \\ []) do
     label f, name, opts do
-      [
-        "#{humanize(name)}\n",
-        content_tag(:abbr, "*", class: "required", title: "required")
-      ]
+      "#{if name == :name, do: "Username", else: humanize(name)}\n"
     end
   end
 

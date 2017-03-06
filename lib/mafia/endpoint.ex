@@ -1,4 +1,4 @@
-defmodule Mafia.Endpoint do
+ defmodule Mafia.Endpoint do
   use Phoenix.Endpoint, otp_app: :mafia
 
   socket "/socket", Mafia.UserSocket
