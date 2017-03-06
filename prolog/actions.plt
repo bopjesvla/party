@@ -14,10 +14,16 @@ test(trackerlike) :-
     action(-601, peep, [-602], voyeur_channel, []),
     action(-602, follow, [-601], follower_channel, []),
     action(-603, visit, [-601], visitor_channel, []),
-    action(-603, visit, [-602], visitor_channel, [ninja])
+    action(-603, protect, [-602], doctor_channel, []),
+    action(-603, investigate, [-602], cop_channel, ["ninja"])
   ]),
   flush(X),
-  member(message(tracker_channel, -601, "was targeted"), X).
+  member(message(tracker_channel, -601, "was targeted"), X),
+  member(message(watcher_channel, -603, "targeted"), X),
+  member(message(voyeur_channel, -602, protect), X),
+  member(message(follower_channel, -601, peep), X),
+  member(message(follower_channel, -601, track), X),
+  \+ member(message(_, _, investigate), X).
 
 test(kill) :-
   player_team(M, "mafia"),

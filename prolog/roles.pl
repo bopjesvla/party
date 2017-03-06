@@ -41,9 +41,12 @@ main_role_action(killer, kill).
 main_role_action(doctor, protect).
 main_role_action(roleblocker, block).
 main_role_action(tracker, track).
+main_role_action(watcher, watch).
+main_role_action(follower, follow).
+main_role_action(voyeur, peep).
 main_role_action(visitor, visit).
 
-alias(bulletproof, (["strong-willed", "compulsive", "self"], doctor)).
+alias(bulletproof, (["ninja", "strong-willed", "compulsive", "self"], doctor)).
 
 mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
   char_nr(Xchar, X),
@@ -92,7 +95,7 @@ is_mod(Mod) :-
   string(Mod).
 
 is_mod([X|"-shot"]) :- char_nr(X, _).
-is_mod("instant").
+% is_mod("instant").
 
 role_info([roles(Roles), mods(Mods)]) :-
   findall(R, is_role(R), Roles),

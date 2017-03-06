@@ -39,17 +39,19 @@ action(_, track, [X], Channel) :-
     member(Target, Targets)
   ), send(message(Channel, Target, "was targeted"))).
 
-action(_, watch, [X], Channel) :-
+action(Watcher, watch, [X], Channel) :-
   current_phase(P),
   forall((
     trackable_action(action(Actor, _, Targets, _, _)),
+    Actor \= Watcher,
     member(X, Targets)
   ), send(message(Channel, Actor, "targeted"))).
 
-action(_, peep, [X], Channel) :-
+action(Voyeur, peep, [X], Channel) :-
   current_phase(P),
   forall((
-    trackable_action(action(_, Action, Targets, _, _)),
+    trackable_action(action(Actor, Action, Targets, _, _)),
+    Actor \= Voyeur,
     member(X, Targets)
   ), send(message(Channel, X, Action))).
 
@@ -59,7 +61,7 @@ action(_, follow, [X], Channel) :-
     trackable_action(action(X, Action, _, _, _))
   ), send(message(Channel, X, Action))).
 
-action(_, visit, _, _).
+action(_, _, _, _).
 
 action_mod("weak", Actor, _, Targets, _, _) :-
   member(T, Targets),
