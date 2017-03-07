@@ -46,7 +46,7 @@ main_role_action(follower, follow).
 main_role_action(voyeur, peep).
 main_role_action(visitor, visit).
 
-alias(bulletproof, (["ninja", "strong-willed", "compulsive", "self"], doctor)).
+alias(bulletproof, (["ninja", "hyperactive", "strong-willed", "instant", "self"], doctor)).
 
 mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
   char_nr(Xchar, X),
@@ -54,6 +54,9 @@ mod_excludes([Xchar | "-shot"], Action, _, Channel) :-
   Count >= X.
 
 mod_excludes("compulsive", _, Targets, _) :-
+  member(noone, Targets).
+
+mod_excludes("instant", _, Targets, _) :-
   member(noone, Targets).
 
 even :-
@@ -72,6 +75,7 @@ mod_excludes("day", _, _, _) :-
   \+ current_phase_name(day).
 
 action_mods("day", N, [phase | N]) :- !.
+action_mods("hyperactive", N, [phase | N]) :- !.
 
 % add any remaining role mods as an action mod; will be ignored if useless
 action_mods(Mod, N, [Mod | N]).
@@ -95,7 +99,7 @@ is_mod(Mod) :-
   string(Mod).
 
 is_mod([X|"-shot"]) :- char_nr(X, _).
-% is_mod("instant").
+is_mod("instant").
 
 role_info([roles(Roles), mods(Mods)]) :-
   findall(R, is_role(R), Roles),

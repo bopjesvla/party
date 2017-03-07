@@ -6,7 +6,11 @@ won_with_team(P) :-
   team_won(Team).
 
 soft_end_game :-
-  won_with_team(P),
+  won_with_team(P), !,
+  end_game.
+
+soft_end_game :-
+  current_phase(100),
   end_game.
 
 end_game :-

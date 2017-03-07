@@ -232,13 +232,18 @@ unvote(Player, Channel, Action) :-
 vote(Player, Channel, Action, Targets) :-
   player(Player),
   can_vote(Player, Channel, Action, Targets, ActionMods),
+  send(vote(Player, Channel, Action, Targets)),
+  do_vote(Player, Channel, Action, Targets, ActionMods).
+
+silent_vote(Player, Channel, Action, Targets) :-
+  player(Player),
+  can_vote(Player, Channel, Action, Targets, ActionMods),
   do_vote(Player, Channel, Action, Targets, ActionMods).
 
 do_vote(Player, Channel, Action, Targets, ActionMods) :-
   current_phase(P),
   ignore(retract(voting(P, Player, Channel, Action, _))),
   asserta(voting(P, Player, Channel, Action, Targets)),
-  send(vote(Player, Channel, Action, Targets)),
   check_hammer(Channel, Action, Targets, ActionMods).
 
 can_unvote(Player, Channel, Action) :-
@@ -282,7 +287,7 @@ lock_deterministic_actions :-
   forall((
     channel_role(C, _),
     count(can_vote(P, C, A, T, _), 1)
-  ), vote(Actor, C, Act, Targets)).
+  ), silent_vote(Actor, C, Act, Targets)).
 
 maybe_next_phase :-
   lock_deterministic_actions,

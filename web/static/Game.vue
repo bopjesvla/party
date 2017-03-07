@@ -3,70 +3,70 @@
     <room-header :name="name"></room-header>
     <div class="room-inner">
       <chat-messages :messages="messages" :players="this.info.players"></chat-messages>
-      <div class="game-ui">
-        <button v-if="joined" type="button" @click="leaveGame" class="leave-button">
-          Leave the game
-        </button>
-        <button v-else type="button" @click="joinGame" class="leave-button">
-          Attempt to join this game
-        </button>
-        Phase: {{phase}}
-        <div class="team" v-if="info.teams && info.teams.length">
-          Alignment: {{info.teams.join(", ")}}<br />
+    </div>
+    <div class="game-ui">
+      <button v-if="joined" type="button" @click="leaveGame" class="leave-button">
+        Leave the game
+      </button>
+      <button v-else type="button" @click="joinGame" class="leave-button">
+        Attempt to join this game
+      </button>
+      Phase: {{phase}}
+      <div class="team" v-if="info.teams && info.teams.length">
+        Alignment: {{info.teams.join(", ")}}<br />
+      </div>
+      <div class="player-list" v-if="info.players">
+        <h3>Playerlist</h3>
+        <div class="player" v-for="player in playing">
+          {{player.name}}
+          <span v-if="info.player_status">
+            {{player_status(player.slot)}}
+          </span>
         </div>
-        <div class="player-list" v-if="info.players">
-          <h3>Playerlist</h3>
-          <div class="player" v-for="player in playing">
-            {{player.name}}
-            <span v-if="info.player_status">
-              {{player_status(player.slot)}}
-            </span>
+      </div>
+      <div class="active" v-if="info.active && info.active.length">
+        <h3>Active Roles</h3>
+        <div class="channel" v-for="channel in roleChannels(info.active)">
+          <div class="role" v-if="channel.role">
+            <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
+          </div>
+          <div class="players" v-if="channel.members">
+            <div class="player" v-for="slot in channel.members">
+              {{slotName(slot, info.players)}}
+              <span class="vote" v-if="voteCount(channel, slot)">
+                ({{voteCount(channel, slot)}}):
+                {{
+                  renderVotedBy(channel, slot) || "no one"
+                }}
+              </span>
+              <div class="vote" v-if="isVoting(channel, slot)">
+                votes to {{
+                  renderVote(isVoting(channel, slot), info.players)
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="act" v-if="channel.actions && channel.actions.length">
+            <v-select
+              placeholder="Vote"
+              :options="channel.actions.map(voteOption)"
+              track-by="vote"
+              label="label"
+              :value="isVoting(channel, me.slot) ? voteOption(isVoting(channel, me.slot)) : {}"
+              @input="vote(channel, $event)">
+            </v-select>
           </div>
         </div>
-        <div class="active" v-if="info.active && info.active.length">
-          <h3>Active Roles</h3>
-          <div class="channel" v-for="channel in roleChannels(info.active)">
-            <div class="role" v-if="channel.role">
-              <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
-            </div>
+      </div>
+      <div class="inactive" v-if="info.inactive && info.inactive.length">
+        <h3>Inactive Roles</h3>
+        <div class="channel" v-for="channel in roleChannels(info.inactive)">
+          <div class="role" v-if="channel.role">
+            <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
             <div class="players" v-if="channel.members">
-              <div class="player" v-for="slot in channel.members">
+              <span class="player" v-for="slot in channel.members">
                 {{slotName(slot, info.players)}}
-                <span class="vote" v-if="voteCount(channel, slot)">
-                  ({{voteCount(channel, slot)}}):
-                  {{
-                    renderVotedBy(channel, slot) || "no one"
-                  }}
-                </span>
-                <div class="vote" v-if="isVoting(channel, slot)">
-                  votes to {{
-                    renderVote(isVoting(channel, slot), info.players)
-                  }}
-                </div>
-              </div>
-            </div>
-            <div class="act" v-if="channel.actions && channel.actions.length">
-              <v-select
-                placeholder="Vote"
-                :options="channel.actions.map(voteOption)"
-                track-by="vote"
-                label="label"
-                :value="isVoting(channel, me.slot) ? voteOption(isVoting(channel, me.slot)) : {}"
-                @input="vote(channel, $event)">
-              </v-select>
-            </div>
-          </div>
-        </div>
-        <div class="inactive" v-if="info.inactive && info.inactive.length">
-          <h3>Inactive Roles</h3>
-          <div class="channel" v-for="channel in roleChannels(info.inactive)">
-            <div class="role" v-if="channel.role">
-              <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
-              <div class="players" v-if="channel.members">
-                <span class="player" v-for="slot in channel.members">
-                  {{slotName(slot, info.players)}}
-                </span>
-              </div>
+              </span>
             </div>
           </div>
         </div>
@@ -252,7 +252,7 @@
 <style>
   .room {
     > .room-inner {
-      overflow: auto;
+      overflow-y: auto;
       position: absolute;
       width: 100%;
       top: 3.8em;
@@ -280,8 +280,8 @@
   }
   .game-ui {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 4em;
+    right: 20px;
     width: 400px;
     max-width: 30%;
     .leave-button {

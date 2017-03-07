@@ -54,9 +54,14 @@
 		display: table;
 		border-spacing: 10px 0;
 		padding-left: 2%;
+		padding-right: 2%;
+		width: 70%;
 		.message {
 			display: table-row;
 			color: grey;
+			.msg {
+				width: 100%;
+			}
 			.message-ts, .message-user, .msg {
 				display: table-cell;
 				padding-top: 2px;
@@ -73,6 +78,7 @@
 			&.type-m {
 				.msg {
 					color: black;
+					word-break: break-word;
 				}
 			}
 			&.type-vote {
