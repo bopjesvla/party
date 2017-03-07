@@ -1,4 +1,4 @@
-test(start_game) :- next_phase.
+test(start_game) :- next_phase, flush(_).
 
 test(simple) :-
   channel_type(Channel, player_role),
@@ -47,8 +47,17 @@ test(crole) :-
 test(automatic) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),
-  asserta(channel_role(Channel, (["day"], bulletproof))),
+  asserta(channel_role(Channel, (["instant", "self", "day"], cop))),
   findall(A, can_vote(P, Channel, A, T, _), X),
   X = [_],
   maybe_next_phase,
-  locked(Channel, _, _, _).
+  flush(Y),
+  log(Y).
+
+test(bulletproof) :-
+  channel_type(Channel, player_role),
+  retract_all(channel_role(Channel, _)),
+  asserta(channel_role(Channel, (["day"], bulletproof))),
+  findall(A, can_vote(P, Channel, A, T, _), X),
+  X = [_],
+  action_history(_, action(P, protect, [P], _, _), _).
