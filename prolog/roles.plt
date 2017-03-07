@@ -21,6 +21,11 @@ test(day) :-
   \+ role_action(([], doctor), protect, _, Channel),
   role_action((["day"], doctor), protect, _, Channel).
 
+test(hyperactive) :-
+  channel_type(Channel, player_role),
+  \+ role_action(([], doctor), protect, _, Channel),
+  role_action((["hyperactive"], doctor), protect, _, Channel).
+
 test(weak) :-
   channel_type(Channel, player_role),
   role_action((["weak"], village), lynch, _, Channel, [], ActionMods),
@@ -52,12 +57,13 @@ test(automatic) :-
   X = [_],
   maybe_next_phase,
   flush(Y),
-  log(Y).
+  Y = [message(Channel, _, "is not Mafia")].
 
 test(bulletproof) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),
-  asserta(channel_role(Channel, (["day"], bulletproof))),
+  asserta(channel_role(Channel, ([], bulletproof))),
   findall(A, can_vote(P, Channel, A, T, _), X),
   X = [_],
+  maybe_next_phase,
   action_history(_, action(P, protect, [P], _, _), _).
