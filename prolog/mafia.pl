@@ -235,6 +235,7 @@ vote(Player, Channel, Action, Targets) :-
   do_vote(Player, Channel, Action, Targets, ActionMods).
 
 do_vote(Player, Channel, Action, Targets, ActionMods) :-
+  current_phase(P),
   ignore(retract(voting(P, Player, Channel, Action, _))),
   asserta(voting(P, Player, Channel, Action, Targets)),
   send(vote(Player, Channel, Action, Targets)),

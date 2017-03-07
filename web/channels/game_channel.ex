@@ -17,9 +17,24 @@ defmodule Mafia.GameChannel do
     messages = Repo.run! :game_messages_for_user, [user, id]
 
     info = Queries.game_info(id, user)
-    |> Map.put(:msgs, messages)
+    
+    query = if info.status == "ongoing" do
+      channels = Enum.map(info.active ++ info.inactive, & &1.channel)
+      from m in Mafia.Message,
+      join: c in assoc(m, :channel),
+      where: c.name in ^channels or (c.game_id == ^id and c.type != "meet")
+    else
+      from m in Mafia.Message,
+      join: c in assoc(m, :channel),
+      where: c.game_id == ^id
+    end
+    
+    messages = query
+    |> select([m], %{msg: m.msg, u: m.user_id, ts: m.inserted_at, ty: m.type})
+    |> order_by(:inserted_at)
+    |> Repo.all
 
-    {:ok, info, socket}
+    {:ok, Map.put(info, :msgs, messages), socket}
   end
 
   def new_message(game_id, type, user, message) do
