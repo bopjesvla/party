@@ -74,8 +74,16 @@ mod_excludes("even-day", _, _, _) :-
 mod_excludes("day", _, _, _) :-
   \+ current_phase_name(day).
 
+mod_excludes("vengeful", _, _, VengefulChannel) :-
+  \+ (
+    locked(LynchChannel, lynch, [Actor], _),
+    access(Actor, VengefulChannel),
+    access(Actor, LynchChannel)
+  ).
+
 action_mods("day", N, [phase | N]) :- !.
 action_mods("hyperactive", N, [phase | N]) :- !.
+action_mods("vengeful", N, [phase | N]) :- !.
 
 % add any remaining role mods as an action mod; will be ignored if useless
 action_mods(Mod, N, [Mod | N]).

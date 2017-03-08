@@ -9,8 +9,7 @@ action(_, kill, [X], _) :- !,
   kill(X, "has been killed").
 
 action(_, lynch, [X], _) :- !,
-  kill(X, "has been lynched"),
-  asserta(dead(X)).
+  kill(X, "has been lynched").
 
 action(_, investigate, [X], Channel) :-
   current_phase(P),

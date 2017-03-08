@@ -77,7 +77,7 @@ game_info(Player, Info) :-
       channel_type(C, Type),
       find_dicts([act(Action), opt(Targets)], can_vote(Player, C, Action, Targets, _), Actions),
       current_phase(P),
-      find_dicts([player(Player), act(Action), opt(Targets)], voting(P, Player, C, Action, Targets), Votes)
+      find_dicts([player(Voter), act(Action), opt(Targets)], voting(P, Voter, C, Action, Targets), Votes)
   ), Active),
   find_dicts([channel(C), members(Members), role(JsonRole), type(Type)], (
       access(Player, C),
@@ -215,8 +215,7 @@ grant_access(Player, Channel) :-
 retract_access(Player, Channel) :- \+ access(Player, Channel), !.
 retract_access(Player, Channel) :-
   retract(access(Player, Channel)),
-  send(leave(Player, Channel)),
-  asserta(access(Player, Channel)).
+  send(leave(Player, Channel)).
 
 join_channel(Player, Channel) :-
   access(Player, Channel),

@@ -17,6 +17,7 @@ Repo.insert!(%User{id: -1, name: "bob1", email: "a@b.nl1", password_hash: "$2b$1
 Repo.insert!(%User{id: -2, name: "bob2", email: "a@b.nl2", password_hash: "$2b$12$96hYKTymlpk9fR8bWsjYw.4VUbhVhiN1P5CZI6uf1ceQ.gQVbZNTi"})
 Repo.insert!(%User{id: -3, name: "bob3", email: "a@b.nl3", password_hash: "$2b$12$96hYKTymlpk9fR8bWsjYw.4VUbhVhiN1P5CZI6uf1ceQ.gQVbZNTi"})
 Repo.insert!(%User{id: -4, name: "bob4", email: "a@b.nl4", password_hash: "$2b$12$96hYKTymlpk9fR8bWsjYw.4VUbhVhiN1P5CZI6uf1ceQ.gQVbZNTi"})
+Repo.insert!(%User{id: -5, name: "bob5", email: "a@b.nl5", password_hash: "$2b$12$96hYKTymlpk9fR8bWsjYw.4VUbhVhiN1P5CZI6uf1ceQ.gQVbZNTi"})
 
 Repo.insert!(%Setup{
   id: 0,

@@ -51,7 +51,6 @@
 		</div>
 		
 		<div v-else>
-			{{setup.size}} players
 			<div class="roles">
 				<div class="role" v-for="r in rolesByType('global')">
 					<b>Global</b><br /> <role :role="r"></role>

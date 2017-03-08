@@ -50,7 +50,7 @@
 				}
 			})
 			user_channel.on("new:game", msg => {
-				this.myGames.unshift(msg)
+				this.myGames.push(msg)
 			})
 			user_channel.on("leave:game", msg => {
 				let game = this.myGames.filter(x => x.id == msg.id)[0]

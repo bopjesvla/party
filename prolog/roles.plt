@@ -49,6 +49,17 @@ test(crole) :-
   asserta(channel_role(Channel, (["day"], doctor))),
   channel_action(Channel, protect, _).
 
+test(vengeful) :-
+  channel_type(Channel, player_role),
+  access(Player, Channel),
+  retract_all(channel_role(Channel, _)),
+  asserta(channel_role(Channel, (["vengeful"], cop))),
+  \+ can_vote(_, Channel, investigate, _, _),
+  channel_type(Global, global_role),
+  handle_hammer(Global, lynch, [Player], []),
+  channel_action(Channel, investigate, [3]),
+  retract_all(locked(_,_,_,_)).
+
 test(automatic) :-
   channel_type(Channel, player_role),
   retract_all(channel_role(Channel, _)),

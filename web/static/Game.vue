@@ -34,12 +34,12 @@
             <div class="player" v-for="slot in channel.members">
               {{slotName(slot, info.players)}}
               <span class="vote" v-if="voteCount(channel, slot)">
-                ({{voteCount(channel, slot)}}):
+                (<b>{{voteCount(channel, slot)}}</b>):
                 {{
                   renderVotedBy(channel, slot) || "no one"
                 }}
               </span>
-              <div class="vote" v-if="isVoting(channel, slot)">
+              <div class="small vote" v-if="isVoting(channel, slot)">
                 votes to {{
                   renderVote(isVoting(channel, slot), info.players)
                 }}
