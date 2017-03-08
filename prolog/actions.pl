@@ -1,6 +1,10 @@
 action(Actor, Action, Targets, Channel, []) :-
   action(Actor, Action, Targets, Channel).
 
+message_player(Player, From, Msg) :-
+  player_channel(Player, Channel),
+  send(message(Channel, From, Msg)).
+
 action(_, kill, [X], _) :- !,
   kill(X, "has been killed").
 
@@ -68,6 +72,12 @@ action_mod("weak", Actor, _, Targets, _, _) :-
   player_team(T, Team),
   Team \= "town",
   !, kill(Actor).
+
+action_mod("loud", Actor, _, Targets, _, _) :-
+  forall(member(T, Targets), message_player(T, Actor, "visited you")).
+
+action_mod("public", Actor, _, Targets, _, _) :-
+  forall(member(T, Targets), send(message(Actor, "performed an action"))).
 
 action_mod(_,_,_,_,_,_).
 

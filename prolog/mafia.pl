@@ -222,6 +222,10 @@ join_channel(Player, Channel) :-
   access(Player, Channel),
   (channel_type(Channel, player); once(channel_action(Channel, _, _))).
 
+player_channel(Player, Channel) :-
+  access(Player, Channel),
+  channel_type(Channel, player).
+
 unvote(Player, Channel, Action) :-
   player(Player),
   current_phase(P),

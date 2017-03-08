@@ -35,6 +35,21 @@ test(history) :-
   flush(X),
   X = [].
 
+test(loud) :-
+  resolve_and_process_actions([
+    action(-801, visit, [-802], visitor_channel, ["public"])
+  ]),
+  flush(X),
+  X = [message(-801, "performed an action")].
+
+test(failed_action_mods) :-
+  resolve_and_process_actions([
+    action(-801, kill, [-802], killer_channel, ["public"]),
+    action(-803, protect, [-802], doctor_channel, [])
+  ]),
+  flush(X),
+  X = [message(-801, "performed an action")].
+
 test(kill) :-
   player_team(M, "mafia"),
   player_team(T, "town"),
