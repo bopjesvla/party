@@ -56,8 +56,7 @@ get_time(Goal, Duration) :-
 forall(Cond, Action) :- \+ (Cond, \+ Action).
 
 % only for predicates without side effects
-retract_all(Clause) :- retract(Clause), call(Clause), !, retract_all(Clause).
-retract_all(_).
+retract_all(Clause) :- forall(Clause, retract(Clause)).
 
 nth0(0, [X | _], X) :- !.
 nth0(N, [_ | L], X) :- O is N - 1, nth0(O, L, X).

@@ -25,6 +25,16 @@ test(trackerlike) :-
   member(message(follower_channel, -601, track), X),
   \+ member(message(_, _, investigate), X).
 
+test(history) :-
+  resolve_and_process_actions([
+    action(-701, block, [-702], blocker_channel, ["instant"])
+  ]),
+  resolve_and_process_actions([
+    action(-702, investigate, [-701], cop_channel, [])
+  ]),
+  flush(X),
+  X = [].
+
 test(kill) :-
   player_team(M, "mafia"),
   player_team(T, "town"),
