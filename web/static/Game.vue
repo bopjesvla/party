@@ -28,7 +28,7 @@
         <h3>Active Roles</h3>
         <div class="channel" v-for="channel in roleChannels(info.active)">
           <div class="role" v-if="channel.role">
-            <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
+            <b><role :role="channel.role"></role></b>
           </div>
           <div class="players" v-if="channel.members">
             <div class="player" v-for="slot in channel.members">
@@ -85,6 +85,7 @@
   import ChatInput from './components/ChatInput'
   import {renderVote, slotName} from './textviews'
   import Vote from './components/Vote'
+  import Role from './components/Role'
 
   export default {
     data() {
@@ -222,7 +223,7 @@
     watch: {
       $route: 'load'
     },
-    components: {RoomHeader, ChatMessages, ChatInput, Vote},
+    components: {RoomHeader, ChatMessages, ChatInput, Vote, Role},
     computed: {
       topic() {
         return `${this.$route.name}:${this.$route.params.game_id}`

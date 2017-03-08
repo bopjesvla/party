@@ -42,7 +42,8 @@ defmodule Mafia.Mixfile do
      {:cowboy, "~> 1.0"},
      {:httpoison, "~> 0.10.0"},
      {:erlog, github: "rvirding/erlog", branch: "develop"},
-	   {:porta, path: "../porta"}
+	  {:porta, path: "../porta"},
+	  {:earmark, "~> 1.2.0"}
    ]
   end
 

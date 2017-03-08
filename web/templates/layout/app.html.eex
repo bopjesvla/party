@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%= render Mafia.SharedView, "head.html", title: "Hoo boy!" %>
+    <%= render Mafia.SharedView, "head.html", title: "rty.party" %>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>
 
