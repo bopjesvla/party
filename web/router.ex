@@ -41,6 +41,7 @@ defmodule Mafia.Router do
 
   scope "/", Mafia do
     pipe_through :browser # Use the default browser stack
+    get "/role", RoleDescriptionController, :show
   end
 
   scope "/", Mafia do

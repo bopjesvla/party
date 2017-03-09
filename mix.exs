@@ -43,7 +43,7 @@ defmodule Mafia.Mixfile do
      {:httpoison, "~> 0.10.0"},
      {:erlog, github: "rvirding/erlog", branch: "develop"},
 	  {:porta, path: "../porta"},
-	  {:earmark, "~> 1.2.0"}
+	  {:phoenix_markdown, "~> 0.1.4"}
    ]
   end
 

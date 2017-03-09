@@ -87,7 +87,7 @@ defmodule Mafia.Coherence.RegistrationController do
     case Config.repo.update(changeset) do
       {:ok, user} ->
         conn
-        |> put_flash(:info, "Account updated successfully.")
+        |> put_flash(:info, "Account updated successfully. You may have to log out and in again to see the changes in effect.")
         |> redirect_to(:registration_update, params, user)
       {:error, changeset} ->
         render(conn, "edit.html", user: user, changeset: changeset)

@@ -1,0 +1,1 @@
+- Can kill a player

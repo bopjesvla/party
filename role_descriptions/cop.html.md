@@ -1,0 +1,2 @@
+- Can investigate a player to learn whether that player is aligned to the Mafia
+- Gets back "is Mafia" or "is not Mafia"

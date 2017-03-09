@@ -17,6 +17,7 @@ import socket from "./socket"
 import Vue from 'vue'
 import vSelect from 'vue-multiselect'
 import VueRouter from 'vue-router'
+import VueResource from 'vue-resource'
 import Home from './Home.vue'
 import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
@@ -27,6 +28,7 @@ import Game from './Game.vue'
 import 'vueify/lib/insert-css'
 
 Vue.use(VueRouter)
+Vue.use(VueResource)
 Vue.component('v-select', vSelect)
 
 let router = new VueRouter({
