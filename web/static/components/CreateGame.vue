@@ -60,13 +60,13 @@
 					<role :role="r"></role>
 				</div>
 			</div>
-			<div class="teams">
-				<b>Players</b><br />
-				<div class="role" v-for="p in setupPlayers()">
-					{{p.player}}. <team :team="t" v-for="t in p.teams"></team>
+			<div><b>Players</b></div>
+			<ol class="players">
+				<li v-for="p in setupPlayers()">
+					<team :team="t" v-for="t in p.teams"></team>
 					<role :role="r" v-for="r in p.roles"></role>
-				</div>
-			</div>
+				</li>
+			</ol>
 		</div>
 
 		<button v-if="newSetup" @click="createSetup">Create Setup</button>
@@ -205,6 +205,20 @@
 		}
 		.role {
 			margin-bottom: 10px
+		}
+	}
+	.players {
+		.role {
+			display: block;
+			position: relative;
+			margin-left: 15px;
+			&:before {
+				content: "◟ ";
+				position: absolute;
+				right: 100%;
+				margin-right: 4px;
+				top: -5px;
+			}
 		}
 	}
 </style>

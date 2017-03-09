@@ -72,6 +72,14 @@ action_mod("weak", Actor, _, Targets, _, _) :-
   Team \= "town",
   !, kill(Actor).
 
+action_mod("viral", _, _, Targets, Channel, _) :-
+  channel_role(Channel, Role),
+  forall(member(T, Targets), (
+    create_channel(player_role, Role, NewChannel),
+    grant_access(T, NewChannel),
+    message_player(T, nil, "New role")
+  )).
+
 action_mod("loud", Actor, _, Targets, _, _) :-
   forall(member(T, Targets), message_player(T, Actor, "visited you")).
 

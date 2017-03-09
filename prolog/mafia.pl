@@ -208,7 +208,6 @@ create_channel(Type, Role, Channel) :-
 
 grant_access(Player, Channel) :- access(Player, Channel), !.
 grant_access(Player, Channel) :-
-  player(Player),
   send(join(Player, Channel)),
   asserta(access(Player, Channel)).
 

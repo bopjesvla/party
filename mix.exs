@@ -42,8 +42,8 @@ defmodule Mafia.Mixfile do
      {:cowboy, "~> 1.0"},
      {:httpoison, "~> 0.10.0"},
      {:erlog, github: "rvirding/erlog", branch: "develop"},
-	  {:porta, path: "../porta"},
-	  {:phoenix_markdown, "~> 0.1.4"}
+    {:porta, path: "../porta"},
+    {:phoenix_markdown, "~> 0.1.4"}
    ]
   end
 
@@ -58,13 +58,13 @@ defmodule Mafia.Mixfile do
      "ecto.reset": ["ecto.drop", "ecto.setup"],
      "test": fn
        ["prolog" | _] ->
-  	      Mix.Task.run "test", ~w(--only prolog)
+          Mix.Task.run "test", ~w(--only prolog)
        ["browser" | _] ->
          Mix.Task.run "test", ~w(--only browser)
        args ->
-    	   Mix.Task.run "ecto.reset", []
-    	   Mix.Task.run "test", ["--exclude", "browser" | args]
-  	   end,
+         Mix.Task.run "ecto.reset", []
+         Mix.Task.run "test", ["--exclude", "browser" | args]
+       end,
      "install": ["cmd swipl -f install.pl -g install -t halt"],
      "game.serve": "cmd swipl game_server.pl"]
   end

@@ -15,7 +15,7 @@ test(trackerlike) :-
     action(-602, follow, [-601], follower_channel, []),
     action(-603, visit, [-601], visitor_channel, []),
     action(-603, protect, [-602], doctor_channel, []),
-    action(-603, investigate, [-602], cop_channel, ["ninja"])
+    action(-603, investigate, [-602], ninja_channel, ["ninja"])
   ]),
   flush(X),
   member(message(tracker_channel, -601, "was targeted"), X),
@@ -24,6 +24,16 @@ test(trackerlike) :-
   member(message(follower_channel, -601, peep), X),
   member(message(follower_channel, -601, track), X),
   \+ member(message(_, _, investigate), X).
+
+test(viral) :-
+  Role = (["viral"], visitor),
+  asserta(channel_role(viral_channel, Role)),
+  resolve_and_process_actions([
+    action(-613, visit, [-612], viral_channel, ["viral"])
+  ]),
+  flush(X),
+  access(-612, C),
+  channel_role(C, Role).
 
 test(history) :-
   resolve_and_process_actions([
@@ -35,17 +45,17 @@ test(history) :-
   flush(X),
   X = [].
 
-test(loud) :-
+test(public) :-
   resolve_and_process_actions([
-    action(-801, visit, [-802], visitor_channel, ["public"])
+    action(-801, visit, [-802], public_channel, ["public"])
   ]),
   flush(X),
   X = [message(-801, "performed an action")].
 
 test(failed_action_mods) :-
   resolve_and_process_actions([
-    action(-801, kill, [-802], killer_channel, ["public"]),
-    action(-803, protect, [-802], doctor_channel, [])
+    action(-801, kill, [-802], public_killer_channel, ["public"]),
+    action(-803, protect, [-802], public_doctor_channel, [])
   ]),
   flush(X),
   X = [message(-801, "performed an action")].

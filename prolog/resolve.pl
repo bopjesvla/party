@@ -33,6 +33,7 @@ stops(Stopper, Action, Rest, blocked) :- blocks(Stopper, Action), \+ stopped(Sto
 stops(Stopper, Action, Rest, failed) :- makes_fail(Stopper, Action), \+ stopped(Stopper, Rest, _Anyhow).
 
 blocks(action(_, block, [Player], _, _), action(Player, _, _, _, _)).
+blocks(action(_, jail, [Player], _, _), action(Player, _, _, _, _)).
 blocks(action(_, rolestop, [Target], _, _), action(_, _, Targets, _, _)) :-
   member(Target, Targets).
 
@@ -40,4 +41,5 @@ makes_fail(X, Y) :- protects(X, Target), kills(Y, Target).
 makes_fail(X, Y) :- protects(Y, Target), kills(X, Target).
 
 protects(action(_, protect, [Target], _, _), Target).
+protects(action(_, jail, [Target], _, _), Target).
 kills(action(_, kill, [Target], _, _), Target).
