@@ -33,12 +33,12 @@
 		components: {Collapse, GameList, CreateGame},
 		data() {
 			return {
-				joinedRooms: [{name: 'lobby'}, {name: 'test'}],
+				joinedRooms: [{name: 'lobby'}, {name: 'dev'}],
 				roomInput: ''
 			}
 		},
 		created() {
-			
+
 		}
 	}
 </script>

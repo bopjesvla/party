@@ -12,6 +12,9 @@
 If you just want to alter core game mechanics (e.g. by adding a role or modifier),
 you only need Elixir, and you can run `mix test prolog` instead.
 
+If you need help or advice, log onto [rty.party](https://rty.party) and join
+the dev room at the bottom of the sidebar.
+
 ## Running your own server
 
   * Install Nodejs, Elixir and PostgreSQL
