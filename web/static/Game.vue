@@ -1,7 +1,7 @@
 <template>
-  <div class="room">
+  <div class="game-room">
     <room-header :name="name"></room-header>
-    <div class="room-inner">
+    <div class="room-inner" ref="inner">
       <chat-messages :messages="messages" :players="this.info.players"></chat-messages>
     </div>
     <div class="game-ui">
@@ -22,6 +22,19 @@
           <span v-if="info.player_status">
             {{player_status(player.slot)}}
           </span>
+        </div>
+      </div>
+      <div class="inactive" v-if="info.inactive && info.inactive.length">
+        <h3>Inactive Roles</h3>
+        <div class="channel" v-for="channel in roleChannels(info.inactive)">
+          <div class="role" v-if="channel.role">
+            <b><role :role="channel.role"></role></b>
+          </div>
+          <div class="players" v-if="channel.members">
+            Members: <span class="player" v-for="slot in channel.members">
+              {{slotName(slot, info.players)}}
+            </span>
+          </div>
         </div>
       </div>
       <div class="active" v-if="info.active && info.active.length">
@@ -58,19 +71,6 @@
           </div>
         </div>
       </div>
-      <div class="inactive" v-if="info.inactive && info.inactive.length">
-        <h3>Inactive Roles</h3>
-        <div class="channel" v-for="channel in roleChannels(info.inactive)">
-          <div class="role" v-if="channel.role">
-            <b>{{channel.role.mods.join(" ")}} {{channel.role.role}}</b>
-            <div class="players" v-if="channel.members">
-              <span class="player" v-for="slot in channel.members">
-                {{slotName(slot, info.players)}}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
     <form @submit.prevent="send">
       <input type="text" v-model="input"/>
@@ -86,6 +86,7 @@
   import {renderVote, slotName} from './textviews'
   import Vote from './components/Vote'
   import Role from './components/Role'
+  import Vue from 'vue'
 
   export default {
     data() {
@@ -221,7 +222,15 @@
       }
     },
     watch: {
-      $route: 'load'
+      $route: 'load',
+      messages() {
+        let {inner} = this.$refs
+        // almost scrolled down
+        if(inner.scrollTop + inner.clientHeight + 60 >= inner.scrollHeight) {
+          // scroll all the way down
+          Vue.nextTick(_ => inner.scrollTop = inner.scrollHeight)
+        }
+      }
     },
     components: {RoomHeader, ChatMessages, ChatInput, Vote, Role},
     computed: {
@@ -251,15 +260,19 @@
   }
 </script>
 <style>
-  .room {
+  .game-room {
+    position: relative;
+    width: 100%;
+    height: 100%;
     > .room-inner {
       overflow-y: auto;
       position: absolute;
-      width: 100%;
+      width: 70%;
       top: 3.8em;
       border-top: 1px solid silver;
+      border-right: 1px solid silver;
       bottom: 2em;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
     }
     > form {
       position: absolute;
@@ -280,11 +293,14 @@
     }
   }
   .game-ui {
+    overflow-y: auto;
     position: absolute;
     top: 4em;
     right: 20px;
     width: 400px;
     max-width: 30%;
+    bottom: 2em;
+    margin-bottom: 5px;
     .leave-button {
       float: right;
     }

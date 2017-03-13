@@ -23,7 +23,7 @@
 	import {renderVote, renderEnd} from '../textviews'
 	import Role from './Role.vue'
 	import Team from './Team.vue'
-	
+
 	export default {
 		props: ['messages', 'players'],
 		methods: {
