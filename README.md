@@ -5,7 +5,8 @@
   * Install Nodejs, Elixir and PostgreSQL
   * Install dependencies with `mix deps.get`
   * Run `mix test` to verify everything is working
-  * Make a change, add tests, and run `mix test` until you've convinced your computer your code is correct
+  * Make changes and add tests
+  * Run `mix test` to verify everything is still working
   * Send a pull request
 
 If you just want to alter core game mechanics (e.g. by adding a role or modifier),

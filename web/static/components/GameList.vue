@@ -1,30 +1,34 @@
 <template>
 	<table class="game-list">
 	  <tr v-if="myGames.length">
-	    <th colwidth="2">Your Games</th>
+	    <th colspan="3">Your Games</th>
 	  </tr>
 		<tr v-for="game in myGames" @click="signup(game.id)">
-			<td class="setup-name">{{game.id}}: {{game.setup}}</td>
+			<td class="setup-name">#{{game.id}}</td>
+			<td><description :name="game.setup" type="setup"></description></td>
 			<td class="status">{{game.status}}</td>
 		</tr>
 		<tr v-if="gamesInSignups.length">
-	    <th colwidth="2">Signups</th>
+	    <th colspan="3">Games in Signups</th>
 	  </tr>
 		<tr v-for="game in gamesInSignups" @click="signup(game.id)">
-			<td class="setup-name">{{game.id}}: {{game.setup}}</td>
+			<td class="setup-name">#{{game.id}}</td>
+			<td><description :name="game.setup" type="setup"></description></td>
 			<td class="players">{{game.size - game.empty}}/{{game.size}}</td>
 		</tr>
 		<tr v-if="replacementRequests.length">
-	    <th colwidth="2">Replacements</th>
+	    <th colspan="3">Replacement Requests</th>
 	  </tr>
 		<tr v-for="game in replacementRequests" @click="signup(game.id)">
-			<td class="setup-name">{{game.id}}: {{game.setup}}</td>
+			<td class="setup-name">#{{game.id}}</td>
+			<td><description :name="game.setup" type="setup"></description></td>
 		</tr>
 	</table>
 </template>
 
 <script>
 	import {queue_channel, user_channel} from "../socket"
+	import Description from './Description'
 
 	export default {
 		data() {
@@ -74,7 +78,7 @@
 					})
 			}
 		},
-		
+		components: {Description}
 	}
 </script>
 
@@ -82,9 +86,13 @@
 	.game-list {
 		border: 0;
 		width: 100%;
+		td:first-child + td {
+		  width: 100%;
+			padding-left: 20px;
+		}
 		td {
 		  cursor: pointer;
-			padding: 2px
+			padding: 2px;
 		}
 		th {
 		  text-align: left;

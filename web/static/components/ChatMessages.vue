@@ -111,7 +111,7 @@
 			}
 		}
 		.message:last-child .msg {
-			padding-bottom: 10px;
+			padding-bottom: 5px;
 		}
 	}
 </style>

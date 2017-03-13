@@ -70,10 +70,10 @@
 				color: #000;
 				&:before {
 					position: absolute;
-					top: -15px;
-					left: -15px;
-					right: -15px;
-					bottom: -15px;
+					top: -5px;
+					left: -5px;
+					right: -5px;
+					bottom: -5px;
 					content: '';
 				}
 			}
