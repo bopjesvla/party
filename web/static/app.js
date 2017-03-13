@@ -21,7 +21,6 @@ import VueResource from 'vue-resource'
 import Home from './Home.vue'
 import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
-import GameSidebar from './GameSidebar.vue'
 import Room from './Room.vue'
 import Game from './Game.vue'
 

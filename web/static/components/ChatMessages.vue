@@ -110,5 +110,8 @@
 				}
 			}
 		}
+		.message:last-child .msg {
+			padding-bottom: 10px;
+		}
 	}
 </style>

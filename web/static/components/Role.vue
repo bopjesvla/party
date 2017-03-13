@@ -1,15 +1,15 @@
 <template>
   <span class="role">
-    <role-part :part="m" v-for="m in role.mods"></role-part>
-    <role-part :part="role.role"></role-part>
+    <description :name="m" type="modifier" v-for="m in role.mods"></description>
+    <description :name="role.role" type="role"></description>
   </span>
 </template>
 
 <script type="text/javascript" charset="utf-8">
-	import RolePart from './RolePart'
+	import Description from './Description'
   export default {
     props: ["role", "colored"],
-    components: {RolePart}
+    components: {Description}
   }
 </script>
 
