@@ -296,9 +296,9 @@
     overflow-y: auto;
     position: absolute;
     top: 4em;
-    right: 20px;
-    width: 400px;
-    max-width: 30%;
+    right: 0;
+    padding: 20px;
+    width: 30%;
     bottom: 2em;
     margin-bottom: 5px;
     .leave-button {

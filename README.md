@@ -10,7 +10,7 @@
   * Send a pull request
 
 If you just want to alter core game mechanics (e.g. by adding a role or modifier),
-you only need Elixir, and you can run `mix test prolog` instead.
+you only need Elixir, and you can run the faster `mix test prolog` instead.
 
 If you need help or advice, log onto [rty.party](https://rty.party) and join
 the dev room at the bottom of the sidebar.

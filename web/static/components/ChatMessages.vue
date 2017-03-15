@@ -75,6 +75,9 @@
 				border-right: 1px silver solid;
 				color: brown;
 			}
+			&.type-join, &.type-kick {
+				display: none;
+			}
 			&.type-m {
 				.msg {
 					color: black;
