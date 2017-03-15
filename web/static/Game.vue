@@ -75,7 +75,7 @@
     <form @submit.prevent="send">
       <input type="text" v-model="input"/>
     </form>
-    <!--<chat-input :channel={[$route.params.name]:topic}></chat-input>-->
+    <!-- <chat-input v-if="info.active" :channels="roleChannels(info.active.channels)"></chat-input> -->
   </div>
 </template>
 <script>
@@ -126,7 +126,9 @@
         })
       },
       send() {
-        this.activeChannel.push("new:msg", {type: 'm', msg: this.input})
+        if (this.input) {
+          this.activeChannel.push("new:msg", {type: 'm', msg: this.input})
+        }
         this.input = ''
       },
       handleGameInfo(d) {
@@ -226,7 +228,7 @@
       messages() {
         let {inner} = this.$refs
         // almost scrolled down
-        if(inner.scrollTop + inner.clientHeight + 60 >= inner.scrollHeight) {
+        if(inner && inner.scrollTop + inner.clientHeight + 60 >= inner.scrollHeight) {
           // scroll all the way down
           Vue.nextTick(_ => inner.scrollTop = inner.scrollHeight)
         }

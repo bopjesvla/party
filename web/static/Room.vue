@@ -42,7 +42,9 @@
 				})
 			},
 			send() {
-				this.channel.push("new:msg", {type: 'm', msg: this.input})
+				if (this.input) {
+					this.channel.push("new:msg", {type: 'm', msg: this.input})
+				}
 				this.input = ''
 			}
 		},

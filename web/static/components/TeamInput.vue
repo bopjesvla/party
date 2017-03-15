@@ -4,6 +4,7 @@
 		placeholder="Team"
 		:value="value"
     @input="$emit('input', $event)"
+		:allow-empty="false"
 		:options="[search.toLowerCase(), 'town', 'mafia']">
 	</v-select>
 </template>

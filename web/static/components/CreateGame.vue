@@ -5,10 +5,11 @@
 			@input="searchSetup"
 			placeholder="Name"
 			v-model="setup.name"
+			:allow-empty="false"
 			:options="[search].concat(nameOptions)">
 		</v-select>
 		<span v-if="error">{{error}}</span>
-		
+
 		<div v-if="newSetup">
 			Size: <input type="number" v-model.number="setup.size" min=1 max=25>
 			<div class="roles">
@@ -49,7 +50,7 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div v-else>
 			<div class="roles">
 				<div class="role" v-for="r in rolesByType('global')">
