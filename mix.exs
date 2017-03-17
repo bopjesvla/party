@@ -3,7 +3,7 @@ defmodule Mafia.Mixfile do
 
   def project do
     [app: :mafia,
-     version: "0.0.1",
+     version: "0.0.1-#{sha()}",
      elixir: "~> 1.2",
      elixirc_paths: elixirc_paths(Mix.env),
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
@@ -47,6 +47,13 @@ defmodule Mafia.Mixfile do
     {:phoenix_markdown, "~> 0.1.4"},
     {:distillery, "~> 1.0"}
    ]
+  end
+
+  defp sha() do
+    {result, _exit_code} = System.cmd("git", ["rev-parse", "HEAD"])
+
+    # We'll truncate the commit SHA to 7 chars. Feel free to change
+    String.slice(result, 0, 7)
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
