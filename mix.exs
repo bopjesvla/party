@@ -19,7 +19,8 @@ defmodule Mafia.Mixfile do
   def application do
     [mod: {Mafia, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
-                    :phoenix_ecto, :postgrex, :coherence, :httpoison]]
+                    :phoenix_ecto, :postgrex, :coherence, :httpoison,
+                    :erlog, :gen_smtp, :phoenix_markdown, :porta]]
   end
 
   # Specifies which paths to compile per environment.
