@@ -43,7 +43,8 @@ defmodule Mafia.Mixfile do
      {:httpoison, "~> 0.10.0"},
      {:erlog, github: "rvirding/erlog", branch: "develop"},
     {:porta, "~> 0.1.0"},
-    {:phoenix_markdown, "~> 0.1.4"}
+    {:phoenix_markdown, "~> 0.1.4"},
+    {:distillery, "~> 1.0"}
    ]
   end
 
