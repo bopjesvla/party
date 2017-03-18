@@ -20,7 +20,7 @@ defmodule Mafia.Mixfile do
     [mod: {Mafia, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
                     :phoenix_ecto, :postgrex, :coherence, :httpoison,
-                    :erlog, :gen_smtp, :phoenix_markdown, :porta,
+                    :erlog, :gen_smtp, :phoenix_markdown, :porta, :earmark,
                     :edeliver # keep at end
                     ]]
   end
