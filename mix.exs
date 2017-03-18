@@ -55,7 +55,7 @@ defmodule Mafia.Mixfile do
   defp commitcount() do
     {result, _exit_code} = System.cmd("git", ["rev-list", "--count", "HEAD"])
 
-    result
+    String.strip result
   end
 
   # Aliases are shortcuts or tasks specific to the current project.
