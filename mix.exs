@@ -20,7 +20,9 @@ defmodule Mafia.Mixfile do
     [mod: {Mafia, []},
      applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
                     :phoenix_ecto, :postgrex, :coherence, :httpoison,
-                    :erlog, :gen_smtp, :phoenix_markdown, :porta]]
+                    :erlog, :gen_smtp, :phoenix_markdown, :porta,
+                    :edeliver # keep at end
+                    ]]
   end
 
   # Specifies which paths to compile per environment.
@@ -45,7 +47,8 @@ defmodule Mafia.Mixfile do
      {:erlog, github: "rvirding/erlog", branch: "develop"},
     {:porta, "~> 0.1.0"},
     {:phoenix_markdown, "~> 0.1.4"},
-    {:distillery, "~> 1.0"}
+    {:distillery, "~> 1.0"},
+    {:edeliver, "~> 1.4.2"}
    ]
   end
 
