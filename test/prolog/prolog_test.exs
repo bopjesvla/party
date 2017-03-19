@@ -9,38 +9,42 @@ defmodule Mafia.PrologTest do
   end
 
   test "mafia.pl tests", %{db: db} do
-    assert {:ok, db} = :erlog.consult('prolog/simple_setup.plt', db)
-    assert {:ok, db} = :erlog.consult('prolog/mafia.plt', db)
+    db = db
+    |> Mafia.GameServer.consult("simple_setup.plt")
+    |> Mafia.GameServer.consult("mafia.plt")
+    
     assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
     assert {:succeed, [errors: errors]} = result
     assert [] = errors
   end
 
   test "resolve.pl tests", %{db: db} do
-    assert {:ok, db} = :erlog.consult('prolog/resolve.plt', db)
+    db = Mafia.GameServer.consult(db, "resolve.plt")
     assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
     assert {:succeed, [errors: errors]} = result
     assert [] = errors
   end
 
   test "actions.pl tests", %{db: db} do
-    assert {:ok, db} = :erlog.consult('prolog/simple_setup.plt', db)
-    assert {:ok, db} = :erlog.consult('prolog/actions.plt', db)
+    db = db
+    |> Mafia.GameServer.consult("simple_setup.plt")
+    |> Mafia.GameServer.consult("actions.plt")
     assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
     assert {:succeed, [errors: errors]} = result
     assert [] = errors
   end
 
   test "roles.pl tests", %{db: db} do
-    assert {:ok, db} = :erlog.consult('prolog/simple_setup.plt', db)
-    assert {:ok, db} = :erlog.consult('prolog/roles.plt', db)
+    db = db
+    |> Mafia.GameServer.consult("simple_setup.plt")
+    |> Mafia.GameServer.consult("roles.plt")
     assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
     assert {:succeed, [errors: errors]} = result
     assert [] = errors
   end
 
   test "utils.pl tests", %{db: db} do
-    assert {:ok, db} = :erlog.consult('prolog/utils.plt', db)
+    db = db |> Mafia.GameServer.consult("utils.plt")
     assert {result, _} = :erlog.prove({:run_tests, {:errors}}, db)
     assert {:succeed, [errors: errors]} = result
     assert [] = errors

@@ -3,7 +3,7 @@ defmodule Mafia.GameServer do
   alias Mafia.{Repo,Channel,MeetChannel,GameChannel}
   import Ecto.Query
 
-  @game_db_files ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl end.pl)c
+  @game_db_files ~w(mafia.pl roles.pl actions.pl resolve.pl utils.pl end.pl)
 
   # management
 
@@ -152,15 +152,18 @@ defmodule Mafia.GameServer do
 
   defdelegate atom(string), to: String, as: :to_existing_atom
   defdelegate charlist(string), to: String, as: :to_charlist
+  
+  def consult(db, file) do
+    path = Path.join([:code.priv_dir(:mafia), "prolog", file]) |> to_charlist
+    case :erlog.consult(path, db) do
+      {:ok, db} -> db
+      {:error, err} -> raise {:error, file, err}
+    end
+  end
 
   def game_db do
     {:ok, db} = :erlog.new
-    Enum.reduce @game_db_files, db, fn (file, db) ->
-      case :erlog.consult('prolog/' ++ file, db) do
-        {:ok, db} -> db
-        {:error, err} -> raise {:error, file, err}
-      end
-    end
+    Enum.reduce @game_db_files, db, &consult(&2, &1)
   end
 
   def load_setup(db, setup) do
