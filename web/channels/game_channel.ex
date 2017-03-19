@@ -14,7 +14,7 @@ defmodule Mafia.GameChannel do
     id = String.to_integer(id)
     %{status: "playing"} = Queries.player!(id, user)
 
-    messages = Repo.run! :game_messages_for_user, [user, id]
+    # messages = Repo.run! :game_messages_for_user, [user, id]
 
     info = Queries.game_info(id, user)
     
