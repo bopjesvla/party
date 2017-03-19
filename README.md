@@ -20,7 +20,7 @@ Most issues are starter issues. To contribute:
   * Run `mix test` to verify everything is still working
   * Send a pull request
 
-If you just want to alter the core game mechanics written in Prolog
+If you just want to alter the core game mechanics located in `priv/prolog`
 (e.g. by adding a role or modifier),
 you only need Elixir, and you can run the faster `mix test prolog` instead.
 
