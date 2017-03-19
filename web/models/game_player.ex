@@ -14,7 +14,7 @@ defmodule Mafia.GamePlayer do
   """
   def changeset(struct, params \\ %{}) do
     struct
-    |> cast(params, [:status])
-    |> validate_required([:status])
+    |> cast(params, [:status, :game_slot_id])
+    |> validate_required([:status, :game_slot_id])
   end
 end

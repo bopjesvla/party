@@ -94,11 +94,21 @@ defmodule Mafia.QueueChannel do
     end
 
     nil = Mafia.Queries.player(id, user)
+    
+    empty_slot_id = Repo.one from e in Mafia.Queries.empty_slots,
+    where: e.game_id == ^id,
+    limit: 1,
+    select: e.id
 
-    res = Repo.run! :signup, [id, user, Ecto.DateTime.utc]
+    res = %GamePlayer{user_id: user}
+    |> GamePlayer.changeset(%{
+      game_slot_id: empty_slot_id,
+      status: "playing",
+    })
+    |> Repo.insert
 
     reply = case res do
-      %{num_rows: 1} ->
+      {:ok, _} ->
         empty_slot = Repo.one from e in Mafia.Queries.empty_slots,
         where: e.game_id == ^id,
         limit: 1,
@@ -133,7 +143,7 @@ defmodule Mafia.QueueChannel do
           end
         end
         :ok
-      %{num_rows: 0} ->
+      {:error, _} ->
         {:error, %{errors: %{"game": ["Already filled"]}}}
     end
 

@@ -3,7 +3,7 @@ defmodule Mafia.GamePlayerTest do
 
   alias Mafia.GamePlayer
 
-  @valid_attrs %{status: "some content"}
+  @valid_attrs %{status: "playing", game_slot_id: 1}
   @invalid_attrs %{}
 
   test "changeset with valid attributes" do
