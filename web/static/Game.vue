@@ -213,9 +213,14 @@
         return this.info.player_status.filter(x => x.slot == slot)[0].status
       },
       leaveGame() {
-        queue_channel.push("out", {id: this.$route.params.game_id})
-          .receive("ok", _ => this.$router.push("/"))
-          .receive("error", _ => console.log(_))
+        if (this.info.status == "ongoing" || this.info.status == "signups") {
+          queue_channel.push("out", {id: this.$route.params.game_id})
+            .receive("ok", _ => this.$router.push("/"))
+            .receive("error", _ => console.log(_))
+        }
+        else {
+          this.$router.push("/")
+        }
       },
       joinGame() {
         queue_channel.push("signup", {id: this.$route.params.game_id})

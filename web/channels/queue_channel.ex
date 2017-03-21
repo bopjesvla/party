@@ -19,7 +19,7 @@ defmodule Mafia.QueueChannel do
     where: g.status == "signups",
     select: %{id: g.id, setup: s.name, size: s.size, empty: count(e.id)},
     limit: 10
-    
+
     replacements = Repo.all from e in Mafia.Queries.empty_slots,
     join: g in assoc(e, :game),
     join: s in assoc(g, :setup),
@@ -94,7 +94,7 @@ defmodule Mafia.QueueChannel do
     end
 
     nil = Mafia.Queries.player(id, user)
-    
+
     empty_slot_id = Repo.one from e in Mafia.Queries.empty_slots,
     where: e.game_id == ^id,
     limit: 1,
@@ -121,7 +121,7 @@ defmodule Mafia.QueueChannel do
           status: game.status,
           speed: game.speed
         }
-        
+
         if game.status == "signups" and empty_slot == nil do
           spawn fn ->
             Registry.register(:timer_registry, game.id, @signups_countdown)
@@ -164,7 +164,7 @@ defmodule Mafia.QueueChannel do
     where: p.user_id == ^socket.assigns.user and s.game_id == ^id
 
     Repo.update_all(query, set: [status: new_player_status])
-    
+
     Mafia.Endpoint.broadcast! "user:#{socket.assigns.user}", "leave:game", %{
       id: id
     }

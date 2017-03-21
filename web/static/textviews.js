@@ -30,5 +30,7 @@ export function renderEnd(winners, players) {
 }
 
 export function slotName(slot, players) {
-  return players.filter(x => x.slot == slot)[0].name
+  let player = players.filter(x => x.slot == slot && x.status == "playing")[0] ||
+    players.filter(x => x.slot == slot && x.status != "out")[0]
+  return player.name
 }

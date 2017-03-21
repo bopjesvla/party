@@ -29,7 +29,8 @@
 		methods: {
 			time: x => x.split(/[T ]/)[1].slice(0,5),
 			name(u) {
-				return typeof u == "number" ? this.players.filter(x => x.user == u)[0].name : u
+				let player = this.players && this.players.filter(x => x.user == u)[0]
+				return player ? player.name : u
 			},
 			renderMessage(message) {
 				if (message.ty == "m") {
