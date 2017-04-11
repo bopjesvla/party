@@ -23,4 +23,14 @@ defmodule Mafia.UserChannel do
     }
     {:reply, {:ok, %{games: games}}, socket}
   end
+
+  def handle_in("get:archive", %{"id" => id}, socket) do
+    game = Repo.get! Mafia.Game, id
+    if game.status in ~w(ended crashed) do
+      info = Mafia.Queries.game_info_and_messages(id, socket.assigns.user)
+      {:reply, {:ok, info}, socket}
+    else
+      {:reply, :ok, socket}
+    end
+  end
 end

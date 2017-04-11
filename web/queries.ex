@@ -20,6 +20,28 @@ defmodule Mafia.Queries do
   	|> Map.merge(%{roles: roles, teams: teams, user: setup.user.name})
   end
 
+  def game_info_and_messages(id, user) do
+    info = game_info(id, user)
+    
+    query = if info.status == "ongoing" do
+      channels = Enum.map(info.active ++ info.inactive, & &1.channel)
+      from m in Mafia.Message,
+        join: c in assoc(m, :channel),
+        where: c.name in ^channels or (c.game_id == ^id and c.type != "meet")
+    else
+        from m in Mafia.Message,
+          join: c in assoc(m, :channel),
+          where: c.game_id == ^id
+    end
+    
+    messages = query
+    |> select([m], %{msg: m.msg, u: m.user_id, ts: m.inserted_at, ty: m.type})
+    |> order_by(:inserted_at)
+    |> Repo.all
+
+    Map.put(info, :msgs, messages)
+  end
+
   def game_info(id, user) do
     game = Repo.get_by(Game, id: id)
     |> Repo.preload(:setup)

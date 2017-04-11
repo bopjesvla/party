@@ -23,6 +23,7 @@ import Lobby from './Lobby.vue'
 import LobbySidebar from './LobbySidebar.vue'
 import Room from './Room.vue'
 import Game from './Game.vue'
+import Archive from './Archive.vue'
 
 import 'vueify/lib/insert-css'
 
@@ -52,6 +53,14 @@ let router = new VueRouter({
         name: 'game',
         components: {
           default: Game,
+          sidebar: LobbySidebar
+        }
+      },
+      {
+        path: 'archive/:game_id',
+        name: 'archive',
+        components: {
+          default: Archive,
           sidebar: LobbySidebar
         }
       }
