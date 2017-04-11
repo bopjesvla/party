@@ -1,5 +1,5 @@
 <template>
-  <chat-messages :messages="messages" :players="this.info.players"></chat-messages>
+  <chat-messages :messages="messages" :players="info.players"></chat-messages>
 </template>
 <script>
   import {user_channel} from './socket'
@@ -22,6 +22,8 @@
           .receive("ok", (d) => {
             console.log(d)
             this.messages = d.msgs
+            delete d.msgs
+            this.info = d
           })
       },
     },

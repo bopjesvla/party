@@ -2,7 +2,7 @@
   <div class="game-room">
     <room-header :name="name"></room-header>
     <div class="room-inner" ref="inner">
-      <chat-messages :messages="messages" :players="this.info.players"></chat-messages>
+      <chat-messages :messages="messages" :players="info.players"></chat-messages>
     </div>
     <div class="game-ui">
       <button v-if="joined" type="button" @click="leaveGame" class="leave-button">
