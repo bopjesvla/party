@@ -93,14 +93,4 @@ defmodule Mafia.Coherence.RegistrationController do
         render(conn, "edit.html", user: user, changeset: changeset)
     end
   end
-
-  @doc """
-  Delete a registration.
-  """
-  def delete(conn, params) do
-    user = Coherence.current_user(conn)
-    conn = Coherence.SessionController.delete(conn)
-    Config.repo.delete! user
-    redirect_to(conn, :registration_delete, params)
-  end
 end
